@@ -1,0 +1,14 @@
+<resources>
+    <string name="app_name">ZiggyMusic</string>
+    <string name="title_music_list">음악 목록</string>
+    <string name="title_my_play_list">나의 플레이리스트</string>
+    <string name="title_setting">설정</string>
+
+    <string name="now_playing_title">지금 재생 중</string>
+    <string name="current_playing_time">0:00</string>
+    <string name="total_playing_time">3:10</string>
+
+    <string name="current_song_title">노래 제목</string>
+    <string name="current_song_artist">아티스트</string>
+    <string name="current_song_album">앨범명</string>
+</resources>
