@@ -47,7 +47,7 @@ class MusicRepository(application: Application) {
             val duration = cursor.getLong(4)
 
             val music = MusicModel(id, title, artist, albumId, duration)
-//            musicList.add(music)
+            musicList.add(music)
         }
 
         return musicList
