@@ -13,7 +13,7 @@ class MyPlayListViewModel(application: Application) : AndroidViewModel(applicati
     private val musicRepository : MusicRepository
     private var musicItems : LiveData<List<MusicModel>>
 
-    private val myPlayListLiveData = MutableLiveData<List<MusicModel>>()
+    val myPlayListLiveData = MutableLiveData<List<MusicModel>>()
     val musicList : LiveData<List<MusicModel>>
         get() = myPlayListLiveData
 

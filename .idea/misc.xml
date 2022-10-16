@@ -10,6 +10,8 @@
         <entry key="..\:/Users/Hoseop/AndroidStudioProjects/ZiggyMusic/app/src/main/res/layout/item_music_list.xml" value="0.3333333333333333" />
         <entry key="..\:/Users/Hoseop/AndroidStudioProjects/ZiggyMusic/app/src/main/res/layout/item_my_play_list.xml" value="0.3333333333333333" />
         <entry key="..\:/Users/Hoseop/AndroidStudioProjects/ZiggyMusic/app/src/main/res/layout/music_list_fragment.xml" value="0.4466666666666667" />
+        <entry key="..\:/Users/Hoseop/AndroidStudioProjects/ZiggyMusic/app/src/main/res/menu/menu_add_music_to_myplaylist.xml" value="0.34010416666666665" />
+        <entry key="..\:/Users/Hoseop/AndroidStudioProjects/ZiggyMusic/app/src/main/res/menu/menu_delete_music_from_myplaylist_option.xml" value="0.34010416666666665" />
       </map>
     </option>
   </component>

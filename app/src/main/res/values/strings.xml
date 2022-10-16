@@ -11,4 +11,7 @@
     <string name="current_song_title">노래 제목</string>
     <string name="current_song_artist">아티스트</string>
     <string name="current_song_album">앨범명</string>
+
+    <string name="add_music_to_myplaylist">플레이리스트에 추가</string>
+    <string name="delete_music_from_myplaylist">플레이리스트에서 제거</string>
 </resources>

@@ -6,8 +6,10 @@ import android.content.pm.PackageManager
 import android.os.Bundle
 import android.provider.MediaStore
 import android.view.LayoutInflater
+import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
+import androidx.appcompat.widget.PopupMenu
 import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
@@ -54,6 +56,9 @@ class MusicListFragment : Fragment(), View.OnClickListener, OnRecyclerItemClickL
         super.onViewCreated(view, savedInstanceState)
 
         initViewModel()
+        initRecyclerView(binding.rvMusicList)
+
+        startProcess()
 
         setupListeners()
     }
@@ -80,23 +85,6 @@ class MusicListFragment : Fragment(), View.OnClickListener, OnRecyclerItemClickL
         }
     }
 
-    private fun initTeamListAdapter() {
-        teamListAdapter =
-            TeamListAdapter(requireActivity(), teamDataList, object : OnPopupClickListener() {
-                fun popupOnClick(data: TeamEntity?) {
-                    val intent = Intent(requireActivity(), TeamDetailActivity::class.java)
-                    intent.putExtra(
-                        com.hero.seoultechteams.view.main.team.TeamListFragment.EXTRA_TEAM_DATA,
-                        data
-                    )
-                    //                startActivityForResult(intent, UPDATE_TEAM_DETAIL_REQ_CODE);
-                }
-            })
-        teamListAdapter.setOnRecyclerItemClickListener(this)
-        teamListAdapter.notifyDataSetChanged()
-        rvTeamList.setAdapter(teamListAdapter)
-    }
-
     private fun setupListeners() {
         val intent = Intent(this.context, NowPlayingActivity::class.java)
         musicListAdapter.setOnRecyclerItemClickListener(object : OnRecyclerItemClickListener<MusicModel> {
@@ -110,10 +98,16 @@ class MusicListFragment : Fragment(), View.OnClickListener, OnRecyclerItemClickL
                 startActivity(intent)
             }
         })
+
+        musicListAdapter.notifyDataSetChanged()
     }
 
     private fun startProcess() {
-        val adapter = MusicListAdapter(requireActivity(), data)
+        val adapter = MusicListAdapter(requireActivity(), data, object : MusicListAdapter.OnPopupClickListener {
+            override fun popupOnClick(musicModel: MusicModel) {
+                TODO("Not yet implemented")
+            }
+        })
         adapter.musicList.addAll(getMusicList())
     }
 
@@ -162,15 +156,36 @@ class MusicListFragment : Fragment(), View.OnClickListener, OnRecyclerItemClickL
 
     override fun onItemClick(position: Int, view: View, data: MusicModel) {
         when(view.id) {
-
+            R.id.iv_music_option_menu -> openAddToMyPlayListOptionMenu(data)
         }
-        binding.
+
         intentNowPlaying(data)
     }
 
     private fun intentNowPlaying(data: MusicModel) {
         val intent = Intent(requireActivity(), NowPlayingActivity::class.java)
+
         intent.putExtra(EXTRA_MUSIC_DATA, data)
         startActivity(intent)
+    }
+
+    private fun openAddToMyPlayListOptionMenu(data: MusicModel) {
+        val popupMenu = PopupMenu(requireActivity(), requireView())
+        popupMenu.menuInflater.inflate(R.menu.menu_add_music_to_myplaylist_option, popupMenu.menu)
+        popupMenu.setOnMenuItemClickListener(object : PopupMenu.OnMenuItemClickListener {
+            override fun onMenuItemClick(item: MenuItem?): Boolean {
+                when(item?.itemId) {
+                    R.id.menu_add_music_to_myplaylist -> addMusicToMyPlayList()
+                }
+
+                return true
+            }
+        })
+
+        popupMenu.show()
+    }
+
+    private fun addMusicToMyPlayList(musicModel: MusicModel) {
+        TODO("Not yet implemented")
     }
 }
