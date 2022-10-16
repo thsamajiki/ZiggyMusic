@@ -43,3 +43,10 @@
 ## 사용된 라이브러리
 - 머티리얼 디자인 (com.google.android.material:material:1.6.1)
 - (앨범)사진 원형 표시 (com.makeramen:roundedimageview:2.3.0)
+
+
+## 스크린샷
+
+
+
+## 시연 영상
