@@ -10,23 +10,24 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.viewpager2.widget.ViewPager2
-import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.navigation.NavigationBarView
 import com.hero.ziggymusic.R
+import com.hero.ziggymusic.databinding.ActivityMainBinding
 import com.hero.ziggymusic.view.main.musiclist.MusicListFragment
 import com.hero.ziggymusic.view.main.myplaylist.MyPlayListFragment
 import com.hero.ziggymusic.view.main.setting.SettingFragment
 
 class MainActivity : AppCompatActivity(), View.OnClickListener, NavigationBarView.OnItemSelectedListener {
 
-    private val mainViewPager: ViewPager2? = null
-    private val mainBottomNav: BottomNavigationView? = null
+    private lateinit var binding: ActivityMainBinding
     val permission = Manifest.permission.READ_EXTERNAL_STORAGE
     var REQ_READ = 99
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+        binding = ActivityMainBinding.inflate(layoutInflater)
+
+        setContentView(binding.root)
 
         setFragmentAdapter();
 
@@ -40,13 +41,13 @@ class MainActivity : AppCompatActivity(), View.OnClickListener, NavigationBarVie
 
     private fun setFragmentAdapter() {
         val fragmentAdapter = FragmentAdapter(this)
-        mainViewPager?.adapter = fragmentAdapter
+        binding.mainViewPager.adapter = fragmentAdapter
 
         fragmentAdapter.addFragment(MusicListFragment.newInstance())
         fragmentAdapter.addFragment(MyPlayListFragment.newInstance())
         fragmentAdapter.addFragment(SettingFragment.newInstance())
 
-        mainViewPager?.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
+        binding.mainViewPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
             override fun onPageScrolled(
                 position: Int,
                 positionOffset: Float,
@@ -93,8 +94,8 @@ class MainActivity : AppCompatActivity(), View.OnClickListener, NavigationBarVie
         }
     }
 
-    override fun onClick(p0: View?) {
-        TODO("Not yet implemented")
+    override fun onClick(view: View?) {
+
     }
 
     override fun onNavigationItemSelected(item: MenuItem): Boolean {

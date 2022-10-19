@@ -10,13 +10,13 @@ import com.hero.ziggymusic.database.music.entity.MusicModel
 @Database(entities = [MusicModel::class], version = 1)
 abstract class AppMusicDatabase : RoomDatabase() {
 
-    abstract fun musicFileDao() : MusicFileDao
+    abstract fun musicFileDao(): MusicFileDao
 
     companion object {
         @Volatile
         private var instance: AppMusicDatabase? = null
 
-        fun getInstance(context : Context) : AppMusicDatabase = instance ?: synchronized(this) {
+        fun getInstance(context: Context): AppMusicDatabase = instance ?: synchronized(this) { // singleton pattern
             instance ?: buildDatabase(context).also { instance = it }
         }
 

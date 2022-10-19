@@ -1,27 +1,26 @@
 package com.hero.ziggymusic.view.main.musiclist
 
-import android.content.Context
 import android.media.MediaPlayer
 import android.net.Uri
+import android.provider.MediaStore
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
-import com.hero.ziggymusic.database.music.entity.MusicFileData
 import com.hero.ziggymusic.database.music.entity.MusicModel
 import com.hero.ziggymusic.databinding.ItemMusicListBinding
+import com.hero.ziggymusic.listener.OnRecyclerItemClickListener
 import com.hero.ziggymusic.view.main.BaseAdapter
 import java.text.SimpleDateFormat
 
-class MusicListAdapter(private var context: Context,
-                       private var data : List<MusicModel>,
-                       private val onPopupClickListener: OnPopupClickListener)
-    : BaseAdapter<MusicListAdapter.MusicListViewHolder, MusicModel>() {
+class MusicListAdapter(
+    private val onPopupClickListener: OnPopupClickListener
+) : BaseAdapter<MusicListAdapter.MusicListViewHolder, MusicModel>() {
 
-    val musicList = mutableListOf<MusicModel>()
-    var mediaPlayer : MediaPlayer? = null
+    private val musicList = mutableListOf<MusicModel>()
+    private var mediaPlayer: MediaPlayer? = null
 
     interface OnPopupClickListener {
         fun popupOnClick(musicModel: MusicModel)
@@ -30,9 +29,10 @@ class MusicListAdapter(private var context: Context,
 //    private val onPopupClickListener: OnPopupClickListener? = null
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MusicListViewHolder {
-        val binding = ItemMusicListBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+        val binding =
+            ItemMusicListBinding.inflate(LayoutInflater.from(parent.context), parent, false)
 
-        return MusicListViewHolder(binding)
+        return MusicListViewHolder(binding, getOnRecyclerItemClickListener()!!)
     }
 
     override fun onBindViewHolder(holder: MusicListViewHolder, position: Int) {
@@ -45,44 +45,53 @@ class MusicListAdapter(private var context: Context,
     }
 
     fun setMusicList(musicData: List<MusicModel>) {
-        data = musicData
+        musicList.clear()
+        musicList.addAll(musicData)
         notifyDataSetChanged()
     }
 
 
-    inner class MusicListViewHolder(binding: ItemMusicListBinding) : RecyclerView.ViewHolder(binding.root), View.OnClickListener {
-        private var musicUri : Uri? = null // 현재 음원의 Uri
-        private var ivAlbum : ImageView = binding.ivAlbum
-        private var tvSongArtist : TextView = binding.tvSongArtist
-        private var tvSongTitle : TextView = binding.tvSongTitle
-        private var tvDuration : TextView = binding.tvDuration
+    inner class MusicListViewHolder(
+        binding: ItemMusicListBinding,
+        private val itemClickListener: OnRecyclerItemClickListener<MusicModel>) :
+        RecyclerView.ViewHolder(binding.root), View.OnClickListener {
+        private var musicUri: Uri? = null // 현재 음원의 Uri
+        private var ivAlbum: ImageView = binding.ivAlbum
+        private var tvSongArtist: TextView = binding.tvSongArtist
+        private var tvSongTitle: TextView = binding.tvSongTitle
+        private var tvDuration: TextView = binding.tvDuration
 
-        init {
-            itemView.setOnClickListener {
-                if(mediaPlayer != null) {
-                    mediaPlayer?.release()
-                    mediaPlayer = null
-                }
-
-                mediaPlayer = MediaPlayer.create(itemView.context, musicUri)
-                mediaPlayer?.start()
-            }
-        }
 
         fun setMusic(musicItem: MusicModel) {
-            musicUri = musicItem.getMusicFileUri()
-            ivAlbum.setImageURI(musicItem.getAlbumUri())
+            musicUri = getMusicFileUri(musicItem)
+            ivAlbum.setImageURI(getAlbumUri(musicItem))
             tvSongArtist.text = musicItem.musicArtist
             tvSongTitle.text = musicItem.musicTitle
 
             val simpleDateFormat = SimpleDateFormat("mm:ss")
             tvDuration.text = simpleDateFormat.format(musicItem.duration)
+
+            itemView.setOnClickListener {
+                itemClickListener.onItemClick(absoluteAdapterPosition, it, musicItem)
+            }
         }
 
-        override fun onClick(p0: View) {
+        private fun getMusicFileUri(musicItem: MusicModel): Uri {
+            return Uri.withAppendedPath(MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI, musicItem.id)
+        }
+
+        private fun getAlbumUri(musicItem: MusicModel): Uri {
+            return Uri.parse("content://media/external/audio/albumart/${musicItem.albumId}")
+        }
+
+        override fun onClick(view: View) {
             val pos = bindingAdapterPosition
             if (pos != RecyclerView.NO_POSITION) {
-                getOnRecyclerItemClickListener()?.onItemClick(bindingAdapterPosition, p0, musicList[bindingAdapterPosition])
+                getOnRecyclerItemClickListener()?.onItemClick(
+                    bindingAdapterPosition,
+                    view,
+                    musicList[bindingAdapterPosition]
+                )
             }
         }
     }

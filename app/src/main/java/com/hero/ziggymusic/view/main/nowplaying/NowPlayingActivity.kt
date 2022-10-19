@@ -1,70 +1,89 @@
 package com.hero.ziggymusic.view.main.nowplaying
 
+import android.content.Context
+import android.content.Intent
 import android.media.MediaPlayer
+import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
-import android.view.MotionEvent
 import android.view.View
-import android.view.View.OnTouchListener
 import android.widget.SeekBar
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.databinding.DataBindingUtil
+import com.hero.ziggymusic.Injector
 import com.hero.ziggymusic.R
-import com.hero.ziggymusic.database.music.entity.MusicFileData
+import com.hero.ziggymusic.ZiggyMusicApp
+import com.hero.ziggymusic.database.music.entity.MusicModel
 import com.hero.ziggymusic.databinding.ActivityNowPlayingBinding
+import com.hero.ziggymusic.view.main.nowplaying.viewmodel.NowPlayingViewModel
+import com.hero.ziggymusic.view.main.nowplaying.viewmodel.NowPlayingViewModelFactory
 
 class NowPlayingActivity : AppCompatActivity(), View.OnClickListener {
 
-    private lateinit var binding : ActivityNowPlayingBinding
-    private lateinit var sbPlayer: SeekBar
+    private var _binding: ActivityNowPlayingBinding? = null
+    private val binding get() = _binding!!
+
+    private val nowPlayingViewModel by viewModels<NowPlayingViewModel> {
+        NowPlayingViewModelFactory(
+            ZiggyMusicApp.getInstance(),
+            Injector.provideMusicRepository()
+        )
+    }
+
     private lateinit var mediaPlayer: MediaPlayer
     private lateinit var handler: Handler
 
+    companion object {
+        const val EXTRA_MUSIC_FILE_KEY: String = "id"
 
-    val EXTRA_MUSIC_FILE_KEY : String = "id"
+        fun getIntent(context: Context, musicKey: String): Intent =
+            Intent(context, NowPlayingActivity::class.java)
+                .putExtra(EXTRA_MUSIC_FILE_KEY, musicKey)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ActivityNowPlayingBinding.inflate(layoutInflater)
-        val view = binding.root
-        setContentView(view)
+        _binding = DataBindingUtil.setContentView(this, R.layout.activity_now_playing)
+        binding.lifecycleOwner = this
+//        val view = binding.root
+//        setContentView(view)
 
+        initView()
+        initViewModel()
         setOnClickListener()
+//        prepareMediaPlayer()
+        initPlayer()
+    }
 
-
-        sbPlayer.max = 100
-
-        prepareMediaPlayer()
-
-        sbPlayer.setOnTouchListener { view, motionEvent ->
-            false
-        }
-
-        sbPlayer.setOnTouchListener(OnTouchListener { view: View, motionEvent: MotionEvent? ->
-            val seekBar = view as SeekBar
-            val playPosition = mediaPlayer.duration / 100 * seekBar.progress
-            mediaPlayer.seekTo(playPosition)
-            binding.tvCurrentTime.text = milliSecondsToTimer(mediaPlayer.currentPosition.toLong())
-            false
-        })
-
+    private fun initPlayer() {
+        mediaPlayer = MediaPlayer()
         mediaPlayer.setOnBufferingUpdateListener(MediaPlayer.OnBufferingUpdateListener { mediaPlayer, i ->
-            sbPlayer.secondaryProgress = i
+            binding.sbPlayer.secondaryProgress = i
         })
 
         mediaPlayer.setOnCompletionListener(MediaPlayer.OnCompletionListener {
-            sbPlayer.progress = 0
+            binding.sbPlayer.progress = 0
             binding.ibPlayPause.setImageResource(R.drawable.ic_play_button)
             binding.tvCurrentTime.text = R.string.current_playing_time.toString()
             mediaPlayer.reset()
-            prepareMediaPlayer()
+//            prepareMediaPlayer()
         })
     }
 
+    private fun initViewModel() {
+        nowPlayingViewModel.nowPlayingMusic.observe(this) { musicModel ->
+            initializeNowPlaying(musicModel)
+            playMusic(musicModel.getMusicFileUri())
+        }
+    }
+
     private fun initView() {
+        val musicKey = intent.getStringExtra(EXTRA_MUSIC_FILE_KEY).orEmpty()
 
-        val musicFileKey = intent.getStringExtra(EXTRA_MUSIC_FILE_KEY)
+        nowPlayingViewModel.requestMusic(musicKey)
 
-//        initializeNowPlaying()
+        binding.sbPlayer.max = 100
     }
 
     private fun setOnClickListener() {
@@ -80,17 +99,35 @@ class NowPlayingActivity : AppCompatActivity(), View.OnClickListener {
                 updateSeekBar()
             }
         })
+
         binding.ibPrevious.setOnClickListener(this)
         binding.ibNext.setOnClickListener(this)
         binding.ibRepeat.setOnClickListener(this)
+
+        binding.sbPlayer.setOnClickListener { view ->
+            val seekBar = view as SeekBar
+            val playPosition = mediaPlayer.duration / 100 * seekBar.progress
+            mediaPlayer.seekTo(playPosition)
+            binding.tvCurrentTime.text = milliSecondsToTimer(mediaPlayer.currentPosition.toLong())
+
+        }
     }
 
-    private fun initializeNowPlaying(musicFileData: MusicFileData) {
+    private fun initializeNowPlaying(musicModel: MusicModel) {
+        binding.tvSongTitle.text = musicModel.musicTitle
+        binding.tvSongArtist.text = musicModel.musicArtist
+        binding.tvTotalTime.text = milliSecondsToTimer(musicModel.duration ?: 0L)
+        binding.rivAlbumArt.setImageURI(musicModel.getAlbumUri())
+    }
+
+    private fun prepareMediaPlayer(musicFileUri: Uri) {
 
     }
 
-    private fun prepareMediaPlayer() {
-
+    private fun playMusic(musicFileUri: Uri) {
+        mediaPlayer.setDataSource(this, musicFileUri)
+        mediaPlayer.prepare()
+        mediaPlayer.start()
     }
 
     private var updater : Runnable = Runnable {
@@ -103,7 +140,7 @@ class NowPlayingActivity : AppCompatActivity(), View.OnClickListener {
 
     private fun updateSeekBar() {
         if (mediaPlayer.isPlaying) {
-            sbPlayer.progress = (((mediaPlayer.currentPosition.div(mediaPlayer.duration)).times(
+            binding.sbPlayer.progress = (((mediaPlayer.currentPosition.div(mediaPlayer.duration)).times(
                 100
             )).toFloat()).toInt()
             handler.postDelayed(updater, 1000)
@@ -112,10 +149,10 @@ class NowPlayingActivity : AppCompatActivity(), View.OnClickListener {
 
     private fun milliSecondsToTimer(milliSeconds : Long) : String {
         var timerString : String = ""
-        var secondsString : String
+        val secondsString : String
 
-        var minutes : Int = (milliSeconds % (1000 * 60 * 60) / (1000 * 60)).toInt()
-        var seconds : Int = ((milliSeconds % (1000 * 60 * 60)) % (1000 * 60) / 1000).toInt()
+        val minutes : Int = (milliSeconds % (1000 * 60 * 60) / (1000 * 60)).toInt()
+        val seconds : Int = ((milliSeconds % (1000 * 60 * 60)) % (1000 * 60) / 1000).toInt()
 
         if (seconds < 10) {
             secondsString = "0$seconds"
@@ -128,12 +165,9 @@ class NowPlayingActivity : AppCompatActivity(), View.OnClickListener {
         return timerString
     }
 
-
-
-
-    override fun onClick(p0: View?) {
-        when(p0?.id) {
-            R.id.iv_back -> finish()
+    override fun onClick(view: View?) {
+        when(view?.id) {
+            binding.ivBack.id -> finish()
         }
     }
 }
