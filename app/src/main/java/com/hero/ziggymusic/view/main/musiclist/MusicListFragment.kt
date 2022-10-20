@@ -14,17 +14,16 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.hero.ziggymusic.Injector
 import com.hero.ziggymusic.R
-import com.hero.ziggymusic.ZiggyMusicApp
 import com.hero.ziggymusic.database.music.entity.MusicModel
 import com.hero.ziggymusic.databinding.FragmentMusicListBinding
 import com.hero.ziggymusic.listener.OnRecyclerItemClickListener
 import com.hero.ziggymusic.view.main.musiclist.viewmodel.MusicListViewModel
-import com.hero.ziggymusic.view.main.musiclist.viewmodel.MusicListViewModelFactory
 import com.hero.ziggymusic.view.main.nowplaying.NowPlayingActivity
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
+@AndroidEntryPoint
 class MusicListFragment : Fragment(), View.OnClickListener,
     OnRecyclerItemClickListener<MusicModel> {
 
@@ -32,12 +31,7 @@ class MusicListFragment : Fragment(), View.OnClickListener,
     private var _binding: FragmentMusicListBinding? = null
     private val binding get() = _binding!!
 
-    private val musicListViewModel by viewModels<MusicListViewModel> {
-        MusicListViewModelFactory(
-            ZiggyMusicApp.getInstance(),
-            Injector.provideMusicRepository()
-        )
-    }
+    private val musicListViewModel by viewModels<MusicListViewModel>()
 
     private lateinit var musicListAdapter: MusicListAdapter
     private val permission = Manifest.permission.READ_EXTERNAL_STORAGE

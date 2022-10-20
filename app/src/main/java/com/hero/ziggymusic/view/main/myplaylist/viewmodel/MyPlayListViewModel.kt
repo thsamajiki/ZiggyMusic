@@ -2,12 +2,17 @@ package com.hero.ziggymusic.view.main.myplaylist.viewmodel
 
 import android.app.Application
 import android.provider.MediaStore
-import androidx.lifecycle.*
+import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import com.hero.ziggymusic.database.music.entity.MusicModel
 import com.hero.ziggymusic.domain.music.repository.MusicRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 
 // ViewModel은 DB에 직접 접근하지 않아야함. Repository 에서 데이터 통신.
-class MyPlayListViewModel(
+@HiltViewModel
+class MyPlayListViewModel @Inject constructor(
     application: Application,
     private val musicRepository: MusicRepository
 ) : AndroidViewModel(application) {
@@ -64,20 +69,5 @@ class MyPlayListViewModel(
 
     override fun onCleared() {
         super.onCleared()
-    }
-}
-
-
-class MyPlayListViewModelFactory(
-    private val application: Application,
-    private val musicRepository : MusicRepository
-): AbstractSavedStateViewModelFactory() {
-
-    override fun <T : ViewModel?> create(
-        key: String,
-        modelClass: Class<T>,
-        handle: SavedStateHandle
-    ): T {
-        return MyPlayListViewModel(application, musicRepository) as T
     }
 }

@@ -10,16 +10,15 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.hero.ziggymusic.Injector
 import com.hero.ziggymusic.R
-import com.hero.ziggymusic.ZiggyMusicApp
 import com.hero.ziggymusic.database.music.entity.MusicModel
 import com.hero.ziggymusic.databinding.FragmentMyPlayListBinding
 import com.hero.ziggymusic.listener.OnRecyclerItemClickListener
 import com.hero.ziggymusic.view.main.myplaylist.viewmodel.MyPlayListViewModel
-import com.hero.ziggymusic.view.main.myplaylist.viewmodel.MyPlayListViewModelFactory
 import com.hero.ziggymusic.view.main.nowplaying.NowPlayingActivity
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class MyPlayListFragment : Fragment(), View.OnClickListener,
     OnRecyclerItemClickListener<MusicModel> {
 
@@ -27,12 +26,7 @@ class MyPlayListFragment : Fragment(), View.OnClickListener,
     private var _binding: FragmentMyPlayListBinding? = null
     private val binding get() = _binding!!
 
-    private val myPlayListViewModel by viewModels<MyPlayListViewModel> {
-        MyPlayListViewModelFactory(
-            ZiggyMusicApp.getInstance(),
-            Injector.provideMusicRepository()
-        )
-    }
+    private val myPlayListViewModel by viewModels<MyPlayListViewModel>()
 
     private lateinit var myPlayListAdapter: MyPlayListAdapter
 

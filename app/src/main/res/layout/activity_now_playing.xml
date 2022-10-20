@@ -148,7 +148,7 @@
             android:id="@+id/cl_player_controller"
             app:layout_constraintBottom_toBottomOf="parent" >
 
-            <ImageButton
+            <androidx.appcompat.widget.AppCompatImageView
                 android:layout_width="70dp"
                 android:layout_height="70dp"
                 android:id="@+id/ib_play_pause"
@@ -160,7 +160,7 @@
                 app:layout_constraintEnd_toEndOf="parent"
                 android:gravity="center" />
 
-            <ImageButton
+            <androidx.appcompat.widget.AppCompatImageView
                 android:layout_width="50dp"
                 android:layout_height="50dp"
                 android:id="@+id/ib_previous"
@@ -171,7 +171,7 @@
                 app:layout_constraintTop_toTopOf="@+id/ib_play_pause"
                 app:layout_constraintEnd_toStartOf="@+id/ib_play_pause" />
 
-            <ImageButton
+            <androidx.appcompat.widget.AppCompatImageView
                 android:layout_width="50dp"
                 android:layout_height="50dp"
                 android:id="@+id/ib_next"
@@ -182,7 +182,7 @@
                 app:layout_constraintStart_toEndOf="@+id/ib_play_pause"
                 app:layout_constraintTop_toTopOf="@+id/ib_play_pause" />
 
-            <ImageButton
+            <androidx.appcompat.widget.AppCompatImageView
                 android:layout_width="40dp"
                 android:layout_height="40dp"
                 android:id="@+id/ib_repeat"

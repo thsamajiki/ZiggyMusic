@@ -24,7 +24,7 @@ data class MusicModel (
 ) : Parcelable {
 
     fun getMusicFileUri(): Uri {
-        return Uri.withAppendedPath(MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI, id)
+        return Uri.withAppendedPath(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, id)
     }
 
     fun getAlbumUri(): Uri {

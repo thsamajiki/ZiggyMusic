@@ -5,10 +5,13 @@ import android.util.Log
 import androidx.lifecycle.*
 import com.hero.ziggymusic.database.music.entity.MusicModel
 import com.hero.ziggymusic.domain.music.repository.MusicRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 // ViewModel은 DB에 직접 접근하지 않아야함. Repository 에서 데이터 통신.
-class NowPlayingViewModel(
+@HiltViewModel
+class NowPlayingViewModel @Inject constructor(
     application: Application,
     private val musicRepository: MusicRepository
 ) : AndroidViewModel(application) {
@@ -30,20 +33,5 @@ class NowPlayingViewModel(
 
     override fun onCleared() {
         super.onCleared()
-    }
-}
-
-
-class NowPlayingViewModelFactory(
-    private val application: Application,
-    private val musicRepository : MusicRepository
-): AbstractSavedStateViewModelFactory() {
-
-    override fun <T : ViewModel?> create(
-        key: String,
-        modelClass: Class<T>,
-        handle: SavedStateHandle
-    ): T {
-        return NowPlayingViewModel(application, musicRepository) as T
     }
 }

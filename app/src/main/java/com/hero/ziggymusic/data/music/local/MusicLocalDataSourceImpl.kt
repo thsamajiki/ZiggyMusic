@@ -5,8 +5,9 @@ import android.provider.MediaStore
 import androidx.lifecycle.LiveData
 import com.hero.ziggymusic.database.music.dao.MusicFileDao
 import com.hero.ziggymusic.database.music.entity.MusicModel
+import javax.inject.Inject
 
-class MusicLocalDataSourceImpl(
+class MusicLocalDataSourceImpl @Inject constructor(
     private val application: Application,
     private val musicFileDao: MusicFileDao
 ) : MusicLocalDataSource{
@@ -19,8 +20,7 @@ class MusicLocalDataSourceImpl(
             MediaStore.Audio.Media._ID,
             MediaStore.Audio.Media.TITLE,
             MediaStore.Audio.Media.ARTIST,
-//            MediaStore.Audio.Media.ALBUM_ID,
-            MediaStore.Audio.Albums._ID,
+            MediaStore.Audio.Media.ALBUM_ID,
             MediaStore.Audio.Media.DURATION
         )
 
@@ -57,14 +57,5 @@ class MusicLocalDataSourceImpl(
 
     override suspend fun getAllMusic(): LiveData<List<MusicModel>> {
         return musicFileDao.getAllFiles()
-    }
-
-    companion object {
-        private var instance: MusicLocalDataSourceImpl? = null
-
-        fun getInstance(application: Application, musicFileDao: MusicFileDao): MusicLocalDataSource =
-            instance ?: MusicLocalDataSourceImpl(application, musicFileDao).also {
-                instance = it
-            }
     }
 }

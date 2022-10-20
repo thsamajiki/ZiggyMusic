@@ -6,30 +6,29 @@ import android.media.MediaPlayer
 import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
+import android.os.Looper
 import android.view.View
 import android.widget.SeekBar
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
-import com.hero.ziggymusic.Injector
+import androidx.lifecycle.lifecycleScope
 import com.hero.ziggymusic.R
-import com.hero.ziggymusic.ZiggyMusicApp
 import com.hero.ziggymusic.database.music.entity.MusicModel
 import com.hero.ziggymusic.databinding.ActivityNowPlayingBinding
 import com.hero.ziggymusic.view.main.nowplaying.viewmodel.NowPlayingViewModel
-import com.hero.ziggymusic.view.main.nowplaying.viewmodel.NowPlayingViewModelFactory
+import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.channels.ticker
+import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.launch
 
+@AndroidEntryPoint
 class NowPlayingActivity : AppCompatActivity(), View.OnClickListener {
 
     private var _binding: ActivityNowPlayingBinding? = null
     private val binding get() = _binding!!
 
-    private val nowPlayingViewModel by viewModels<NowPlayingViewModel> {
-        NowPlayingViewModelFactory(
-            ZiggyMusicApp.getInstance(),
-            Injector.provideMusicRepository()
-        )
-    }
+    private val nowPlayingViewModel by viewModels<NowPlayingViewModel>()
 
     private lateinit var mediaPlayer: MediaPlayer
     private lateinit var handler: Handler
@@ -48,6 +47,8 @@ class NowPlayingActivity : AppCompatActivity(), View.OnClickListener {
         binding.lifecycleOwner = this
 //        val view = binding.root
 //        setContentView(view)
+
+
 
         initView()
         initViewModel()
@@ -69,6 +70,15 @@ class NowPlayingActivity : AppCompatActivity(), View.OnClickListener {
             mediaPlayer.reset()
 //            prepareMediaPlayer()
         })
+
+        lifecycleScope.launch {
+            ticker(1000L, 1000L)
+                .receiveAsFlow()
+                .collect() {
+                    binding.tvCurrentTime.text =
+                        milliSecondsToTimer(mediaPlayer.currentPosition.toLong())
+                }
+        }
     }
 
     private fun initViewModel() {
@@ -76,6 +86,12 @@ class NowPlayingActivity : AppCompatActivity(), View.OnClickListener {
             initializeNowPlaying(musicModel)
             playMusic(musicModel.getMusicFileUri())
         }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        mediaPlayer.stop()
+        mediaPlayer.release()
     }
 
     private fun initView() {
@@ -87,6 +103,7 @@ class NowPlayingActivity : AppCompatActivity(), View.OnClickListener {
     }
 
     private fun setOnClickListener() {
+        handler = Handler(Looper.getMainLooper())
         binding.ivBack.setOnClickListener(this)
         binding.ibPlayPause.setOnClickListener(View.OnClickListener {
             if (mediaPlayer.isPlaying) {

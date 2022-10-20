@@ -16,11 +16,13 @@ import com.hero.ziggymusic.databinding.ActivityMainBinding
 import com.hero.ziggymusic.view.main.musiclist.MusicListFragment
 import com.hero.ziggymusic.view.main.myplaylist.MyPlayListFragment
 import com.hero.ziggymusic.view.main.setting.SettingFragment
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class MainActivity : AppCompatActivity(), View.OnClickListener, NavigationBarView.OnItemSelectedListener {
 
     private lateinit var binding: ActivityMainBinding
-    val permission = Manifest.permission.READ_EXTERNAL_STORAGE
+    private val permission = Manifest.permission.READ_EXTERNAL_STORAGE
     var REQ_READ = 99
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -36,6 +38,7 @@ class MainActivity : AppCompatActivity(), View.OnClickListener, NavigationBarVie
         } else {
             ActivityCompat.requestPermissions(this, arrayOf(permission), REQ_READ)
         }
+
 
     }
 
@@ -102,14 +105,17 @@ class MainActivity : AppCompatActivity(), View.OnClickListener, NavigationBarVie
         when(item.itemId) {
             R.id.menu_music_list -> {
                 val musicListFragment = MusicListFragment()
+                binding.mainViewPager.currentItem = 0
                 supportFragmentManager.beginTransaction().replace(R.id.main_view_pager, musicListFragment).commit()
             }
             R.id.menu_my_play_list -> {
                 val myPlayListFragment = MyPlayListFragment()
+                binding.mainViewPager.currentItem = 1
                 supportFragmentManager.beginTransaction().replace(R.id.main_view_pager, myPlayListFragment).commit()
             }
             R.id.menu_setting -> {
                 val settingFragment = SettingFragment()
+                binding.mainViewPager.currentItem = 2
                 supportFragmentManager.beginTransaction().replace(R.id.main_view_pager, settingFragment).commit()
             }
         }
