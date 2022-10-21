@@ -6,7 +6,7 @@
 
 
 ## 프로젝트 기간
-2022\. 09 ~ 2022\. 10
+2022\. 07 ~ 2022\. 11
 
 
 ## 기여도
@@ -35,9 +35,13 @@
 ## 사용된 기술
 - AAC(Android Architecture Components)
 - MVVM 디자인 패턴
+- ExoPlayer
+- MotionLayout
 - ROOM
 - RecyclerView
 - MaterialDesign
+- Hilt
+- LiveData
 
 
 ## 사용된 라이브러리
