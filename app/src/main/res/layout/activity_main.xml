@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".view.main.MainActivity">
+    android:background="@color/white">
 
     <androidx.appcompat.widget.Toolbar
         android:id="@+id/main_toolbar"
@@ -21,40 +21,48 @@
                 android:id="@+id/tv_main_title"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="15dp"
-                android:layout_marginTop="15dp"
+                android:layout_centerInParent="true"
                 android:textColor="@color/black"
                 android:textSize="@dimen/title_text_size"
                 tools:text="음악 목록" />
-
-            <ImageView
-                android:id="@+id/iv_account_option_menu"
-                android:layout_width="?attr/actionBarSize"
-                android:layout_height="match_parent"
-                android:layout_alignParentEnd="true"
-                android:padding="17dp"
-                android:src="@drawable/ic_option_menu"
-                android:visibility="gone" />
 
         </RelativeLayout>
 
     </androidx.appcompat.widget.Toolbar>
 
+
     <androidx.viewpager2.widget.ViewPager2
         android:id="@+id/main_view_pager"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
+        android:layout_height="match_parent"
         app:layout_constraintBottom_toTopOf="@+id/main_bottom_nav"
         app:layout_constraintTop_toBottomOf="@+id/main_toolbar" />
+
+    <androidx.fragment.app.FragmentContainerView
+        android:id="@+id/player_container"
+        style="@style/PlayerBottomSheet"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:behavior_peekHeight="120dp"
+        app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior"
+        app:layout_constraintBottom_toTopOf="@id/main_bottom_nav"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+    <!--
+        use_controller 를 true 로 하고 레이아웃 파일을 따로 만들어서 구현하는 방법도 있음
+        (더 쉽게 구현가능한 방법)
+    -->
 
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/main_bottom_nav"
         android:layout_width="match_parent"
-        android:layout_height="?attr/actionBarSize"
+        android:layout_height="56dp"
+        android:layout_gravity="bottom"
         android:elevation="5dp"
-        app:backgroundTint="@color/white"
+        app:backgroundTint="@color/normal_gray"
         app:labelVisibilityMode="selected"
         app:layout_constraintBottom_toBottomOf="parent"
         app:menu="@menu/menu_bt_nav" />
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

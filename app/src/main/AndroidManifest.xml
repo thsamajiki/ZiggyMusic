@@ -1,24 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.hero.ziggymusic" >
+    xmlns:tools="http://schemas.android.com/tools"
+    package="com.hero.ziggymusic">
 
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
 
     <application
         android:allowBackup="true"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:fullBackupContent="@xml/backup_rules"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:name=".ZiggyMusicApp"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.ZiggyMusic">
-        <activity
-            android:name=".view.main.nowplaying.NowPlayingActivity"
-            android:exported="false">
-            <meta-data
-                android:name="android.app.lib_name"
-                android:value="" />
-        </activity>
+        android:theme="@style/Theme.ZiggyMusic"
+        tools:targetApi="31">
         <activity
             android:name=".view.main.MainActivity"
             android:exported="true">

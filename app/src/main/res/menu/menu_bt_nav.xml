@@ -4,9 +4,9 @@
         android:title="@string/title_music_list"
         android:icon="@drawable/ic_music_list" />
     <item android:id="@+id/menu_my_play_list"
-        android:title="@string/title_my_play_list"
+        android:title="@string/title_my_playlist"
         android:icon="@drawable/ic_my_play_list" />
-    <item android:id="@+id/menu_setting"
-        android:title="@string/title_setting"
-        android:icon="@drawable/ic_setting" />
+    <!--    <item android:id="@+id/menu_setting"-->
+    <!--        android:title="@string/title_setting"-->
+    <!--        android:icon="@drawable/ic_setting" />-->
 </menu>

@@ -23,4 +23,8 @@ class MusicRepositoryImpl @Inject constructor(
     override suspend fun getAllMusic(): LiveData<List<MusicModel>> {
         return musicLocalDataSource.getAllMusic()
     }
+
+    override suspend fun getMyPlayListMusics(): LiveData<List<MusicModel>> {
+        return musicLocalDataSource.getMyPlayListMusics()
+    }
 }

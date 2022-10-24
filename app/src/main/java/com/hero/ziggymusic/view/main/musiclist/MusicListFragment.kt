@@ -1,13 +1,10 @@
 package com.hero.ziggymusic.view.main.musiclist
 
-import android.Manifest
-import android.content.pm.PackageManager
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.widget.PopupMenu
-import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -19,7 +16,6 @@ import com.hero.ziggymusic.database.music.entity.MusicModel
 import com.hero.ziggymusic.databinding.FragmentMusicListBinding
 import com.hero.ziggymusic.listener.OnRecyclerItemClickListener
 import com.hero.ziggymusic.view.main.musiclist.viewmodel.MusicListViewModel
-import com.hero.ziggymusic.view.main.nowplaying.NowPlayingActivity
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
@@ -34,7 +30,6 @@ class MusicListFragment : Fragment(), View.OnClickListener,
     private val musicListViewModel by viewModels<MusicListViewModel>()
 
     private lateinit var musicListAdapter: MusicListAdapter
-    private val permission = Manifest.permission.READ_EXTERNAL_STORAGE
 
     companion object {
         fun newInstance() = MusicListFragment()
@@ -42,23 +37,19 @@ class MusicListFragment : Fragment(), View.OnClickListener,
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
+        savedInstanceState: Bundle?,
     ): View {
-        val view: View = inflater.inflate(R.layout.fragment_music_list, container, false)
-
-        _binding = DataBindingUtil.setContentView(requireActivity(), R.layout.fragment_music_list)
+        _binding = DataBindingUtil.inflate(inflater, R.layout.fragment_music_list, container, false)
         binding.lifecycleOwner = this
 
-        return view
+        return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
         initRecyclerView(binding.rvMusicList)
-
         setupListeners()
-
         setupView()
         setupViewModel()
     }
@@ -81,11 +72,12 @@ class MusicListFragment : Fragment(), View.OnClickListener,
     }
 
     private fun initRecyclerView(recyclerView: RecyclerView) {
-        musicListAdapter = MusicListAdapter(
-            object : MusicListAdapter.OnPopupClickListener {
-                override fun popupOnClick(musicModel: MusicModel) {
-                }
-            })
+        musicListAdapter = MusicListAdapter()
+        musicListAdapter.teamCallBack(object : MusicListAdapter.OnPopupClickListener {
+            override fun popupOnClick(musicModel: MusicModel) {
+            }
+
+        })
         recyclerView.run {
             setHasFixedSize(true)
             layoutManager = LinearLayoutManager(context)
@@ -104,38 +96,31 @@ class MusicListFragment : Fragment(), View.OnClickListener,
         musicListAdapter.notifyDataSetChanged()
     }
 
-    private fun isPermitted(): Boolean {
-        return ContextCompat.checkSelfPermission(
-            requireContext(),
-            permission
-        ) == PackageManager.PERMISSION_GRANTED
-    }
-
     override fun onClick(view: View?) {
-        when (requireView().id) {
+        when (view?.id) {
 
         }
     }
 
     override fun onItemClick(position: Int, view: View, data: MusicModel) {
         when (view.id) {
-            R.id.iv_music_option_menu -> openAddToMyPlayListOptionMenu(data)
+            R.id.iv_music_option_menu -> openAddToMyPlayListOptionMenu(data, view)
 
             else -> intentNowPlaying(data.id)
         }
     }
 
     private fun intentNowPlaying(musicKey: String) {
-        val intent = NowPlayingActivity.getIntent(requireActivity(), musicKey)
-        startActivity(intent)
+//        val intent = NowPlayingFragment.newInstance(requireActivity(), musicKey)
+//        startActivity(intent)
     }
 
-    private fun openAddToMyPlayListOptionMenu(data: MusicModel) {
-        val popupMenu = PopupMenu(requireActivity(), requireView())
+    private fun openAddToMyPlayListOptionMenu(data: MusicModel, anchorView: View) {
+        val popupMenu = PopupMenu(requireActivity(), anchorView)
         popupMenu.menuInflater.inflate(R.menu.menu_add_music_to_myplaylist_option, popupMenu.menu)
         popupMenu.setOnMenuItemClickListener { item ->
             when (item?.itemId) {
-                R.id.menu_add_music_to_myplaylist -> addMusicToMyPlayList(data)
+                R.id.menu_add_music_to_my_playlist -> addMusicToMyPlayList(data)
             }
 
             true

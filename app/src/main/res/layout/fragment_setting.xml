@@ -1,15 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<layout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical"
-    tools:context=".view.main.setting.SettingFragment">
+    xmlns:tools="http://schemas.android.com/tools" >
+    <data>
+        <import type="android.view.View" />
+        <variable
+            name="settingViewModel"
+            type="com.hero.ziggymusic.view.main.setting.viewmodel.SettingViewModel" />
+    </data>
 
-    <TextView
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:text="Hello" />
+        android:orientation="vertical"
+        tools:context=".view.main.setting.SettingFragment">
 
-</LinearLayout>
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:text="Hello" />
+
+    </LinearLayout>
+</layout>

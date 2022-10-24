@@ -20,7 +20,9 @@ data class MusicModel (
     @ColumnInfo(name = "album_id")
     val albumId: String? = "",    // 앨범 이미지 ID
     @ColumnInfo(name = "duration")
-    val duration: Long? = 0     // 음원 재생 시간
+    val duration: Long? = 0,     // 음원 재생 시간
+    @ColumnInfo(name = "is_playing")
+    val isPlaying: Boolean = false
 ) : Parcelable {
 
     fun getMusicFileUri(): Uri {
@@ -29,6 +31,5 @@ data class MusicModel (
 
     fun getAlbumUri(): Uri {
         return Uri.parse("content://media/external/audio/albumart/${albumId}")
-//        return ContentUris.withAppendedId(Uri.parse("content://media/external/audio/albumart/${albumId}"))
     }
 }

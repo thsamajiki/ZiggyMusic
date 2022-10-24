@@ -10,7 +10,7 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.hero.ziggymusic.database.music.entity.MusicModel
-import com.hero.ziggymusic.databinding.ItemMyPlayListBinding
+import com.hero.ziggymusic.databinding.ItemMyPlaylistBinding
 import com.hero.ziggymusic.view.main.BaseAdapter
 import java.text.SimpleDateFormat
 
@@ -29,7 +29,7 @@ class MyPlayListAdapter(
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MyPlayListViewHolder {
         val binding =
-            ItemMyPlayListBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+            ItemMyPlaylistBinding.inflate(LayoutInflater.from(parent.context), parent, false)
 
         return MyPlayListViewHolder(binding)
     }
@@ -49,8 +49,14 @@ class MyPlayListAdapter(
         notifyDataSetChanged()
     }
 
+    fun setMyPlayListOnTab(musicData: List<MusicModel>) {
+        musicList.clear()
+        musicList.addAll(musicData)
+        notifyDataSetChanged()
+    }
 
-    inner class MyPlayListViewHolder(binding: ItemMyPlayListBinding) :
+
+    inner class MyPlayListViewHolder(binding: ItemMyPlaylistBinding) :
         RecyclerView.ViewHolder(binding.root), View.OnClickListener {
         private var musicUri: Uri? = null // 현재 음원의 Uri
         private var ivAlbum: ImageView = binding.ivAlbum

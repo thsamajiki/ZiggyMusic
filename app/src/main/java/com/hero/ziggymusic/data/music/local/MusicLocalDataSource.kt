@@ -9,4 +9,6 @@ interface MusicLocalDataSource {
     suspend fun getMusic(key: String) : MusicModel?
 
     suspend fun getAllMusic(): LiveData<List<MusicModel>>
+
+    suspend fun getMyPlayListMusics(): LiveData<List<MusicModel>>
 }

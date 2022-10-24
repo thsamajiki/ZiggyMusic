@@ -7,6 +7,7 @@ import dagger.Module
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
+import kotlin.text.Typography.dagger
 
 @Module
 @InstallIn(SingletonComponent::class)

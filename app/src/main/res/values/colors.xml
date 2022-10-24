@@ -15,6 +15,8 @@
     <color name="black">#000000</color>
     <color name="dark_gray">#535353</color>
     <color name="gray_333">#333333</color>
+    <color name="background1">#475263</color>
+    <color name="background2">#545F70</color>
     <color name="normal_gray">#999999</color>
     <color name="light_gray">#ededed</color>
     <color name="transparent">#00000000</color>
