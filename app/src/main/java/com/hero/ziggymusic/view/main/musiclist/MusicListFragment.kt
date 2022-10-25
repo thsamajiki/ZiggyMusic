@@ -14,8 +14,10 @@ import androidx.recyclerview.widget.RecyclerView
 import com.hero.ziggymusic.R
 import com.hero.ziggymusic.database.music.entity.MusicModel
 import com.hero.ziggymusic.databinding.FragmentMusicListBinding
+import com.hero.ziggymusic.ext.playMusic
 import com.hero.ziggymusic.listener.OnRecyclerItemClickListener
 import com.hero.ziggymusic.view.main.musiclist.viewmodel.MusicListViewModel
+import com.hero.ziggymusic.view.main.myplaylist.MyPlaylistAdapter
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
@@ -30,6 +32,7 @@ class MusicListFragment : Fragment(), View.OnClickListener,
     private val musicListViewModel by viewModels<MusicListViewModel>()
 
     private lateinit var musicListAdapter: MusicListAdapter
+    private lateinit var myPlayListAdapter: MyPlaylistAdapter
 
     companion object {
         fun newInstance() = MusicListFragment()
@@ -50,12 +53,7 @@ class MusicListFragment : Fragment(), View.OnClickListener,
 
         initRecyclerView(binding.rvMusicList)
         setupListeners()
-        setupView()
         setupViewModel()
-    }
-
-    private fun setupView() {
-
     }
 
     private fun setupViewModel() {
@@ -73,11 +71,7 @@ class MusicListFragment : Fragment(), View.OnClickListener,
 
     private fun initRecyclerView(recyclerView: RecyclerView) {
         musicListAdapter = MusicListAdapter()
-        musicListAdapter.teamCallBack(object : MusicListAdapter.OnPopupClickListener {
-            override fun popupOnClick(musicModel: MusicModel) {
-            }
 
-        })
         recyclerView.run {
             setHasFixedSize(true)
             layoutManager = LinearLayoutManager(context)
@@ -86,14 +80,7 @@ class MusicListFragment : Fragment(), View.OnClickListener,
     }
 
     private fun setupListeners() {
-        musicListAdapter.setOnRecyclerItemClickListener(object :
-            OnRecyclerItemClickListener<MusicModel> {
-            override fun onItemClick(position: Int, view: View, data: MusicModel) {
-                intentNowPlaying(data.id)
-            }
-        })
-
-        musicListAdapter.notifyDataSetChanged()
+        musicListAdapter.setOnRecyclerItemClickListener(this)
     }
 
     override fun onClick(view: View?) {
@@ -104,23 +91,29 @@ class MusicListFragment : Fragment(), View.OnClickListener,
 
     override fun onItemClick(position: Int, view: View, data: MusicModel) {
         when (view.id) {
-            R.id.iv_music_option_menu -> openAddToMyPlayListOptionMenu(data, view)
+            R.id.iv_music_option_menu -> openAddOrDeleteToFromMyPlaylistOptionMenu(data, view)
 
-            else -> intentNowPlaying(data.id)
+            else -> playMusic(data.id)
         }
     }
 
-    private fun intentNowPlaying(musicKey: String) {
-//        val intent = NowPlayingFragment.newInstance(requireActivity(), musicKey)
-//        startActivity(intent)
+    private fun playMusic(musicKey: String) {
+        requireContext().playMusic(musicKey)
     }
 
-    private fun openAddToMyPlayListOptionMenu(data: MusicModel, anchorView: View) {
+    private fun openAddOrDeleteToFromMyPlaylistOptionMenu(data: MusicModel, anchorView: View) {
         val popupMenu = PopupMenu(requireActivity(), anchorView)
-        popupMenu.menuInflater.inflate(R.menu.menu_add_music_to_myplaylist_option, popupMenu.menu)
+        val menuId: Int = if (musicListViewModel.isContainedInMyPlayList(data.id)) {
+            R.menu.menu_delete_music_from_myplaylist_option
+        } else {
+            R.menu.menu_add_music_to_my_playlist_option
+        }
+
+        popupMenu.menuInflater.inflate(menuId, popupMenu.menu)
         popupMenu.setOnMenuItemClickListener { item ->
             when (item?.itemId) {
-                R.id.menu_add_music_to_my_playlist -> addMusicToMyPlayList(data)
+                R.id.menu_add_music_to_my_playlist -> addMusicToMyPlaylist(data)
+                R.id.delete_music_from_my_playlist -> deleteMusicFromMyPlayList(data)
             }
 
             true
@@ -129,7 +122,13 @@ class MusicListFragment : Fragment(), View.OnClickListener,
         popupMenu.show()
     }
 
-    private fun addMusicToMyPlayList(musicModel: MusicModel) {
+    private fun addMusicToMyPlaylist(musicModel: MusicModel) {
+        // Local DB에 저장한다.
+        musicListViewModel.addMusicToMyPlaylist(musicModel)
+    }
 
+    private fun deleteMusicFromMyPlayList(musicModel: MusicModel) {
+        // Local DB에 저장한다.
+        musicListViewModel.deleteMusicFromMyPlaylist(musicModel)
     }
 }

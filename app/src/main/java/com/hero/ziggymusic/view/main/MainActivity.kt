@@ -10,14 +10,16 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.core.view.isGone
+import androidx.core.view.isVisible
 import androidx.viewpager2.widget.ViewPager2
+import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.navigation.NavigationBarView
 import com.hero.ziggymusic.R
 import com.hero.ziggymusic.databinding.ActivityMainBinding
 import com.hero.ziggymusic.view.main.musiclist.MusicListFragment
-import com.hero.ziggymusic.view.main.myplaylist.MyPlayListFragment
+import com.hero.ziggymusic.view.main.myplaylist.MyPlaylistFragment
 import dagger.hilt.android.AndroidEntryPoint
-import kotlin.text.Typography.dagger
 
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity(), View.OnClickListener,
@@ -45,17 +47,27 @@ class MainActivity : AppCompatActivity(), View.OnClickListener,
             ActivityCompat.requestPermissions(this, arrayOf(permission), REQ_READ)
         }
 
-        playerController = PlayerController(this, binding.playerContainer, supportFragmentManager)
+        binding.mainBottomNav.setOnItemSelectedListener(this)
+
+        playerController = PlayerController(
+            this,
+            binding.playerContainer,
+            supportFragmentManager,
+            onStateChanged = { newState ->
+                when(newState) {
+                    BottomSheetBehavior.STATE_EXPANDED -> {
+                        binding.mainBottomNav.isGone = true
+                    }
+                    BottomSheetBehavior.STATE_COLLAPSED -> {
+                        binding.mainBottomNav.isVisible = true
+                    }
+                }
+            })
         playerController.startPlayer()
     }
 
     private fun setFragmentAdapter() {
         val fragmentAdapter = FragmentAdapter(this)
-
-        fragmentAdapter.addFragment(MusicListFragment.newInstance())
-        fragmentAdapter.addFragment(MyPlayListFragment.newInstance())
-//        fragmentAdapter.addFragment(SettingFragment.newInstance())
-
         binding.mainViewPager.adapter = fragmentAdapter
 
         val titleArr = resources.getStringArray(R.array.title_array)
@@ -72,7 +84,7 @@ class MainActivity : AppCompatActivity(), View.OnClickListener,
 
             override fun onPageSelected(position: Int) {
                 super.onPageSelected(position)
-                binding.mainBottomNav.menu.getItem(position).isChecked
+                binding.mainBottomNav.menu.getItem(position).isChecked = true
                 binding.tvMainTitle.text = titleArr[position]
             }
 
@@ -86,6 +98,9 @@ class MainActivity : AppCompatActivity(), View.OnClickListener,
         // TODO("Not yet implemented")
     }
 
+    fun playMusic(musicId: String) {
+        playerController.changeMusic(musicId)
+    }
 
     override fun onClick(view: View?) {
 
@@ -96,14 +111,14 @@ class MainActivity : AppCompatActivity(), View.OnClickListener,
             R.id.menu_music_list -> {
                 val musicListFragment = MusicListFragment()
                 binding.mainViewPager.currentItem = 0
-                supportFragmentManager.beginTransaction()
-                    .replace(R.id.main_view_pager, musicListFragment).commit()
+//                supportFragmentManager.beginTransaction()
+//                    .replace(R.id.main_view_pager, musicListFragment).commit()
             }
             R.id.menu_my_play_list -> {
-                val myPlayListFragment = MyPlayListFragment()
+                val myPlayListFragment = MyPlaylistFragment()
                 binding.mainViewPager.currentItem = 1
-                supportFragmentManager.beginTransaction()
-                    .replace(R.id.main_view_pager, myPlayListFragment).commit()
+//                supportFragmentManager.beginTransaction()
+//                    .replace(R.id.main_view_pager, myPlayListFragment).commit()
             }
 //            R.id.menu_setting -> {
 //                val settingFragment = SettingFragment()

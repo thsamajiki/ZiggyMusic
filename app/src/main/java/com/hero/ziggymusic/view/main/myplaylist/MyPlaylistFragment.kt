@@ -14,26 +14,26 @@ import androidx.recyclerview.widget.RecyclerView
 import com.hero.ziggymusic.R
 import com.hero.ziggymusic.database.music.entity.MusicModel
 import com.hero.ziggymusic.databinding.FragmentMyPlaylistBinding
+import com.hero.ziggymusic.ext.playMusic
 import com.hero.ziggymusic.listener.OnRecyclerItemClickListener
-import com.hero.ziggymusic.view.main.myplaylist.viewmodel.MyPlayListViewModel
+import com.hero.ziggymusic.view.main.myplaylist.viewmodel.MyPlaylistViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
-import kotlin.text.Typography.dagger
 
 @AndroidEntryPoint
-class MyPlayListFragment : Fragment(), View.OnClickListener,
+class MyPlaylistFragment : Fragment(), View.OnClickListener,
     OnRecyclerItemClickListener<MusicModel> {
 
     private var data = listOf<MusicModel>()
     private var _binding: FragmentMyPlaylistBinding? = null
     private val binding get() = _binding!!
 
-    private val myPlayListViewModel by viewModels<MyPlayListViewModel>()
+    private val myPlayListViewModel by viewModels<MyPlaylistViewModel>()
 
-    private lateinit var myPlayListAdapter: MyPlayListAdapter
+    private lateinit var myPlayListAdapter: MyPlaylistAdapter
 
     companion object {
-        fun newInstance() = MyPlayListFragment()
+        fun newInstance() = MyPlaylistFragment()
     }
 
     override fun onCreateView(
@@ -68,11 +68,8 @@ class MyPlayListFragment : Fragment(), View.OnClickListener,
     }
 
     private fun initRecyclerView(recyclerView: RecyclerView) {
-        myPlayListAdapter = MyPlayListAdapter(
-            object : MyPlayListAdapter.OnPopupClickListener {
-                override fun popupOnClick(musicModel: MusicModel) {
-                }
-            })
+        myPlayListAdapter = MyPlaylistAdapter()
+
         recyclerView.run {
             setHasFixedSize(true)
             layoutManager = LinearLayoutManager(context)
@@ -81,14 +78,7 @@ class MyPlayListFragment : Fragment(), View.OnClickListener,
     }
 
     private fun setupListeners() {
-        myPlayListAdapter.setOnRecyclerItemClickListener(object :
-            OnRecyclerItemClickListener<MusicModel> {
-            override fun onItemClick(position: Int, view: View, data: MusicModel) {
-                intentNowPlaying(data.id)
-            }
-        })
-
-        myPlayListAdapter.notifyDataSetChanged()
+        myPlayListAdapter.setOnRecyclerItemClickListener(this)
     }
 
     override fun onClick(view: View?) {
@@ -99,19 +89,18 @@ class MyPlayListFragment : Fragment(), View.OnClickListener,
 
     override fun onItemClick(position: Int, view: View, data: MusicModel) {
         when (view.id) {
-            R.id.iv_music_option_menu -> openDeleteFromMyPlayListOptionMenu(data)
+            R.id.iv_music_option_menu -> openDeleteFromMyPlayListOptionMenu(data, view)
 
-            else -> intentNowPlaying(data.id)
+            else -> playMusic(data.id)
         }
     }
 
-    private fun intentNowPlaying(musicKey: String) {
-//        val intent = NowPlayingFragment.newInstance(requireActivity(), musicKey)
-//        startActivity(intent)
+    private fun playMusic(musicKey: String) {
+        requireContext().playMusic(musicKey)
     }
 
-    private fun openDeleteFromMyPlayListOptionMenu(data: MusicModel) {
-        val popupMenu = PopupMenu(requireActivity(), requireView())
+    private fun openDeleteFromMyPlayListOptionMenu(data: MusicModel, anchorView: View) {
+        val popupMenu = PopupMenu(requireActivity(), anchorView)
         popupMenu.menuInflater.inflate(
             R.menu.menu_delete_music_from_myplaylist_option,
             popupMenu.menu
@@ -128,6 +117,6 @@ class MyPlayListFragment : Fragment(), View.OnClickListener,
     }
 
     private fun deleteMusicFromMyPlayList(musicModel: MusicModel) {
-
+        myPlayListViewModel.deleteMusicFromMyPlaylist(musicModel)
     }
 }

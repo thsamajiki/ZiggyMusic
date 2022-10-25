@@ -1,58 +1,53 @@
-package com.hero.ziggymusic.view.main.musiclist
+package com.hero.ziggymusic.view.main.myplaylist
 
 import android.graphics.Color
-import android.media.MediaPlayer
 import android.net.Uri
 import android.provider.MediaStore
 import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageView
-import android.widget.TextView
-import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.hero.ziggymusic.database.music.entity.MusicModel
-import com.hero.ziggymusic.databinding.ItemMusicListBinding
+import com.hero.ziggymusic.databinding.ItemMyPlaylistBinding
 import com.hero.ziggymusic.listener.OnRecyclerItemClickListener
 import com.hero.ziggymusic.view.main.BaseAdapter
 import java.text.SimpleDateFormat
 
-class MusicListAdapter(
-) : BaseAdapter<MusicListAdapter.MusicListViewHolder, MusicModel>() {
+class MyPlaylistAdapter(
+) : BaseAdapter<MyPlaylistAdapter.MyPlayListViewHolder, MusicModel>() {
 
-    private val musicList = mutableListOf<MusicModel>()
+    private val myPlaylist = mutableListOf<MusicModel>()
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MusicListViewHolder {
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MyPlayListViewHolder {
         val binding =
-            ItemMusicListBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+            ItemMyPlaylistBinding.inflate(LayoutInflater.from(parent.context), parent, false)
 
-        return MusicListViewHolder(binding, getOnRecyclerItemClickListener()!!)
+        return MyPlayListViewHolder(binding, getOnRecyclerItemClickListener()!!)
     }
 
-    override fun onBindViewHolder(holder: MusicListViewHolder, position: Int) {
-        val musicItem = musicList[position]
+    override fun onBindViewHolder(holder: MyPlayListViewHolder, position: Int) {
+        val musicItem = myPlaylist[position]
         holder.setMusic(musicItem)
     }
 
     override fun getItemCount(): Int {
-        return musicList.size
+        return myPlaylist.size
     }
 
     fun setMusicList(musicData: List<MusicModel>) {
-        musicList.clear()
-        musicList.addAll(musicData)
+        myPlaylist.clear()
+        myPlaylist.addAll(musicData)
         notifyDataSetChanged()
     }
 
-    fun setMusicListOnTab(musicData: List<MusicModel>) {
-        musicList.clear()
-        musicList.addAll(musicData)
+    fun setMyPlayListOnTab(musicData: List<MusicModel>) {
+        myPlaylist.clear()
+        myPlaylist.addAll(musicData)
         notifyDataSetChanged()
     }
 
 
-    class MusicListViewHolder(
-        private val binding: ItemMusicListBinding,
+    class MyPlayListViewHolder(
+        private val binding: ItemMyPlaylistBinding,
         private val itemClickListener: OnRecyclerItemClickListener<MusicModel>
     ) :
         RecyclerView.ViewHolder(binding.root) {

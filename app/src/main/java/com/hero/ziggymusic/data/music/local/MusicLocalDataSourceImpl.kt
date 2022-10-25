@@ -3,13 +3,16 @@ package com.hero.ziggymusic.data.music.local
 import android.app.Application
 import android.provider.MediaStore
 import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import com.hero.ziggymusic.database.music.dao.MusicFileDao
+import com.hero.ziggymusic.database.music.dao.PlaylistMusicDao
 import com.hero.ziggymusic.database.music.entity.MusicModel
 import javax.inject.Inject
 
 class MusicLocalDataSourceImpl @Inject constructor(
     private val application: Application,
-    private val musicFileDao: MusicFileDao
+    private val musicFileDao: MusicFileDao,
+    private val playlistMusicDao: PlaylistMusicDao
 ) : MusicLocalDataSource{
 
     override suspend fun loadMusics() {
@@ -55,11 +58,19 @@ class MusicLocalDataSourceImpl @Inject constructor(
         return musicFileDao.getMusicFileFromKey(key)
     }
 
-    override suspend fun getAllMusic(): LiveData<List<MusicModel>> {
+    override fun getAllMusic(): LiveData<List<MusicModel>> {
         return musicFileDao.getAllFiles()
     }
 
-    override suspend fun getMyPlayListMusics(): LiveData<List<MusicModel>> {
-        TODO("Not yet implemented")
+    override fun getMyPlaylistMusics(): LiveData<List<MusicModel>> {
+        return playlistMusicDao.getAllFiles()
+    }
+
+    override suspend fun addMusicToMyPlaylist(musicModel: MusicModel) {
+        playlistMusicDao.insertMusic(musicModel)
+    }
+
+    override suspend fun deleteMusicFromMyPlaylist(musicModel: MusicModel) {
+        playlistMusicDao.deleteMusic(musicModel)
     }
 }

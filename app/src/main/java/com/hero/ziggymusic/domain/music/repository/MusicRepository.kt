@@ -8,7 +8,11 @@ interface MusicRepository {
 
     suspend fun getMusic(key: String): MusicModel?
 
-    suspend fun getAllMusic(): LiveData<List<MusicModel>>
+    fun getAllMusic(): LiveData<List<MusicModel>>
 
-    suspend fun getMyPlayListMusics(): LiveData<List<MusicModel>>
+    fun getMyPlaylistMusics(): LiveData<List<MusicModel>>
+
+    suspend fun addMusicToMyPlaylist(musicModel: MusicModel)
+
+    suspend fun deleteMusicFromMyPlaylist(musicModel: MusicModel)
 }
