@@ -50,7 +50,10 @@
 
 
 ## 스크린샷
-
+<img src="/images/muslc_list.png" width="360px" height="640px" title="test_video" alt="Test_video"></img>
+<img src="/images/my_playlist.png" width="360px" height="640px" title="test_video" alt="Test_video"></img>
+<img src="/images/player_fragment.png" width="360px" height="640px" title="test_video" alt="Test_video"></img>
+<img src="/images/music_playing_collapsed.png" width="360px" height="640px" title="test_video" alt="Test_video"></img>
 
 
 
