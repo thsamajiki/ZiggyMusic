@@ -10,7 +10,7 @@
         android:id="@+id/mcv_music_list"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:cardBackgroundColor="@color/white"
+        app:cardBackgroundColor="@color/normal_gray"
         app:cardCornerRadius="10dp"
         app:cardElevation="7dp"
         app:cardUseCompatPadding="true"

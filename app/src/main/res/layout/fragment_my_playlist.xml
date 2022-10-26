@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+    <data>
+        <import type="android.view.View" />
+        <variable
+            name="myPlayList"
+            type="com.hero.ziggymusic.view.main.myplaylist.viewmodel.MyPlaylistViewModel" />
+    </data>
+
+    <LinearLayout
+        android:id="@+id/ll_fragment_my_playlist"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        tools:context=".view.main.myplaylist.MyPlaylistFragment" >
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rv_my_play_list"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+            tools:listitem="@layout/item_my_play_list" />
+
+    </LinearLayout>
+</layout>

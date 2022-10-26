@@ -13,6 +13,7 @@
     <color name="colorAccent">#3F51B5</color>
     <color name="white">#ffffff</color>
     <color name="black">#000000</color>
+    <color name="dark_black">#201F1F</color>
     <color name="dark_gray">#535353</color>
     <color name="gray_333">#333333</color>
     <color name="background1">#475263</color>
