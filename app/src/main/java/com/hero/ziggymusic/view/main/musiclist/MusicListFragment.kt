@@ -32,7 +32,6 @@ class MusicListFragment : Fragment(), View.OnClickListener,
     private val musicListViewModel by viewModels<MusicListViewModel>()
 
     private lateinit var musicListAdapter: MusicListAdapter
-    private lateinit var myPlayListAdapter: MyPlaylistAdapter
 
     companion object {
         fun newInstance() = MusicListFragment()
