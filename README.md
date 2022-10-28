@@ -59,14 +59,12 @@
 
 
 ## 스크린샷
-<img src="/images/music_list.png" width="360px" height="640px" title="test_video" alt="Test_video"></img>
-<img src="/images/my_playlist.png" width="360px" height="640px" title="test_video" alt="Test_video"></img>
-<img src="/images/player_fragment.png" width="360px" height="640px" title="test_video" alt="Test_video"></img>
-<img src="/images/music_playing_collapsed.png" width="360px" height="640px" title="test_video" alt="Test_video"></img>
+<img src="/images/music_list.png" width="360px" height="640px" title="test_video" alt="music_list"></img>
+<img src="/images/my_playlist.png" width="360px" height="640px" title="test_video" alt="my_playlist"></img>
+<img src="/images/player_fragment.png" width="360px" height="640px" title="test_video" alt="player"></img>
+<img src="/images/music_playing_collapsed.png" width="360px" height="640px" title="test_video" alt="collapsed"></img>
 
 
 
 ## 시연 영상
-<img src="/images/.gif" width="360px" height="640px" title="test_video" alt="Test_video"></img>
-
-
+<img src="/images/ziggymusic_시연영상.gif" width="360px" height="640px" title="test_video" alt="Test_video"></img>
