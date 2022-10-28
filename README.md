@@ -49,8 +49,20 @@
 - 사진 첨부 (com.github.bumptech.glide:glide:4.11.0) (com.github.bumptech.glide:compiler:4.11.0)
 
 
-## 스크린샷
 
+## 문제 및 해결 과정
+
+
+
+## 개발 후 느낀 점
+
+
+
+## 스크린샷
+<img src="/images/music_list.png" width="360px" height="640px" title="test_video" alt="Test_video"></img>
+<img src="/images/my_playlist.png" width="360px" height="640px" title="test_video" alt="Test_video"></img>
+<img src="/images/player_fragment.png" width="360px" height="640px" title="test_video" alt="Test_video"></img>
+<img src="/images/music_playing_collapsed.png" width="360px" height="640px" title="test_video" alt="Test_video"></img>
 
 
 
