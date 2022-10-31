@@ -23,8 +23,7 @@ class MusicListAdapter(
     private val musicList = mutableListOf<MusicModel>()
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MusicListViewHolder {
-        val binding =
-            ItemMusicListBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+        val binding = ItemMusicListBinding.inflate(LayoutInflater.from(parent.context), parent, false)
 
         return MusicListViewHolder(binding, getOnRecyclerItemClickListener()!!)
     }
@@ -44,16 +43,9 @@ class MusicListAdapter(
         notifyDataSetChanged()
     }
 
-    fun setMusicListOnTab(musicData: List<MusicModel>) {
-        musicList.clear()
-        musicList.addAll(musicData)
-        notifyDataSetChanged()
-    }
-
-
     class MusicListViewHolder(
         private val binding: ItemMusicListBinding,
-        private val itemClickListener: OnRecyclerItemClickListener<MusicModel>
+        private val itemClickListener: OnRecyclerItemClickListener<MusicModel>,
     ) :
         RecyclerView.ViewHolder(binding.root) {
         private var musicUri: Uri? = null // 현재 음원의 Uri
@@ -72,10 +64,10 @@ class MusicListAdapter(
             binding.tvDuration.text = simpleDateFormat.format(musicItem.duration)
 
             // 재생 중에 따라
-            if(musicItem.isPlaying){
+            if (musicItem.isPlaying) {
                 // itemView 를 사용했는데 이건 리사이클러 뷰에서 뷰홀더(아이템 하나) 현재 아이템에 해당
                 itemView.setBackgroundColor(Color.GRAY) // 재생중이면 배경 색을 회색
-            }else{
+            } else {
                 itemView.setBackgroundColor(Color.TRANSPARENT)
             }
 

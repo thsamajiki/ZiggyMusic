@@ -41,9 +41,7 @@ class MainActivity : AppCompatActivity(), View.OnClickListener,
 
         setFragmentAdapter()
 
-        if (isPermitted()) {
-            startProcess()
-        } else {
+        if (!isPermitted()) {
             ActivityCompat.requestPermissions(this, arrayOf(permission), REQ_READ)
         }
 
@@ -54,7 +52,7 @@ class MainActivity : AppCompatActivity(), View.OnClickListener,
             binding.playerContainer,
             supportFragmentManager,
             onStateChanged = { newState ->
-                when(newState) {
+                when (newState) {
                     BottomSheetBehavior.STATE_EXPANDED -> {
                         binding.mainBottomNav.isGone = true
                     }
@@ -72,8 +70,7 @@ class MainActivity : AppCompatActivity(), View.OnClickListener,
 
         val titleArr = resources.getStringArray(R.array.title_array)
 
-        binding.mainViewPager.registerOnPageChangeCallback(object :
-            ViewPager2.OnPageChangeCallback() {
+        binding.mainViewPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
             override fun onPageScrolled(
                 position: Int,
                 positionOffset: Float,
@@ -94,10 +91,6 @@ class MainActivity : AppCompatActivity(), View.OnClickListener,
         })
     }
 
-    private fun startProcess() {
-        // TODO("Not yet implemented")
-    }
-
     fun playMusic(musicId: String) {
         playerController.changeMusic(musicId)
     }
@@ -111,14 +104,10 @@ class MainActivity : AppCompatActivity(), View.OnClickListener,
             R.id.menu_music_list -> {
                 val musicListFragment = MusicListFragment()
                 binding.mainViewPager.currentItem = 0
-//                supportFragmentManager.beginTransaction()
-//                    .replace(R.id.main_view_pager, musicListFragment).commit()
             }
             R.id.menu_my_play_list -> {
                 val myPlayListFragment = MyPlaylistFragment()
                 binding.mainViewPager.currentItem = 1
-//                supportFragmentManager.beginTransaction()
-//                    .replace(R.id.main_view_pager, myPlayListFragment).commit()
             }
 //            R.id.menu_setting -> {
 //                val settingFragment = SettingFragment()
@@ -143,9 +132,7 @@ class MainActivity : AppCompatActivity(), View.OnClickListener,
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == REQ_READ) {
-            if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                startProcess();
-            } else {
+            if (grantResults[0] != PackageManager.PERMISSION_GRANTED) {
                 Toast.makeText(this, "권한 요청을 승인해야만 앱을 실행할 수 있습니다.", Toast.LENGTH_SHORT).show()
                 finish()
             }

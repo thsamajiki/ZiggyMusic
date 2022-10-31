@@ -22,10 +22,8 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
-class MusicListFragment : Fragment(), View.OnClickListener,
-    OnRecyclerItemClickListener<MusicModel> {
+class MusicListFragment : Fragment(), View.OnClickListener, OnRecyclerItemClickListener<MusicModel> {
 
-    private var data = listOf<MusicModel>()
     private var _binding: FragmentMusicListBinding? = null
     private val binding get() = _binding!!
 
@@ -39,7 +37,7 @@ class MusicListFragment : Fragment(), View.OnClickListener,
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?,
+        savedInstanceState: Bundle?
     ): View {
         _binding = DataBindingUtil.inflate(inflater, R.layout.fragment_music_list, container, false)
         binding.lifecycleOwner = this
@@ -51,10 +49,14 @@ class MusicListFragment : Fragment(), View.OnClickListener,
         super.onViewCreated(view, savedInstanceState)
 
         initRecyclerView(binding.rvMusicList)
-        setupListeners()
         setupViewModel()
+        setupListeners()
     }
 
+    // 특정 뷰들에 대해 작업의 범위를 지정
+    // observe() 메소드를 사용하여 Observer를 LiveData에 연결한다.
+    // observe() 메소드는 LifecycleOwner를 가져온다.
+    // 일반적으로 Activity나 Fragment와 같은 UI 컨트롤러에서 Observer를 연결한다.
     private fun setupViewModel() {
         viewLifecycleOwner.lifecycleScope.launch {
             musicListViewModel.getAllMusics().observe(viewLifecycleOwner) {
@@ -63,9 +65,8 @@ class MusicListFragment : Fragment(), View.OnClickListener,
         }
     }
 
-    override fun onDestroyView() {
-        _binding = null
-        super.onDestroyView()
+    private fun setupListeners() {
+        musicListAdapter.setOnRecyclerItemClickListener(this)
     }
 
     private fun initRecyclerView(recyclerView: RecyclerView) {
@@ -78,14 +79,9 @@ class MusicListFragment : Fragment(), View.OnClickListener,
         }
     }
 
-    private fun setupListeners() {
-        musicListAdapter.setOnRecyclerItemClickListener(this)
-    }
-
-    override fun onClick(view: View?) {
-        when (view?.id) {
-
-        }
+    override fun onDestroyView() {
+        _binding = null
+        super.onDestroyView()
     }
 
     override fun onItemClick(position: Int, view: View, data: MusicModel) {
@@ -129,5 +125,8 @@ class MusicListFragment : Fragment(), View.OnClickListener,
     private fun deleteMusicFromMyPlayList(musicModel: MusicModel) {
         // Local DB에 저장한다.
         musicListViewModel.deleteMusicFromMyPlaylist(musicModel)
+    }
+
+    override fun onClick(view: View?) {
     }
 }

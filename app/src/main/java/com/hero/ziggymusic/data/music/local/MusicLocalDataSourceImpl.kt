@@ -3,7 +3,6 @@ package com.hero.ziggymusic.data.music.local
 import android.app.Application
 import android.provider.MediaStore
 import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import com.hero.ziggymusic.database.music.dao.MusicFileDao
 import com.hero.ziggymusic.database.music.dao.PlaylistMusicDao
 import com.hero.ziggymusic.database.music.entity.MusicModel

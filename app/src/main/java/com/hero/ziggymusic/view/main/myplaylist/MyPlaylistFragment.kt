@@ -21,10 +21,8 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
-class MyPlaylistFragment : Fragment(), View.OnClickListener,
-    OnRecyclerItemClickListener<MusicModel> {
+class MyPlaylistFragment : Fragment(), View.OnClickListener, OnRecyclerItemClickListener<MusicModel> {
 
-    private var data = listOf<MusicModel>()
     private var _binding: FragmentMyPlaylistBinding? = null
     private val binding get() = _binding!!
 
