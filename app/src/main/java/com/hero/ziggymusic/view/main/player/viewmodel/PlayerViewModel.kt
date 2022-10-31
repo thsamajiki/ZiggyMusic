@@ -20,21 +20,19 @@ class PlayerViewModel @Inject constructor(
     private val musicRepository: MusicRepository
 ) : AndroidViewModel(application) {
 
+    // StateFlow 는 기본적으로 read-only 이기 때문에 값을 수정하기 위해서는 MutableStateFlow 로 선언하여 사용하면 됨
+    // LiveData와 달리 StateFlow는 초기값이 필요하다.
     private val _state: MutableStateFlow<PlayerMotionManager.State> =
         MutableStateFlow(PlayerMotionManager.State.COLLAPSED)
     val state: StateFlow<PlayerMotionManager.State> = _state.asStateFlow()
 
     val musicList: LiveData<List<MusicModel>> = musicRepository.getAllMusic()
 
-//    fun getAllMusics(): LiveData<List<MusicModel>> {
-//        return musicRepository.getAllMusic()
-//    }
+    fun changeState(toggleState: PlayerMotionManager.State) {
+        _state.value = toggleState
+    }
 
     override fun onCleared() {
         super.onCleared()
-    }
-
-    fun changeState(toggleState: PlayerMotionManager.State) {
-        _state.value = toggleState
     }
 }

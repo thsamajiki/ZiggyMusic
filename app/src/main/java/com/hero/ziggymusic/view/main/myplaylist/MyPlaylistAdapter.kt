@@ -18,8 +18,7 @@ class MyPlaylistAdapter(
     private val myPlaylist = mutableListOf<MusicModel>()
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MyPlayListViewHolder {
-        val binding =
-            ItemMyPlaylistBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+        val binding = ItemMyPlaylistBinding.inflate(LayoutInflater.from(parent.context), parent, false)
 
         return MyPlayListViewHolder(binding, getOnRecyclerItemClickListener()!!)
     }
@@ -38,13 +37,6 @@ class MyPlaylistAdapter(
         myPlaylist.addAll(musicData)
         notifyDataSetChanged()
     }
-
-    fun setMyPlayListOnTab(musicData: List<MusicModel>) {
-        myPlaylist.clear()
-        myPlaylist.addAll(musicData)
-        notifyDataSetChanged()
-    }
-
 
     class MyPlayListViewHolder(
         private val binding: ItemMyPlaylistBinding,

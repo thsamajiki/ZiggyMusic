@@ -95,18 +95,12 @@ class MainActivity : AppCompatActivity(), View.OnClickListener,
         playerController.changeMusic(musicId)
     }
 
-    override fun onClick(view: View?) {
-
-    }
-
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             R.id.menu_music_list -> {
-                val musicListFragment = MusicListFragment()
                 binding.mainViewPager.currentItem = 0
             }
             R.id.menu_my_play_list -> {
-                val myPlayListFragment = MyPlaylistFragment()
                 binding.mainViewPager.currentItem = 1
             }
 //            R.id.menu_setting -> {
@@ -137,5 +131,8 @@ class MainActivity : AppCompatActivity(), View.OnClickListener,
                 finish()
             }
         }
+    }
+
+    override fun onClick(view: View?) {
     }
 }

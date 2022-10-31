@@ -45,7 +45,7 @@ class MusicListAdapter(
 
     class MusicListViewHolder(
         private val binding: ItemMusicListBinding,
-        private val itemClickListener: OnRecyclerItemClickListener<MusicModel>,
+        private val itemClickListener: OnRecyclerItemClickListener<MusicModel>
     ) :
         RecyclerView.ViewHolder(binding.root) {
         private var musicUri: Uri? = null // 현재 음원의 Uri

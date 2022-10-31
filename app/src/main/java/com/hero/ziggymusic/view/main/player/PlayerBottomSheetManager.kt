@@ -12,6 +12,7 @@ class PlayerBottomSheetManager(
     private val rootView: ViewGroup,
     private val bottomSheetCallback: BottomSheetBehavior.BottomSheetCallback
 ) : DefaultLifecycleObserver {
+
     private val bottomSheetBehavior: BottomSheetBehavior<ViewGroup>?
         get() {
             val root = rootView.parent as? ViewGroup
@@ -20,6 +21,7 @@ class PlayerBottomSheetManager(
             } else null
         }
 
+    // LifecycleOwner에 Observer 추가
     init {
         lifecycle.addObserver(this)
     }
@@ -44,14 +46,6 @@ class PlayerBottomSheetManager(
         rootView.doOnLayout {
             bottomSheetBehavior?.state = BottomSheetBehavior.STATE_EXPANDED
         }
-    }
-
-    fun hide() {
-        bottomSheetBehavior?.state = BottomSheetBehavior.STATE_HIDDEN
-    }
-
-    fun getCurrentState(): Int? {
-        return bottomSheetBehavior?.state
     }
 
     private fun addCallback() {

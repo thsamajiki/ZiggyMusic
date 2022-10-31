@@ -1,9 +1,7 @@
 package com.hero.ziggymusic.view.main.player
 
 import android.os.Bundle
-import android.os.Handler
 import android.view.LayoutInflater
-import android.view.RoundedCorner
 import android.view.View
 import android.view.ViewGroup
 import android.widget.SeekBar
@@ -24,27 +22,34 @@ import com.hero.ziggymusic.database.music.entity.MusicModel
 import com.hero.ziggymusic.database.music.entity.PlayerModel
 import com.hero.ziggymusic.databinding.FragmentPlayerBinding
 
-import com.hero.ziggymusic.view.main.musiclist.MusicListAdapter
 import com.hero.ziggymusic.view.main.player.viewmodel.PlayerViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import java.util.concurrent.TimeUnit
 import kotlin.math.max
-import kotlin.math.min
 
 @AndroidEntryPoint
 class PlayerFragment : Fragment(), View.OnClickListener {
 
+    // Backing Properties : T를 반환할땐 외부에서 데이터의 수정이 일어나면 안된다.
+    // Null 값 발생해도 NPE가 일어나지 않음.
+    // _binding은 var이고 mutable (non-const)
+    // binding은 val이고 immutable (const)이다.
+
+    // _binding은 onCreate와 onDestroy 사이에서만 유효하므로 nullable 타입이 되어야 하고,
+    // binding은 inflated layout의 root로의 immutable (safe non-nullable) 참조(view로 리턴됨)을 제공한다.
+    // _binding 없이 그냥 binding을 쓰면 onDestroyView에서
+    // 캡슐화를 하려는건데 어차피 binding에 접근하는 시점은 onCreateView 와 OnDestroyView 사이로 정해져 있다.
     private var _binding: FragmentPlayerBinding? = null
     private val binding get() = _binding!!
 
-    private lateinit var adapter: MusicListAdapter
-
-    private var model: PlayerModel = PlayerModel()
+    private var playerModel: PlayerModel = PlayerModel()
     private val playerViewModel by viewModels<PlayerViewModel>()
 
     private var player: ExoPlayer? = null
-    private lateinit var handler: Handler
+
+    private lateinit var playerMotionManager: PlayerMotionManager
+    private lateinit var playerBottomSheetManager: PlayerBottomSheetManager
 
     private val musicKey: String
         get() = requireArguments().getString(EXTRA_MUSIC_FILE_KEY).orEmpty()
@@ -53,11 +58,8 @@ class PlayerFragment : Fragment(), View.OnClickListener {
         updateSeek()
     }
 
-    private lateinit var playerMotionManager: PlayerMotionManager
-    private lateinit var playerBottomSheetManager: PlayerBottomSheetManager
-
     companion object {
-        const val TAG = "NowPlayingFragment"
+        const val TAG = "PlayerFragment"
         const val EXTRA_MUSIC_FILE_KEY: String = "id"
         fun newInstance(musicKey: String): PlayerFragment =
             PlayerFragment().apply {
@@ -72,8 +74,7 @@ class PlayerFragment : Fragment(), View.OnClickListener {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        _binding =
-            FragmentPlayerBinding.inflate(inflater, container, false)
+        _binding = FragmentPlayerBinding.inflate(inflater, container, false)
         return binding.root
     }
 
@@ -82,10 +83,8 @@ class PlayerFragment : Fragment(), View.OnClickListener {
 
         initPlayView()
         initViewModel()
-//        initPlayListButton()
         initPlayControlButtons()
         initSeekBar()
-//        initRecyclerView()
 
         playerBottomSheetManager = PlayerBottomSheetManager(
             viewLifecycleOwner.lifecycle,
@@ -136,7 +135,7 @@ class PlayerFragment : Fragment(), View.OnClickListener {
     private fun initViewModel() {
         viewLifecycleOwner.lifecycleScope.launch {
             playerViewModel.musicList.observe(viewLifecycleOwner) { musicList ->
-                model.replaceMusicList(musicList)
+                playerModel.replaceMusicList(musicList)
                 val nowMusic = musicList.find {
                     it.id == musicKey
                 } ?: musicList.getOrNull(0)
@@ -160,32 +159,6 @@ class PlayerFragment : Fragment(), View.OnClickListener {
         }
     }
 
-    private fun initializeNowPlaying(musicModel: MusicModel) {
-        binding.tvNowPlayingTitle.text = musicModel.musicTitle
-        binding.tvSongArtist.text = musicModel.musicArtist
-        binding.tvTotalTime.text = milliSecondsToTimer(musicModel.duration ?: 0L)
-        binding.ivAlbumArt.setImageURI(musicModel.getAlbumUri())
-    }
-
-
-    private fun milliSecondsToTimer(milliSeconds: Long): String {
-        var timerString: String = ""
-        val secondsString: String
-
-        val minutes: Int = (milliSeconds % (1000 * 60 * 60) / (1000 * 60)).toInt()
-        val seconds: Int = ((milliSeconds % (1000 * 60 * 60)) % (1000 * 60) / 1000).toInt()
-
-        if (seconds < 10) {
-            secondsString = "0$seconds"
-        } else {
-            secondsString = "" + seconds
-        }
-
-        timerString = "$timerString$minutes:$secondsString"
-
-        return timerString
-    }
-
     private fun initSeekBar() {
         binding.sbPlayer.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(
@@ -202,11 +175,6 @@ class PlayerFragment : Fragment(), View.OnClickListener {
                 player?.seekTo(seekBar.progress * 1000L)
             }
         })
-
-        // clickable 을 false 로 주면 됨.
-//        binding.playListSeekBar.setOnTouchListener { v, event ->
-//            false // 터치 무시
-//        }
     }
 
     private fun initPlayControlButtons() {
@@ -246,11 +214,8 @@ class PlayerFragment : Fragment(), View.OnClickListener {
         }
 
         binding.ivPlaylist.setOnClickListener {
-            val player = this.player ?: return@setOnClickListener
-
-//           player.play()
-
             // TODO: 뒤로가기 버튼 누르면 접어주기
+            playerViewModel.changeState(PlayerMotionManager.State.COLLAPSED)
         }
     }
 
@@ -261,8 +226,8 @@ class PlayerFragment : Fragment(), View.OnClickListener {
         player?.addListener(object : Player.Listener {
             override fun onIsPlayingChanged(isPlaying: Boolean) {
                 super.onIsPlayingChanged(isPlaying)
-                // 플레이어가 재생 또는 일시정지 될 떄
 
+                // 플레이어가 재생 또는 일시정지 될 떄
                 if (isPlaying) {
                     binding.ivPlayPause.setImageResource(R.drawable.ic_pause_button)
                 } else {
@@ -275,11 +240,9 @@ class PlayerFragment : Fragment(), View.OnClickListener {
                 super.onMediaItemTransition(mediaItem, reason)
 
                 val newMusicKey: String = mediaItem?.mediaId ?: return
-                model.changedMusic(newMusicKey)
+                playerModel.changedMusic(newMusicKey)
 
-                // 리사이클러 뷰 스크롤 이동
-//           binding.rvPlayList.scrollToPosition(model.currentPosition)
-                updatePlayerView(model.currentMusic)
+                updatePlayerView(playerModel.currentMusic)
             }
 
             // 재생, 재생완료, 버퍼링 상태 ...
@@ -343,17 +306,9 @@ class PlayerFragment : Fragment(), View.OnClickListener {
     }
 
 
-    override fun onClick(view: View?) {
-        when (view?.id) {
-            R.id.iv_playlist -> {
-                // TODO: 접어주기
-            }
-        }
-    }
-
     private fun playMusic(musicList: List<MusicModel>, nowPlayMusic: MusicModel?) {
         if (nowPlayMusic != null) {
-            model.updateCurrentMusic(nowPlayMusic)
+            playerModel.updateCurrentMusic(nowPlayMusic)
         }
 
         val musicMediaItems = musicList.map { music ->
@@ -365,7 +320,7 @@ class PlayerFragment : Fragment(), View.OnClickListener {
                 .setUri(musicFileUri)
                 .build()
 
-            val mediaSource = ProgressiveMediaSource.Factory(defaultDataSourceFactory)
+            val mediaSource = ProgressiveMediaSource.Factory(defaultDataSourceFactory) // 미디어 정보를 가져오는 클래스
                 .createMediaSource(mediaItem)
             mediaSource
         }
@@ -392,11 +347,13 @@ class PlayerFragment : Fragment(), View.OnClickListener {
 
         _binding = null
         player?.release()
-//       binding.root.removeCallbacks(updateSeekRunnable)
+    }
+
+    override fun onClick(view: View?) {
     }
 
 
-    // 하단은 기존 코드
+    // 하단은 MediaPlayer를 사용했을 때의 코드
 
 //    private var _binding: ActivityNowPlayingBinding? = null
 //    private val binding get() = _binding!!

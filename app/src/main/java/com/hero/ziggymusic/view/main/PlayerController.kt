@@ -17,7 +17,7 @@ class PlayerController(
     private val onStateChanged: (newState: Int) -> Unit
 ) : DefaultLifecycleObserver {
 
-    val bottomSheetBehavior: BottomSheetBehavior<View>
+    private val bottomSheetBehavior: BottomSheetBehavior<View>
         get() = BottomSheetBehavior.from(fragmentContainer)
 
     private val playerFragment: PlayerFragment?
@@ -30,7 +30,6 @@ class PlayerController(
             }
 
             override fun onSlide(bottomSheet: View, slideOffset: Float) {
-
             }
         }
 

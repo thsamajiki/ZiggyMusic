@@ -79,12 +79,6 @@ class MyPlaylistFragment : Fragment(), View.OnClickListener, OnRecyclerItemClick
         myPlayListAdapter.setOnRecyclerItemClickListener(this)
     }
 
-    override fun onClick(view: View?) {
-        when (requireView().id) {
-
-        }
-    }
-
     override fun onItemClick(position: Int, view: View, data: MusicModel) {
         when (view.id) {
             R.id.iv_music_option_menu -> openDeleteFromMyPlayListOptionMenu(data, view)
@@ -116,5 +110,8 @@ class MyPlaylistFragment : Fragment(), View.OnClickListener, OnRecyclerItemClick
 
     private fun deleteMusicFromMyPlayList(musicModel: MusicModel) {
         myPlayListViewModel.deleteMusicFromMyPlaylist(musicModel)
+    }
+
+    override fun onClick(view: View?) {
     }
 }
