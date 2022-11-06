@@ -35,16 +35,17 @@
 ## 사용된 기술
 - MVVM 디자인 패턴
 - AAC (Android Architecture Components)
+- LiveData
 - Hilt
+- Coroutine
 - MotionLayout
-- ROOM
+- ROOM DB
 - RecyclerView
 
 
 ## 사용된 라이브러리
 - ExoPlayer2 (com.google.android.exoplayer:exoplayer:2.18.1)
 - 머티리얼 디자인 (com.google.android.material:material:1.6.1)
-- 머티리얼 프로그래스바 (me.zhanghai.android.materialprogressbar:library:1.6.1)
 - 사진 첨부 (com.github.bumptech.glide:glide:4.11.0) (com.github.bumptech.glide:compiler:4.11.0)
 
 
