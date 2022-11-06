@@ -198,8 +198,7 @@
             motion:layout_constraintBottom_toBottomOf="@+id/v_supporter_album_art"
             motion:layout_constraintEnd_toEndOf="parent"
             motion:layout_constraintStart_toStartOf="parent"
-            motion:layout_constraintTop_toTopOf="@+id/v_supporter_album_art"
-            motion:riv_corner_radius="12dp" />
+            motion:layout_constraintTop_toTopOf="@+id/v_supporter_album_art" />
 
         <Constraint
             android:id="@+id/tv_song_title"

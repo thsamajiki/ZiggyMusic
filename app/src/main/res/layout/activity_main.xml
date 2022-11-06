@@ -56,10 +56,6 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
-    <!--
-        use_controller 를 true 로 하고 레이아웃 파일을 따로 만들어서 구현하는 방법도 있음
-        (더 쉽게 구현가능한 방법)
-    -->
 
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/main_bottom_nav"
