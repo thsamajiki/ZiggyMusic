@@ -8,20 +8,19 @@ import androidx.appcompat.widget.PopupMenu
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.hero.ziggymusic.R
 import com.hero.ziggymusic.database.music.entity.MusicModel
 import com.hero.ziggymusic.databinding.FragmentMyPlaylistBinding
 import com.hero.ziggymusic.ext.playMusic
-import com.hero.ziggymusic.listener.OnRecyclerItemClickListener
+import com.hero.ziggymusic.view.listener.OnRecyclerItemClickListener
 import com.hero.ziggymusic.view.main.myplaylist.viewmodel.MyPlaylistViewModel
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
-class MyPlaylistFragment : Fragment(), View.OnClickListener, OnRecyclerItemClickListener<MusicModel> {
+class MyPlaylistFragment : Fragment(), View.OnClickListener,
+    OnRecyclerItemClickListener<MusicModel> {
 
     private var _binding: FragmentMyPlaylistBinding? = null
     private val binding get() = _binding!!

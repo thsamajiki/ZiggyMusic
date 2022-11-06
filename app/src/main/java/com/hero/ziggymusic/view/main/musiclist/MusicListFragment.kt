@@ -8,21 +8,19 @@ import androidx.appcompat.widget.PopupMenu
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.hero.ziggymusic.R
 import com.hero.ziggymusic.database.music.entity.MusicModel
 import com.hero.ziggymusic.databinding.FragmentMusicListBinding
 import com.hero.ziggymusic.ext.playMusic
-import com.hero.ziggymusic.listener.OnRecyclerItemClickListener
+import com.hero.ziggymusic.view.listener.OnRecyclerItemClickListener
 import com.hero.ziggymusic.view.main.musiclist.viewmodel.MusicListViewModel
-import com.hero.ziggymusic.view.main.myplaylist.MyPlaylistAdapter
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
-class MusicListFragment : Fragment(), View.OnClickListener, OnRecyclerItemClickListener<MusicModel> {
+class MusicListFragment : Fragment(), View.OnClickListener,
+    OnRecyclerItemClickListener<MusicModel> {
 
     // Fragment View의 생명주기는 onCreateView ~ onDestroyView
     // Fragment에서 View Binding을 사용할 경우 Fragment는 View보다 오래 지속되어,

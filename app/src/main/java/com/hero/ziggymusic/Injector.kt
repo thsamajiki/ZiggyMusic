@@ -1,6 +1,6 @@
 package com.hero.ziggymusic
 
-import com.hero.ziggymusic.data.music.local.MusicLocalDataSourceImpl
+import com.hero.ziggymusic.database.local.MusicLocalDataSourceImpl
 import com.hero.ziggymusic.database.AppMusicDatabase
 import com.hero.ziggymusic.database.AppMyPlaylistDatabase
 import com.hero.ziggymusic.database.music.repository.MusicRepositoryImpl

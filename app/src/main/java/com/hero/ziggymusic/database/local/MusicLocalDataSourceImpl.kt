@@ -1,4 +1,4 @@
-package com.hero.ziggymusic.data.music.local
+package com.hero.ziggymusic.database.local
 
 import android.app.Application
 import android.provider.MediaStore
@@ -12,7 +12,7 @@ class MusicLocalDataSourceImpl @Inject constructor(
     private val application: Application,
     private val musicFileDao: MusicFileDao,
     private val playlistMusicDao: PlaylistMusicDao
-) : MusicLocalDataSource{
+) : MusicLocalDataSource {
 
     override suspend fun loadMusics() {
         val musicListUri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI

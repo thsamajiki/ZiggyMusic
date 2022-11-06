@@ -1,4 +1,4 @@
-package com.hero.ziggymusic.data.music.local
+package com.hero.ziggymusic.database.local
 
 import androidx.lifecycle.LiveData
 import com.hero.ziggymusic.database.music.entity.MusicModel

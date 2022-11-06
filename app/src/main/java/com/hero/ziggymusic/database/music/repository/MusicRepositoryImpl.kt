@@ -1,7 +1,7 @@
 package com.hero.ziggymusic.database.music.repository
 
 import androidx.lifecycle.LiveData
-import com.hero.ziggymusic.data.music.local.MusicLocalDataSource
+import com.hero.ziggymusic.database.local.MusicLocalDataSource
 import com.hero.ziggymusic.database.music.entity.MusicModel
 import javax.inject.Inject
 
