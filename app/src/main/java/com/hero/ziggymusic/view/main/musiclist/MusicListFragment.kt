@@ -22,13 +22,8 @@ import dagger.hilt.android.AndroidEntryPoint
 class MusicListFragment : Fragment(), View.OnClickListener,
     OnRecyclerItemClickListener<MusicModel> {
 
-    // Fragment View의 생명주기는 onCreateView ~ onDestroyView
-    // Fragment에서 View Binding을 사용할 경우 Fragment는 View보다 오래 지속되어,
-    // Fragment의 Lifecycle로 인해 메모리 누수가 발생할 수 있기 때문이다.
-    // onDestroyView() 이후에 Fragment view는 종료되지만, Fragment는 여전히 살아 있다.
-    // 즉 메모리 누수가 발생하게 된다.
     private var _binding: FragmentMusicListBinding? = null
-    private val binding get() = _binding!! // 해당 속성을 참조할 때 실제 게터가 자동으로 호출된다
+    private val binding get() = _binding!!
 
     private val musicListViewModel by viewModels<MusicListViewModel>()
 
@@ -53,21 +48,8 @@ class MusicListFragment : Fragment(), View.OnClickListener,
         super.onViewCreated(view, savedInstanceState)
 
         initRecyclerView(binding.rvMusicList)
-//        setupViewModel()
         setupListeners()
     }
-
-    // 특정 뷰들에 대해 작업의 범위를 지정
-    // observe() 메소드를 사용하여 Observer를 LiveData에 연결한다.
-    // observe() 메소드는 LifecycleOwner를 가져온다.
-    // 일반적으로 Activity나 Fragment와 같은 UI 컨트롤러에서 Observer를 연결한다.
-//    private fun setupViewModel() {
-//        viewLifecycleOwner.lifecycleScope.launch {
-//            musicListViewModel.getAllMusics().observe(viewLifecycleOwner) {
-//                musicListAdapter.setMusicList(it)
-//            }
-//        }
-//    }
 
     private fun setupListeners() {
         musicListAdapter.setOnRecyclerItemClickListener(this)
@@ -122,12 +104,10 @@ class MusicListFragment : Fragment(), View.OnClickListener,
     }
 
     private fun addMusicToMyPlaylist(musicModel: MusicModel) {
-        // Local DB에 저장한다.
         musicListViewModel.addMusicToMyPlaylist(musicModel)
     }
 
     private fun deleteMusicFromMyPlayList(musicModel: MusicModel) {
-        // Local DB에 저장한다.
         musicListViewModel.deleteMusicFromMyPlaylist(musicModel)
     }
 

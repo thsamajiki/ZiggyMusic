@@ -48,17 +48,8 @@ class MyPlaylistFragment : Fragment(), View.OnClickListener,
         super.onViewCreated(view, savedInstanceState)
 
         initRecyclerView(binding.rvMyPlayList)
-//        setupViewModel()
         setupListeners()
     }
-
-//    private fun setupViewModel() {
-//        viewLifecycleOwner.lifecycleScope.launch {
-//            myPlayListViewModel.getMyPlayList().observe(viewLifecycleOwner) {
-//                myPlayListAdapter.setMusicList(it)
-//            }
-//        }
-//    }
 
     override fun onDestroyView() {
         _binding = null

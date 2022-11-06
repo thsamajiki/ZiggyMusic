@@ -5,7 +5,7 @@ data class PlayerModel (
 ) {
 
     var currentMusic: MusicModel? = null
-        private set // private set 키워드를 변수선언 아래에 붙이면 외부에 setter를 허용하지 않을 수 있다.
+        private set
 
 
     fun replaceMusicList(musicList: List<MusicModel>) {
@@ -14,7 +14,6 @@ data class PlayerModel (
     }
 
     fun updateCurrentMusic(musicModel: MusicModel) {
-//        어차피 id 값이 인덱스 값이다.
         currentMusic = musicModel
     }
 

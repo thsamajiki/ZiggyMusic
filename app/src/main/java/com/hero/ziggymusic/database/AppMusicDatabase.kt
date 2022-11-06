@@ -16,7 +16,7 @@ abstract class AppMusicDatabase : RoomDatabase() {
         @Volatile
         private var instance: AppMusicDatabase? = null
 
-        fun getInstance(context: Context): AppMusicDatabase = instance ?: synchronized(this) { // singleton pattern
+        fun getInstance(context: Context): AppMusicDatabase = instance ?: synchronized(this) {
             instance ?: buildDatabase(context).also { instance = it }
         }
 

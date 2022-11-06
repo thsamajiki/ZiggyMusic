@@ -5,8 +5,6 @@ import com.hero.ziggymusic.database.local.MusicLocalDataSource
 import com.hero.ziggymusic.database.music.entity.MusicModel
 import javax.inject.Inject
 
-// 앱에서 사용하는 데이터와 그 데이터 통신을 하는 역할
-
 class MusicRepositoryImpl @Inject constructor(
     private val musicLocalDataSource: MusicLocalDataSource
 ) : MusicRepository {

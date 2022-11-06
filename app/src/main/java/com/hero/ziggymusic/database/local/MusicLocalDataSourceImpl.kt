@@ -17,7 +17,6 @@ class MusicLocalDataSourceImpl @Inject constructor(
     override suspend fun loadMusics() {
         val musicListUri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
 
-        // 2. 가져올 데이터 컬럼을 정의
         val projection = arrayOf(
             MediaStore.Audio.Media._ID,
             MediaStore.Audio.Media.TITLE,
@@ -26,7 +25,6 @@ class MusicLocalDataSourceImpl @Inject constructor(
             MediaStore.Audio.Media.DURATION
         )
 
-        // 3. 콘텐츠 리졸버에 해당 데이터 요청 (음원 목록에 있는 0번째 줄을 가리킴)
         val cursor = application.contentResolver.query(
             musicListUri,
             projection,
@@ -35,11 +33,9 @@ class MusicLocalDataSourceImpl @Inject constructor(
             null
         )
 
-        // 4. 커서로 전달된 데이터를 꺼내서 저장
         val musicList = mutableListOf<MusicModel>()
 
         while (cursor?.moveToNext() == true) {
-//            val id = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.))
             val id = cursor.getString(0)
             val title = cursor.getString(1)
             val artist = cursor.getString(2)

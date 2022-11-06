@@ -57,7 +57,6 @@ class MainActivity : AppCompatActivity(), View.OnClickListener,
         if (!isPermitted()) {
             ActivityCompat.requestPermissions(this, arrayOf(permission), REQ_READ)
         } else {
-            // 2가지 동작이 권한이 있을 때에만 호출되도록
             setFragmentAdapter()
             playerController.startPlayer()
         }

@@ -54,9 +54,5 @@ class MyPlaylistAdapter(
                 itemClickListener.onItemClick(absoluteAdapterPosition, it, musicItem)
             }
         }
-
-        private fun getMusicFileUri(musicItem: MusicModel): Uri {
-            return Uri.withAppendedPath(MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI, musicItem.id)
-        }
     }
 }
