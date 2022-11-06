@@ -5,7 +5,7 @@
     <data>
         <import type="android.view.View" />
         <variable
-            name="myPlayList"
+            name="viewModel"
             type="com.hero.ziggymusic.view.main.myplaylist.viewmodel.MyPlaylistViewModel" />
     </data>
 
@@ -21,8 +21,8 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:orientation="vertical"
-            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-            tools:listitem="@layout/item_my_play_list" />
+            app:myPlaylistItems="@{viewModel.myPlaylist}"
+            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
 
     </LinearLayout>
 </layout>

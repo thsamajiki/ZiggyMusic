@@ -5,7 +5,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.viewModelScope
 import com.hero.ziggymusic.database.music.entity.MusicModel
-import com.hero.ziggymusic.domain.music.repository.MusicRepository
+import com.hero.ziggymusic.database.music.repository.MusicRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -17,15 +17,18 @@ class MyPlaylistViewModel @Inject constructor(
     private val musicRepository: MusicRepository
 ) : AndroidViewModel(application) {
 
-    init {
-        viewModelScope.launch {
-            musicRepository.loadMusics()
-        }
-    }
+//    init {
+//        viewModelScope.launch {
+//            musicRepository.loadMusics()
+//        }
+//    }
 
-    fun getMyPlayList(): LiveData<List<MusicModel>> {
-        return musicRepository.getMyPlaylistMusics()
-    }
+    val myPlaylist : LiveData<List<MusicModel>> = musicRepository.getMyPlaylistMusics()
+
+
+//    fun getMyPlayList(): LiveData<List<MusicModel>> {
+//        return musicRepository.getMyPlaylistMusics()
+//    }
 
     fun deleteMusicFromMyPlaylist(musicModel: MusicModel) {
         viewModelScope.launch {

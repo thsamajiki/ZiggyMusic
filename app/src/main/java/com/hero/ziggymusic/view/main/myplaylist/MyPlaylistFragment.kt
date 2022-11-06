@@ -40,6 +40,7 @@ class MyPlaylistFragment : Fragment(), View.OnClickListener, OnRecyclerItemClick
     ): View {
         _binding = DataBindingUtil.inflate(inflater, R.layout.fragment_my_playlist, container, false)
         binding.lifecycleOwner = this
+        binding.viewModel = myPlayListViewModel
 
         return binding.root
     }
@@ -48,17 +49,17 @@ class MyPlaylistFragment : Fragment(), View.OnClickListener, OnRecyclerItemClick
         super.onViewCreated(view, savedInstanceState)
 
         initRecyclerView(binding.rvMyPlayList)
-        setupViewModel()
+//        setupViewModel()
         setupListeners()
     }
 
-    private fun setupViewModel() {
-        viewLifecycleOwner.lifecycleScope.launch {
-            myPlayListViewModel.getMyPlayList().observe(viewLifecycleOwner) {
-                myPlayListAdapter.setMusicList(it)
-            }
-        }
-    }
+//    private fun setupViewModel() {
+//        viewLifecycleOwner.lifecycleScope.launch {
+//            myPlayListViewModel.getMyPlayList().observe(viewLifecycleOwner) {
+//                myPlayListAdapter.setMusicList(it)
+//            }
+//        }
+//    }
 
     override fun onDestroyView() {
         _binding = null

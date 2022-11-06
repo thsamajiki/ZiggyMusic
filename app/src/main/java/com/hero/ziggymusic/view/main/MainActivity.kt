@@ -39,14 +39,6 @@ class MainActivity : AppCompatActivity(), View.OnClickListener,
 
         setContentView(binding.root)
 
-        setFragmentAdapter()
-
-        if (!isPermitted()) {
-            ActivityCompat.requestPermissions(this, arrayOf(permission), REQ_READ)
-        }
-
-        binding.mainBottomNav.setOnItemSelectedListener(this)
-
         playerController = PlayerController(
             this,
             binding.playerContainer,
@@ -61,7 +53,16 @@ class MainActivity : AppCompatActivity(), View.OnClickListener,
                     }
                 }
             })
-        playerController.startPlayer()
+
+        if (!isPermitted()) {
+            ActivityCompat.requestPermissions(this, arrayOf(permission), REQ_READ)
+        } else {
+            // 2가지 동작이 권한이 있을 때에만 호출되도록
+            setFragmentAdapter()
+            playerController.startPlayer()
+        }
+
+        binding.mainBottomNav.setOnItemSelectedListener(this)
     }
 
     private fun setFragmentAdapter() {
@@ -129,6 +130,9 @@ class MainActivity : AppCompatActivity(), View.OnClickListener,
             if (grantResults[0] != PackageManager.PERMISSION_GRANTED) {
                 Toast.makeText(this, "권한 요청을 승인해야만 앱을 실행할 수 있습니다.", Toast.LENGTH_SHORT).show()
                 finish()
+            } else {
+                setFragmentAdapter()
+                playerController.startPlayer()
             }
         }
     }

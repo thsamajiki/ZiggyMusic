@@ -1,4 +1,4 @@
-package com.hero.ziggymusic.domain.music.repository
+package com.hero.ziggymusic.database.music.repository
 
 import androidx.lifecycle.LiveData
 import com.hero.ziggymusic.database.music.entity.MusicModel

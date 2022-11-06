@@ -16,7 +16,7 @@ data class MusicFileEntity(
     val duration: Long? = 0
 ) : Parcelable {
 
-    fun toEntity(): MusicFileEntity? {
+    fun toEntity(): MusicFileEntity {
         return MusicFileEntity(id,
             musicTitle,
             musicArtist,

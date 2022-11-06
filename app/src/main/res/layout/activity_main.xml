@@ -40,7 +40,7 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:background="@color/gray_333"
-            app:layout_constraintBottom_toTopOf="@+id/main_bottom_nav"
+            app:layout_constraintBottom_toTopOf="@+id/player_container"
             app:layout_constraintTop_toBottomOf="@+id/main_toolbar" />
 
     </LinearLayout>

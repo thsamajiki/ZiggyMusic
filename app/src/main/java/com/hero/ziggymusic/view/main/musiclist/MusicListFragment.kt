@@ -46,6 +46,7 @@ class MusicListFragment : Fragment(), View.OnClickListener, OnRecyclerItemClickL
     ): View {
         _binding = DataBindingUtil.inflate(inflater, R.layout.fragment_music_list, container, false)
         binding.lifecycleOwner = this
+        binding.viewModel = musicListViewModel
 
         return binding.root
     }
@@ -54,7 +55,7 @@ class MusicListFragment : Fragment(), View.OnClickListener, OnRecyclerItemClickL
         super.onViewCreated(view, savedInstanceState)
 
         initRecyclerView(binding.rvMusicList)
-        setupViewModel()
+//        setupViewModel()
         setupListeners()
     }
 
@@ -62,13 +63,13 @@ class MusicListFragment : Fragment(), View.OnClickListener, OnRecyclerItemClickL
     // observe() 메소드를 사용하여 Observer를 LiveData에 연결한다.
     // observe() 메소드는 LifecycleOwner를 가져온다.
     // 일반적으로 Activity나 Fragment와 같은 UI 컨트롤러에서 Observer를 연결한다.
-    private fun setupViewModel() {
-        viewLifecycleOwner.lifecycleScope.launch {
-            musicListViewModel.getAllMusics().observe(viewLifecycleOwner) {
-                musicListAdapter.setMusicList(it)
-            }
-        }
-    }
+//    private fun setupViewModel() {
+//        viewLifecycleOwner.lifecycleScope.launch {
+//            musicListViewModel.getAllMusics().observe(viewLifecycleOwner) {
+//                musicListAdapter.setMusicList(it)
+//            }
+//        }
+//    }
 
     private fun setupListeners() {
         musicListAdapter.setOnRecyclerItemClickListener(this)

@@ -4,7 +4,7 @@ import com.hero.ziggymusic.data.music.local.MusicLocalDataSourceImpl
 import com.hero.ziggymusic.database.AppMusicDatabase
 import com.hero.ziggymusic.database.AppMyPlaylistDatabase
 import com.hero.ziggymusic.database.music.repository.MusicRepositoryImpl
-import com.hero.ziggymusic.domain.music.repository.MusicRepository
+import com.hero.ziggymusic.database.music.repository.MusicRepository
 
 object Injector {
 

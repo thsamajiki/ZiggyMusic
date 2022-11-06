@@ -3,7 +3,6 @@ package com.hero.ziggymusic.database.music.repository
 import androidx.lifecycle.LiveData
 import com.hero.ziggymusic.data.music.local.MusicLocalDataSource
 import com.hero.ziggymusic.database.music.entity.MusicModel
-import com.hero.ziggymusic.domain.music.repository.MusicRepository
 import javax.inject.Inject
 
 // 앱에서 사용하는 데이터와 그 데이터 통신을 하는 역할

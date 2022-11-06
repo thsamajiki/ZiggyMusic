@@ -88,7 +88,7 @@ class PlayerFragment : Fragment(), View.OnClickListener {
 
         playerBottomSheetManager = PlayerBottomSheetManager(
             viewLifecycleOwner.lifecycle,
-            binding.root,
+            binding.constraintLayout,
             object : BottomSheetCallback() {
                 override fun onStateChanged(bottomSheet: View, newState: Int) {
                     when (newState) {
