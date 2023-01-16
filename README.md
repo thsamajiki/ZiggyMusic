@@ -17,7 +17,7 @@
 
 
 ## 사용 프로그램 및 언어
-- 사용 프로그램 : Android Studio, Google Firebase, GitHub
+- 사용 프로그램 : Android Studio, GitHub
 - 사용 언어 : Kotlin
 
 
