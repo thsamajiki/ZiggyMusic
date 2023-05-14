@@ -17,7 +17,7 @@
 
 
 ## 사용 프로그램 및 언어
-- 사용 프로그램 : Android Studio, Google Firebase, GitHub
+- 사용 프로그램 : Android Studio, GitHub
 - 사용 언어 : Kotlin
 
 
@@ -62,17 +62,16 @@
 MVVM 디자인 패턴과 AAC를 적용하여 유지보수가 용이하도록 하고 UI 업데이트가 좀 더 간편해지도록 했습니다.<br>
 수많은 기능들이 있는 ExoPlayer를 사용했지만, 일부 기능만 적용했기에 아쉬움이 남습니다.<br>
 추후에 영상 앱을 기획할 때 다시 한 번 공부하고 적용해볼 생각입니다.<br>
-MotionLayout 라이브러리를 import하여 플레이어 디자인과 기능을 커스터마이징했으며,<br>
-나만의 플레이리스트를 구성할 수 있도록 MyPlayList를 구현했습니다. 
+EQ 조절이나 스킨 기능 등이 반영된 설정 기능을 추가하는 것도 고려하고 있습니다.<br>
 
 
 ## 스크린샷
-<img src="/images/music_list.png" width="360px" height="640px" title="test_video" alt="music_list"></img>
-<img src="/images/my_playlist.png" width="360px" height="640px" title="test_video" alt="my_playlist"></img>
-<img src="/images/player_fragment.png" width="360px" height="640px" title="test_video" alt="player"></img>
-<img src="/images/music_playing_collapsed.png" width="360px" height="640px" title="test_video" alt="collapsed"></img>
+<img src="/images/music_list.png" width="320px" height="640px" title="test_video" alt="music_list"></img>
+<img src="/images/my_playlist.png" width="320px" height="640px" title="test_video" alt="my_playlist"></img>
+<img src="/images/player_fragment.png" width="320px" height="640px" title="test_video" alt="player"></img>
+<img src="/images/music_playing_collapsed.png" width="320px" height="640px" title="test_video" alt="collapsed"></img>
 
 
 
 ## 시연 영상
-<img src="/images/ziggymusic_시연영상.gif" width="360px" height="640px" title="test_video" alt="Test_video"></img>
+<img src="/images/ziggymusic_시연영상.gif" width="330px" height="640px" title="test_video" alt="Test_video"></img>
