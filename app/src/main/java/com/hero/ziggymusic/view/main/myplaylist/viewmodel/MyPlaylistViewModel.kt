@@ -16,6 +16,12 @@ class MyPlaylistViewModel @Inject constructor(
     private val musicRepository: MusicRepository
 ) : AndroidViewModel(application) {
 
+//    init {
+//        viewModelScope.launch {
+//            musicRepository.loadMusics()
+//        }
+//    }
+
     val myPlaylist : LiveData<List<MusicModel>> = musicRepository.getMyPlaylistMusics()
 
     fun deleteMusicFromMyPlaylist(musicModel: MusicModel) {
