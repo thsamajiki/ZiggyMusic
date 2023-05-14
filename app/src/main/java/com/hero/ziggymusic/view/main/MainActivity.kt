@@ -22,7 +22,8 @@ import com.hero.ziggymusic.view.main.myplaylist.MyPlaylistFragment
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-class MainActivity : AppCompatActivity(), View.OnClickListener,
+class MainActivity : AppCompatActivity(),
+    View.OnClickListener,
     NavigationBarView.OnItemSelectedListener {
 
     private lateinit var binding: ActivityMainBinding
@@ -57,6 +58,7 @@ class MainActivity : AppCompatActivity(), View.OnClickListener,
         if (!isPermitted()) {
             ActivityCompat.requestPermissions(this, arrayOf(permission), REQ_READ)
         } else {
+            // 2가지 동작이 권한이 있을 때에만 호출되도록
             setFragmentAdapter()
             playerController.startPlayer()
         }
