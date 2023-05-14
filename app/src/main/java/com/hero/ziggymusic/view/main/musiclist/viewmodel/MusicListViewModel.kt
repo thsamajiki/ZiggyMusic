@@ -26,7 +26,7 @@ class MusicListViewModel @Inject constructor(
         viewModelScope.launch {
             musicRepository.loadMusics()
         }
-
+        // Observer 는 항상 활성 상태로 간주되므로 항상 수정 관련 알림을 받는다.
         myPlaylist.observeForever(myPlaylistObserver)
     }
 
