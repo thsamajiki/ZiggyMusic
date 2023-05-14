@@ -65,11 +65,6 @@ class MusicListFragment : Fragment(), View.OnClickListener,
         }
     }
 
-    override fun onDestroyView() {
-        _binding = null
-        super.onDestroyView()
-    }
-
     override fun onItemClick(position: Int, view: View, data: MusicModel) {
         when (view.id) {
             R.id.iv_music_option_menu -> openAddOrDeleteToFromMyPlaylistOptionMenu(data, view)
@@ -104,13 +99,20 @@ class MusicListFragment : Fragment(), View.OnClickListener,
     }
 
     private fun addMusicToMyPlaylist(musicModel: MusicModel) {
+        // Local DB에 저장한다.
         musicListViewModel.addMusicToMyPlaylist(musicModel)
     }
 
     private fun deleteMusicFromMyPlayList(musicModel: MusicModel) {
+        // Local DB에 저장한다.
         musicListViewModel.deleteMusicFromMyPlaylist(musicModel)
     }
 
     override fun onClick(view: View?) {
+    }
+
+    override fun onDestroyView() {
+        _binding = null
+        super.onDestroyView()
     }
 }
