@@ -19,6 +19,8 @@ data class MusicModel (
     val musicArtist: String? = "",  // 음원 아티스트
     @ColumnInfo(name = "album_id")
     val albumId: String? = "",    // 앨범 이미지 ID
+    @ColumnInfo(name = "album")
+    val albumTitle: String? = "",    // 앨범명
     @ColumnInfo(name = "duration")
     val duration: Long? = 0,     // 음원 재생 시간
     @ColumnInfo(name = "is_playing")
