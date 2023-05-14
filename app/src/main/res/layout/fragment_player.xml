@@ -187,32 +187,35 @@
             app:layout_constraintTop_toBottomOf="@id/sb_player"
             tools:text="03:00" />
 
-        <ImageView
+        <com.skydoves.elasticviews.ElasticImageView
             android:id="@+id/iv_play_pause"
             android:layout_width="50dp"
             android:layout_height="50dp"
             android:src="@drawable/ic_play_button"
+            app:imageView_duration="200"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="@id/v_player" />
 
-        <ImageView
+        <com.skydoves.elasticviews.ElasticImageView
             android:id="@+id/iv_next"
             android:layout_width="40dp"
             android:layout_height="40dp"
             android:src="@drawable/ic_next_button"
+            app:imageView_duration="200"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0.2"
             app:layout_constraintStart_toEndOf="@id/iv_play_pause"
             app:layout_constraintTop_toTopOf="@id/v_player" />
 
-        <ImageView
+        <com.skydoves.elasticviews.ElasticImageView
             android:id="@+id/iv_previous"
             android:layout_width="40dp"
             android:layout_height="40dp"
             android:src="@drawable/ic_previous_button"
+            app:imageView_duration="200"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toStartOf="@id/iv_play_pause"
             app:layout_constraintHorizontal_bias="0.8"
