@@ -21,6 +21,7 @@ class PlayerBottomSheetManager(
             } else null
         }
 
+    // LifecycleOwner 에 Observer 추가
     init {
         lifecycle.addObserver(this)
     }
