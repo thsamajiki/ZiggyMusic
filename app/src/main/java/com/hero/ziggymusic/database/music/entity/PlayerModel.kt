@@ -14,6 +14,7 @@ data class PlayerModel (
     }
 
     fun updateCurrentMusic(musicModel: MusicModel) {
+//        어차피 id 값이 인덱스 값이다.
         currentMusic = musicModel
     }
 
