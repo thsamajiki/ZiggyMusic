@@ -44,9 +44,9 @@
 
 
 ## 사용된 라이브러리
-- ExoPlayer2 (com.google.android.exoplayer:exoplayer:2.18.1)
+- ExoPlayer2 (com.google.android.exoplayer:exoplayer:2.18.6)
 - 머티리얼 디자인 (com.google.android.material:material:1.6.1)
-- 사진 첨부 (com.github.bumptech.glide:glide:4.11.0) (com.github.bumptech.glide:compiler:4.11.0)
+- 사진 첨부 (com.github.bumptech.glide:glide:4.14.2)
 
 
 
