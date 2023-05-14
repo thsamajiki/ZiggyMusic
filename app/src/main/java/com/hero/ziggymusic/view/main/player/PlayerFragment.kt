@@ -96,6 +96,7 @@ class PlayerFragment : Fragment(), View.OnClickListener {
                 }
 
                 override fun onSlide(bottomSheet: View, slideOffset: Float) {
+//                    binding.constraintLayout.progress = slideOffset
                 }
             }
         )
@@ -168,6 +169,7 @@ class PlayerFragment : Fragment(), View.OnClickListener {
     }
 
     private fun initPlayControlButtons() {
+        // 재생 or 일시정지 버튼
         binding.ivPlayPause.setOnClickListener {
             val player = this.player ?: return@setOnClickListener
 
@@ -195,7 +197,7 @@ class PlayerFragment : Fragment(), View.OnClickListener {
                 val prevIndex = if (currentMediaItemIndex -1 in 0 until mediaItemCount) {
                     currentMediaItemIndex - 1
                 } else {
-                    0
+                    0 // 0번에서 뒤로 갈때
                 }
 
                 seekTo(prevIndex, 0)
@@ -215,6 +217,7 @@ class PlayerFragment : Fragment(), View.OnClickListener {
             override fun onIsPlayingChanged(isPlaying: Boolean) {
                 super.onIsPlayingChanged(isPlaying)
 
+                // 플레이어가 재생 또는 일시정지 될 떄
                 if (isPlaying) {
                     binding.ivPlayPause.setImageResource(R.drawable.ic_pause_button)
                 } else {
@@ -222,6 +225,7 @@ class PlayerFragment : Fragment(), View.OnClickListener {
                 }
             }
 
+            // 미디어 아이템이 바뀔 때
             override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
                 super.onMediaItemTransition(mediaItem, reason)
 
@@ -231,6 +235,7 @@ class PlayerFragment : Fragment(), View.OnClickListener {
                 updatePlayerView(playerModel.currentMusic)
             }
 
+            // 재생, 재생완료, 버퍼링 상태 ...
             override fun onPlaybackStateChanged(state: Int) {
                 super.onPlaybackStateChanged(state)
 
@@ -242,7 +247,7 @@ class PlayerFragment : Fragment(), View.OnClickListener {
 
     private fun updateSeek() {
         val player = this.player ?: return
-        val duration = if (player.duration >= 0) player.duration else 0
+        val duration = if (player.duration >= 0) player.duration else 0 // 전체 음악 길이
         val position = player.currentPosition
 
         updateSeekUi(duration, position)
@@ -251,30 +256,30 @@ class PlayerFragment : Fragment(), View.OnClickListener {
 
         val view = binding.root
         view.removeCallbacks(updateSeekRunnable)
-
+        // 재생 중일때 (대 중이 아니거나, 재생이 끝나지 않은 경우)
         if (state != Player.STATE_IDLE && state != Player.STATE_ENDED) {
-            view.postDelayed(updateSeekRunnable, 1000)
+            view.postDelayed(updateSeekRunnable, 1000) // 1초에 한번씩 실행
         }
 
     }
 
     private fun updateSeekUi(duration: Long, position: Long) {
-        binding.sbPlayList.max = (duration / 1000).toInt()
-        binding.sbPlayList.progress = (position / 1000).toInt()
+        binding.sbPlayList.max = (duration / 1000).toInt() // 총 길이를 설정. 1000으로 나눠 작게
+        binding.sbPlayList.progress = (position / 1000).toInt() // 동일하게 1000으로 나눠 작게
 
         binding.sbPlayer.max = (duration / 1000).toInt()
         binding.sbPlayer.progress = (position / 1000).toInt()
 
         binding.tvCurrentPlayTime.text = String.format(
             "%02d:%02d",
-            TimeUnit.MINUTES.convert(position, TimeUnit.MILLISECONDS),
-            (position / 1000) % 60
+            TimeUnit.MINUTES.convert(position, TimeUnit.MILLISECONDS), // 현재 분
+            (position / 1000) % 60 // 분 단위를 제외한 현재 초
         )
 
         binding.tvTotalTime.text = String.format(
             "%02d:%02d",
-            TimeUnit.MINUTES.convert(duration, TimeUnit.MILLISECONDS),
-            (duration / 1000) % 60
+            TimeUnit.MINUTES.convert(duration, TimeUnit.MILLISECONDS), // 전체 분
+            (duration / 1000) % 60 // 분 단위를 제외한 초
         )
     }
 
@@ -288,6 +293,8 @@ class PlayerFragment : Fragment(), View.OnClickListener {
             .load(musicModel.getAlbumUri())
             .transform(RoundedCorners(12))
             .into(binding.ivAlbumArt)
+
+        binding.tvSongAlbum.text = musicModel.albumTitle
     }
 
 
@@ -305,7 +312,7 @@ class PlayerFragment : Fragment(), View.OnClickListener {
                 .setUri(musicFileUri)
                 .build()
 
-            val mediaSource = ProgressiveMediaSource.Factory(defaultDataSourceFactory)
+            val mediaSource = ProgressiveMediaSource.Factory(defaultDataSourceFactory) // 미디어 정보를 가져오는 클래스
                 .createMediaSource(mediaItem)
             mediaSource
         }
@@ -315,7 +322,8 @@ class PlayerFragment : Fragment(), View.OnClickListener {
         player?.run {
             setMediaSources(musicMediaItems)
             prepare()
-            seekTo(max(playIndex, 0), 0)
+            seekTo(max(playIndex, 0), 0) // positionsMs=0 초 부터 시작
+//            play()
         }
     }
 
