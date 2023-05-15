@@ -33,10 +33,10 @@ class MusicService : Service() {
     companion object {
         const val CHANNEL_ID = "MusicChannel" //알림 채널 ID
 
-        const val PLAY_OR_PAUSE = "PLAY_OR_PAUSE" // Notification 에서 재생 / 일시 정지 버튼을 누를 시
-        const val SKIP_PREV = "SKIP_PREV" // Notification 에서 이전 곡 버튼을 누를 시
-        const val SKIP_NEXT = "SKIP_NEXT" // Notification 에서 다음 곡 버튼을 누를 시
-        const val CLOSE = "CLOSE" // 닫기 버튼을 누를 시
+        const val PLAY_OR_PAUSE = "com.hero.ziggymusic.PLAY_OR_PAUSE" // Notification 에서 재생 / 일시 정지 버튼을 누를 시
+        const val SKIP_PREV = "com.hero.ziggymusic.SKIP_PREV" // Notification 에서 이전 곡 버튼을 누를 시
+        const val SKIP_NEXT = "com.hero.ziggymusic.SKIP_NEXT" // Notification 에서 다음 곡 버튼을 누를 시
+        const val CLOSE = "com.hero.ziggymusic.CLOSE" // 닫기 버튼을 누를 시
     }
 
     private lateinit var remoteNotificationLayout: RemoteViews
