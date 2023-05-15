@@ -12,6 +12,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.hero.ziggymusic.R
 import com.hero.ziggymusic.database.music.entity.MusicModel
+import com.hero.ziggymusic.database.music.entity.PlayerModel
 import com.hero.ziggymusic.databinding.FragmentMyPlaylistBinding
 import com.hero.ziggymusic.event.Event
 import com.hero.ziggymusic.event.EventBus
@@ -28,6 +29,7 @@ class MyPlaylistFragment : Fragment(), View.OnClickListener,
     private val binding get() = _binding!!
 
     private val myPlayListViewModel by viewModels<MyPlaylistViewModel>()
+    private var playerModel: PlayerModel = PlayerModel()
 
     private lateinit var myPlayListAdapter: MyPlaylistAdapter
 
@@ -49,12 +51,14 @@ class MyPlaylistFragment : Fragment(), View.OnClickListener,
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        EventBus.getInstance().register(this)
         initRecyclerView(binding.rvMyPlayList)
         setupListeners()
     }
 
     override fun onDestroyView() {
         _binding = null
+        EventBus.getInstance().unregister(this)
         super.onDestroyView()
     }
 
@@ -82,7 +86,6 @@ class MyPlaylistFragment : Fragment(), View.OnClickListener,
 
     private fun playMusic(musicKey: String) {
         requireContext().playMusic(musicKey)
-//        EventBus.getInstance().post(Event("PLAY_NEW_MUSIC"))
     }
 
     private fun openDeleteFromMyPlayListOptionMenu(data: MusicModel, anchorView: View) {
