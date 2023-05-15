@@ -21,6 +21,8 @@ import com.hero.ziggymusic.R
 import com.hero.ziggymusic.database.music.entity.MusicModel
 import com.hero.ziggymusic.database.music.entity.PlayerModel
 import com.hero.ziggymusic.databinding.FragmentPlayerBinding
+import com.hero.ziggymusic.event.Event
+import com.hero.ziggymusic.event.EventBus
 
 import com.hero.ziggymusic.view.main.player.viewmodel.PlayerViewModel
 import dagger.hilt.android.AndroidEntryPoint
@@ -38,6 +40,7 @@ class PlayerFragment : Fragment(), View.OnClickListener {
     private val playerViewModel by viewModels<PlayerViewModel>()
 
     private var player: ExoPlayer? = null
+    private var currentMusic: MusicModel? = null //현재 재생중인 음원
 
     private lateinit var playerMotionManager: PlayerMotionManager
     private lateinit var playerBottomSheetManager: PlayerBottomSheetManager
@@ -76,6 +79,9 @@ class PlayerFragment : Fragment(), View.OnClickListener {
         initViewModel()
         initPlayControlButtons()
         initSeekBar()
+
+//        val musicList = requireActivity().intent.getStringExtra("musicList") as Playlist?
+        val currentPosition = requireActivity().intent.getIntExtra("currentPosition", player?.currentMediaItemIndex ?: 0)
 
         playerBottomSheetManager = PlayerBottomSheetManager(
             viewLifecycleOwner.lifecycle,
@@ -260,7 +266,6 @@ class PlayerFragment : Fragment(), View.OnClickListener {
         if (state != Player.STATE_IDLE && state != Player.STATE_ENDED) {
             view.postDelayed(updateSeekRunnable, 1000) // 1초에 한번씩 실행
         }
-
     }
 
     private fun updateSeekUi(duration: Long, position: Long) {
@@ -300,6 +305,7 @@ class PlayerFragment : Fragment(), View.OnClickListener {
 
     private fun playMusic(musicList: List<MusicModel>, nowPlayMusic: MusicModel?) {
         if (nowPlayMusic != null) {
+            currentMusic = nowPlayMusic
             playerModel.updateCurrentMusic(nowPlayMusic)
         }
 
@@ -327,10 +333,13 @@ class PlayerFragment : Fragment(), View.OnClickListener {
         }
     }
 
+    fun getCurrentMusic(): MusicModel? = currentMusic
+
     override fun onStop() {
         super.onStop()
 
         player?.pause()
+        EventBus.getInstance().post(Event("STOP"))
         binding.root.removeCallbacks(updateSeekRunnable)
     }
 
