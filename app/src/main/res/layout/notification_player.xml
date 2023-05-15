@@ -1,0 +1,211 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="80dp"
+    android:orientation="horizontal"
+    android:background="@color/normal_gray">
+
+    <ImageView
+        android:id="@+id/ivNotificationAlbum"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:layout_gravity="center"
+        android:layout_weight="0.01"
+        android:layout_marginHorizontal="4dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:srcCompat="@tools:sample/avatars" />
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_gravity="center"
+        android:layout_weight="1"
+        android:layout_marginStart="10dp">
+
+        <TextView
+            android:id="@+id/tvNotificationTitle"
+            style="@style/TextAppearance.Compat.Notification.Title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.005"
+            android:layout_marginTop="10dp"
+            android:ellipsize="end"
+            android:singleLine="true"
+            android:text="TextView"
+            android:textSize="@dimen/body_text_size"
+            app:layout_constraintBottom_toTopOf="@id/tvNotificationArtist"
+            app:layout_constraintStart_toEndOf="@id/ivNotificationAlbum"
+            app:layout_constraintTop_toTopOf="@id/ivNotificationAlbum" />
+
+        <TextView
+            android:id="@+id/tvNotificationArtist"
+            style="@style/TextAppearance.Compat.Notification"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.005"
+            android:layout_marginBottom="10dp"
+            android:ellipsize="end"
+            android:gravity="center_vertical"
+            android:singleLine="true"
+            android:text="TextView"
+            android:textSize="@dimen/small_text_size"
+            app:layout_constraintBottom_toBottomOf="@id/ivNotificationAlbum"
+            app:layout_constraintStart_toEndOf="@id/ivNotificationAlbum"
+            app:layout_constraintTop_toBottomOf="@id/tvNotificationTitle" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:orientation="horizontal"
+        android:layout_weight="0.1"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent">
+
+        <ImageView
+            android:id="@+id/btnNotificationPrev"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_gravity="center"
+            android:layout_weight="1"
+            android:src="@drawable/ic_previous_button"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/btnNotificationPlay"
+            app:layout_constraintStart_toEndOf="@+id/tvNotificationTitle"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <ImageView
+            android:id="@+id/btnNotificationPlay"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_gravity="center"
+            android:layout_weight="1"
+            android:layout_marginHorizontal="12dp"
+            android:src="@drawable/ic_play_button"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/btnNotificationNext"
+            app:layout_constraintStart_toEndOf="@+id/btnNotificationPrev"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <ImageView
+            android:id="@+id/btnNotificationNext"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_gravity="center"
+            android:layout_weight="1"
+            android:layout_marginEnd="10dp"
+            android:src="@drawable/ic_next_button"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/btnNotificationPlay"
+            app:layout_constraintTop_toTopOf="parent" />
+
+    </LinearLayout>
+
+</LinearLayout>
+
+
+    <!--<?xml version="1.0" encoding="utf-8"?>-->
+    <!--<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"-->
+    <!--    xmlns:app="http://schemas.android.com/apk/res-auto"-->
+    <!--    xmlns:tools="http://schemas.android.com/tools"-->
+    <!--    android:layout_width="match_parent"-->
+    <!--    android:layout_height="80dp"-->
+    <!--    android:background="@color/normal_gray">-->
+
+    <!--    <ImageView-->
+    <!--        android:id="@+id/ivNotificationAlbum"-->
+    <!--        android:layout_width="60dp"-->
+    <!--        android:layout_height="60dp"-->
+    <!--        android:layout_gravity="center"-->
+    <!--        android:layout_marginHorizontal="4dp"-->
+    <!--        app:layout_constraintBottom_toBottomOf="parent"-->
+    <!--        app:layout_constraintStart_toStartOf="parent"-->
+    <!--        app:layout_constraintTop_toTopOf="parent"-->
+    <!--        tools:srcCompat="@tools:sample/avatars" />-->
+
+    <!--    <TextView-->
+    <!--        android:id="@+id/tvNotificationTitle"-->
+    <!--        style="@style/TextAppearance.Compat.Notification.Title"-->
+    <!--        android:layout_width="wrap_content"-->
+    <!--        android:layout_height="wrap_content"-->
+    <!--        android:layout_marginStart="15dp"-->
+    <!--        android:ellipsize="end"-->
+    <!--        android:singleLine="true"-->
+    <!--        android:text="TextView"-->
+    <!--        android:textSize="@dimen/body_text_size"-->
+    <!--        app:layout_constraintBottom_toTopOf="@id/tvNotificationArtist"-->
+    <!--        app:layout_constraintStart_toEndOf="@id/ivNotificationAlbum"-->
+    <!--        app:layout_constraintTop_toTopOf="@id/ivNotificationAlbum" />-->
+
+    <!--    <TextView-->
+    <!--        android:id="@+id/tvNotificationArtist"-->
+    <!--        style="@style/TextAppearance.Compat.Notification"-->
+    <!--        android:layout_width="wrap_content"-->
+    <!--        android:layout_height="wrap_content"-->
+    <!--        android:layout_marginStart="15dp"-->
+    <!--        android:ellipsize="end"-->
+    <!--        android:gravity="center_vertical"-->
+    <!--        android:singleLine="true"-->
+    <!--        android:text="TextView"-->
+    <!--        android:textSize="@dimen/small_text_size"-->
+    <!--        app:layout_constraintBottom_toBottomOf="@id/ivNotificationAlbum"-->
+    <!--        app:layout_constraintStart_toEndOf="@id/ivNotificationAlbum"-->
+    <!--        app:layout_constraintTop_toBottomOf="@id/tvNotificationTitle" />-->
+
+    <!--    <LinearLayout-->
+    <!--        android:layout_width="wrap_content"-->
+    <!--        android:layout_height="match_parent"-->
+    <!--        android:orientation="horizontal"-->
+    <!--        app:layout_constraintEnd_toEndOf="parent"-->
+    <!--        app:layout_constraintTop_toTopOf="parent"-->
+    <!--        app:layout_constraintBottom_toBottomOf="parent">-->
+
+    <!--        <ImageView-->
+    <!--            android:id="@+id/btnNotificationPrev"-->
+    <!--            android:layout_width="40dp"-->
+    <!--            android:layout_height="40dp"-->
+    <!--            android:layout_gravity="center"-->
+    <!--            android:layout_weight="1"-->
+    <!--            android:src="@drawable/ic_previous_button"-->
+    <!--            app:layout_constraintBottom_toBottomOf="parent"-->
+    <!--            app:layout_constraintEnd_toStartOf="@+id/btnNotificationPlay"-->
+    <!--            app:layout_constraintStart_toEndOf="@+id/tvNotificationTitle"-->
+    <!--            app:layout_constraintTop_toTopOf="parent" />-->
+
+    <!--        <ImageView-->
+    <!--            android:id="@+id/btnNotificationPlay"-->
+    <!--            android:layout_width="40dp"-->
+    <!--            android:layout_height="40dp"-->
+    <!--            android:layout_gravity="center"-->
+    <!--            android:layout_weight="1"-->
+    <!--            android:layout_marginHorizontal="12dp"-->
+    <!--            android:src="@drawable/ic_play_button"-->
+    <!--            app:layout_constraintBottom_toBottomOf="parent"-->
+    <!--            app:layout_constraintEnd_toStartOf="@+id/btnNotificationNext"-->
+    <!--            app:layout_constraintStart_toEndOf="@+id/btnNotificationPrev"-->
+    <!--            app:layout_constraintTop_toTopOf="parent" />-->
+
+    <!--        <ImageView-->
+    <!--            android:id="@+id/btnNotificationNext"-->
+    <!--            android:layout_width="40dp"-->
+    <!--            android:layout_height="40dp"-->
+    <!--            android:layout_gravity="center"-->
+    <!--            android:layout_weight="1"-->
+    <!--            android:layout_marginEnd="10dp"-->
+    <!--            android:src="@drawable/ic_next_button"-->
+    <!--            app:layout_constraintBottom_toBottomOf="parent"-->
+    <!--            app:layout_constraintEnd_toEndOf="parent"-->
+    <!--            app:layout_constraintStart_toEndOf="@+id/btnNotificationPlay"-->
+    <!--            app:layout_constraintTop_toTopOf="parent" />-->
+
+    <!--    </LinearLayout>-->
+
+    <!--</androidx.constraintlayout.widget.ConstraintLayout>-->
