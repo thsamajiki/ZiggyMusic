@@ -333,8 +333,6 @@ class PlayerFragment : Fragment(), View.OnClickListener {
         }
     }
 
-    fun getCurrentMusic(): MusicModel? = currentMusic
-
     override fun onStop() {
         super.onStop()
 
