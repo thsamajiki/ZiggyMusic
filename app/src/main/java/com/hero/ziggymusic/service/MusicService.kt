@@ -141,7 +141,7 @@ class MusicService : Service() {
             action = CLOSE
             PendingIntent.getService(this@MusicService, 3, this, PendingIntent.FLAG_IMMUTABLE)
         }
-        val notiTouchIntent = Intent(this, PlayerFragment::class.java).run {
+        val notificationTouchIntent = Intent(this, PlayerFragment::class.java).run {
             addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
             PendingIntent.getActivity(this@MusicService, 4, this, PendingIntent.FLAG_IMMUTABLE)
         }
@@ -180,7 +180,7 @@ class MusicService : Service() {
             .setStyle(NotificationCompat.DecoratedCustomViewStyle())
             .setCustomContentView(remoteNotificationLayout)
             .setCustomBigContentView(remoteNotificationExtendedLayout)
-            .setContentIntent(notiTouchIntent)
+            .setContentIntent(notificationTouchIntent)
             .build()
     }
 
