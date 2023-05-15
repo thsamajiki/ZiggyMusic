@@ -13,6 +13,8 @@ import androidx.recyclerview.widget.RecyclerView
 import com.hero.ziggymusic.R
 import com.hero.ziggymusic.database.music.entity.MusicModel
 import com.hero.ziggymusic.databinding.FragmentMusicListBinding
+import com.hero.ziggymusic.event.Event
+import com.hero.ziggymusic.event.EventBus
 import com.hero.ziggymusic.ext.playMusic
 import com.hero.ziggymusic.view.listener.OnRecyclerItemClickListener
 import com.hero.ziggymusic.view.main.musiclist.viewmodel.MusicListViewModel
@@ -75,6 +77,7 @@ class MusicListFragment : Fragment(), View.OnClickListener,
 
     private fun playMusic(musicKey: String) {
         requireContext().playMusic(musicKey)
+        EventBus.getInstance().post(Event("PLAY_NEW_MUSIC"))
     }
 
     private fun openAddOrDeleteToFromMyPlaylistOptionMenu(data: MusicModel, anchorView: View) {
