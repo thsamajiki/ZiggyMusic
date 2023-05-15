@@ -82,7 +82,7 @@ class MyPlaylistFragment : Fragment(), View.OnClickListener,
 
     private fun playMusic(musicKey: String) {
         requireContext().playMusic(musicKey)
-        EventBus.getInstance().post(Event("PLAY_NEW_MUSIC"))
+//        EventBus.getInstance().post(Event("PLAY_NEW_MUSIC"))
     }
 
     private fun openDeleteFromMyPlayListOptionMenu(data: MusicModel, anchorView: View) {
