@@ -4,6 +4,7 @@ import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
+import android.util.Log
 import android.view.MenuItem
 import android.view.View
 import android.widget.Toast
@@ -13,6 +14,7 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.view.isGone
 import androidx.core.view.isVisible
+import androidx.lifecycle.lifecycleScope
 import androidx.viewpager2.widget.ViewPager2
 import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.MediaItem
@@ -29,6 +31,7 @@ import com.hero.ziggymusic.service.MusicService
 import com.hero.ziggymusic.view.main.player.PlayerFragment
 import com.squareup.otto.Subscribe
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity(),
@@ -81,6 +84,7 @@ class MainActivity : AppCompatActivity(),
 
     override fun onStart() {
         EventBus.getInstance().post(Event("PLAY"))
+        Log.d("onStart", "playerModel: $playerModel playerModel.currentMusic: ${playerModel.currentMusic}")
         setMiniPlayer(playerModel.currentMusic)
 
         super.onStart()
@@ -112,6 +116,23 @@ class MainActivity : AppCompatActivity(),
             }
         })
     }
+
+//    private fun initViewModel() {
+//        with(viewModel) {
+//            lifecycleScope.launch {
+//                musicList.observe(this@MainActivity) { musicList ->
+//                    playerModel.replaceMusicList(musicList)
+//                    val nowMusic = musicList.find {
+//                        it.id == musicKey
+//                    } ?: musicList.getOrNull(0)
+//
+//                    if (musicList.isNotEmpty()) {
+//                        playMusic(nowMusic?.id.orEmpty())
+//                    }
+//                }
+//            }
+//        }
+//    }
 
     fun playMusic(musicId: String) {
         playerController.changeMusic(musicId)
@@ -161,6 +182,7 @@ class MainActivity : AppCompatActivity(),
 
     //미니 플레이어 세팅
     private fun setMiniPlayer(music: MusicModel?) {
+        Log.d("setMiniPlayer", "music?.musicTitle: ${music?.musicTitle} music?.musicArtist: ${music?.musicArtist}")
         if (music != null) {
             // 타이틀, 아티스트, 앨범 아트, 길이 표시
             binding.tvMiniTitle.text = music.musicTitle
@@ -256,19 +278,19 @@ class MainActivity : AppCompatActivity(),
         val currentMusic = playerModel.currentMusic
 
         when(event.getEvent()) {
-            "PLAY_NEW_MUSIC" -> { //새로운 음원이 재생
+            "PLAY_NEW_MUSIC" -> { // 새로운 음원이 재생
                 showMiniPlayer()
                 setMiniPlayer(currentMusic)
                 musicServiceStart()
             }
-            "PLAY", "PAUSE" -> { //재생(기존 음원), 일시 정지
+            "PLAY", "PAUSE" -> { // 재생(기존 음원), 일시 정지
                 setMiniPlayer(currentMusic)
                 musicServiceStart()
             }
-            "STOP" -> { //정지
+            "STOP" -> { // 정지
                 hideMiniPlayer()
             }
-            "PERMISSION_DENIED" -> { //권한 거부
+            "PERMISSION_DENIED" -> { // 권한 거부
                 finish()
             }
         }
