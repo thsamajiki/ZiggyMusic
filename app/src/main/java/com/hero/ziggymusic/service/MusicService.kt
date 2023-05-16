@@ -253,6 +253,11 @@ class MusicService : Service() {
         )
     }
 
+    override fun onTaskRemoved(rootIntent: Intent?) {
+        stopSelf()
+        super.onTaskRemoved(rootIntent)
+    }
+
     // 서비스가 완전히 종료되면
     override fun onDestroy() {
         musicPlayer?.stop() // 플레이어 중단
