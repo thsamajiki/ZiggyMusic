@@ -302,6 +302,10 @@ class MainActivity : AppCompatActivity(),
     // 미니 플레이어 가리기
     private fun hideMiniPlayer() { binding.layoutMiniPlayer.visibility = View.GONE }
 
+    override fun stopService(name: Intent?): Boolean {
+        return super.stopService(name)
+    }
+
     override fun onDestroy() {
         EventBus.getInstance().unregister(this)
         super.onDestroy()
