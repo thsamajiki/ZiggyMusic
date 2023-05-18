@@ -54,6 +54,7 @@ class MainActivity : AppCompatActivity(),
 
         setContentView(binding.root)
 
+        initViewModel()
         EventBus.getInstance().register(this)
 
         playerController = PlayerController(
@@ -117,22 +118,15 @@ class MainActivity : AppCompatActivity(),
         })
     }
 
-//    private fun initViewModel() {
-//        with(viewModel) {
-//            lifecycleScope.launch {
-//                musicList.observe(this@MainActivity) { musicList ->
-//                    playerModel.replaceMusicList(musicList)
-//                    val nowMusic = musicList.find {
-//                        it.id == musicKey
-//                    } ?: musicList.getOrNull(0)
-//
-//                    if (musicList.isNotEmpty()) {
-//                        playMusic(nowMusic?.id.orEmpty())
-//                    }
-//                }
-//            }
-//        }
-//    }
+    private fun initViewModel() {
+        with(viewModel) {
+            lifecycleScope.launch {
+                musicList.observe(this@MainActivity) { musicList ->
+                    playerModel.replaceMusicList(musicList)
+                }
+            }
+        }
+    }
 
     fun playMusic(musicId: String) {
         playerController.changeMusic(musicId)
