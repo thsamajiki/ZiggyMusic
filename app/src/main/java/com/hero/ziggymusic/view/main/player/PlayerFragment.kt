@@ -1,6 +1,7 @@
 package com.hero.ziggymusic.view.main.player
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -132,6 +133,7 @@ class PlayerFragment : Fragment(), View.OnClickListener {
     private fun initViewModel() {
         viewLifecycleOwner.lifecycleScope.launch {
             playerViewModel.musicList.observe(viewLifecycleOwner) { musicList ->
+                Log.d("initViewModel", "playerModel: $playerModel")
                 playerModel.replaceMusicList(musicList)
                 val nowMusic = musicList.find {
                     it.id == musicKey
@@ -238,6 +240,7 @@ class PlayerFragment : Fragment(), View.OnClickListener {
                 val newMusicKey: String = mediaItem?.mediaId ?: return
                 playerModel.changedMusic(newMusicKey)
 
+                Log.d("onMediaItemTransition", "playerModel.currentMusic: ${playerModel.currentMusic}")
                 updatePlayerView(playerModel.currentMusic)
             }
 
