@@ -1,6 +1,7 @@
 package com.hero.ziggymusic.view.main
 
 import android.Manifest
+import android.content.ComponentName
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
@@ -22,6 +23,7 @@ import com.google.android.exoplayer2.Player
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.navigation.NavigationBarView
 import com.hero.ziggymusic.R
+import com.hero.ziggymusic.ZiggyMusicApp
 import com.hero.ziggymusic.database.music.entity.MusicModel
 import com.hero.ziggymusic.database.music.entity.PlayerModel
 import com.hero.ziggymusic.databinding.ActivityMainBinding
@@ -44,8 +46,11 @@ class MainActivity : AppCompatActivity(),
 
     private val viewModel by viewModels<MainViewModel>()
 
-    private var player: ExoPlayer? = null
-    private var playerModel: PlayerModel = PlayerModel()
+//    private var player: ExoPlayer? = null
+    private val player by lazy {
+        (applicationContext as ZiggyMusicApp).exoPlayer
+    }
+    private val playerModel: PlayerModel = PlayerModel.getInstance()
     private lateinit var playerController: PlayerController
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -84,9 +89,8 @@ class MainActivity : AppCompatActivity(),
     }
 
     override fun onStart() {
-        EventBus.getInstance().post(Event("PLAY"))
         Log.d("onStart", "playerModel: $playerModel playerModel.currentMusic: ${playerModel.currentMusic}")
-        setMiniPlayer(playerModel.currentMusic)
+        musicServiceStart()
 
         super.onStart()
     }
@@ -149,86 +153,9 @@ class MainActivity : AppCompatActivity(),
         return false
     }
 
-    private fun isPermitted(): Boolean {
-        return ContextCompat.checkSelfPermission(
-            this,
-            permission
-        ) == PackageManager.PERMISSION_GRANTED
-    }
-
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<out String>,
-        grantResults: IntArray,
-    ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == REQ_READ) {
-            if (grantResults[0] != PackageManager.PERMISSION_GRANTED) {
-                Toast.makeText(this, "권한 요청을 승인해야만 앱을 실행할 수 있습니다.", Toast.LENGTH_SHORT).show()
-                EventBus.getInstance().post(Event("PERMISSION_DENIED"))
-//                finish()
-            } else {
-                setFragmentAdapter()
-                playerController.startPlayer()
-            }
-        }
-    }
-
-    //미니 플레이어 세팅
-    private fun setMiniPlayer(music: MusicModel?) {
-        Log.d("setMiniPlayer", "music?.musicTitle: ${music?.musicTitle} music?.musicArtist: ${music?.musicArtist}")
-        if (music != null) {
-            // 타이틀, 아티스트, 앨범 아트, 길이 표시
-            binding.tvMiniTitle.text = music.musicTitle
-            binding.tvMiniArtist.text = music.musicArtist
-            binding.ivMiniAlbumView.setImageURI(music.getAlbumUri())
-            if (binding.ivMiniAlbumView.drawable == null) {
-                binding.ivMiniAlbumView.setImageResource(R.drawable.ic_default_album_art)
-            }
-
-            setMiniPlayerListener()
-        }
-    }
-
     // 미니 플레이어에서 사용하는 버튼에 리스너 세팅
-    private fun setMiniPlayerListener() {
-        player = ExoPlayer.Builder(this).build()
-
-        // 미니 플레이어 레이아웃을 클릭 시
-        binding.layoutMiniPlayer.setOnClickListener {
-            val intent = Intent(this@MainActivity, PlayerFragment::class.java)
-//            intent.putExtra("musicList", viewModel.musicList)
-            intent.putExtra("currentPosition", player?.currentMediaItemIndex)
-            startActivity(intent)
-        }
-        // 재생 / 일시 정지
-        binding.btnMiniPlay.setOnClickListener {
-            if(player?.isPlaying == true) player?.pause() else player?.play()
-        }
-        // 이전 곡
-        binding.btnMiniPrev.setOnClickListener {
-            player?.run {
-                val prevIndex = if (currentMediaItemIndex -1 in 0 until mediaItemCount) {
-                    currentMediaItemIndex - 1
-                } else {
-                    0 // 0번에서 뒤로 갈때
-                }
-
-                seekTo(prevIndex, 0)
-            }
-        }
-        // 다음 곡
-        binding.btnMiniNext.setOnClickListener {
-            player?.run {
-                val nextIndex = if (currentMediaItemIndex + 1 in 0 until mediaItemCount) {
-                    currentMediaItemIndex + 1
-                } else {
-                    0
-                }
-
-                seekTo(nextIndex, 0)
-            }
-        }
+    private fun setPlayerListener() {
+//        player = ExoPlayer.Builder(this).build()
 
         player?.addListener(object : Player.Listener {
             override fun onIsPlayingChanged(isPlaying: Boolean) {
@@ -236,9 +163,9 @@ class MainActivity : AppCompatActivity(),
 
                 // 플레이어가 재생 또는 일시정지 될 떄
                 if (isPlaying) {
-                    binding.btnMiniPlay.setImageResource(R.drawable.ic_pause_button)
+//                    binding.btnMiniPlay.setImageResource(R.drawable.ic_pause_button)
                 } else {
-                    binding.btnMiniPlay.setImageResource(R.drawable.ic_play_button)
+//                    binding.btnMiniPlay.setImageResource(R.drawable.ic_play_button)
                 }
             }
 
@@ -273,35 +200,82 @@ class MainActivity : AppCompatActivity(),
 
         when(event.getEvent()) {
             "PLAY_NEW_MUSIC" -> { // 새로운 음원이 재생
-                showMiniPlayer()
-                setMiniPlayer(currentMusic)
                 musicServiceStart()
             }
             "PLAY", "PAUSE" -> { // 재생(기존 음원), 일시 정지
-                setMiniPlayer(currentMusic)
+                Log.d("MainActivity", "doEvent - PLAY PAUSE: ${player.isPlaying}")
+                if (player.isPlaying) {
+                    player.pause()
+                } else {
+                    player.play()
+                }
+                musicServiceStart()
+            }
+            "SKIP_PREV" -> { // Notification 에서 이전 곡 버튼을 누를 시
+                Log.d("MainActivity", "doEvent - SKIP_PREV: $player")
+                player?.run {
+                    val prevIndex = if (currentMediaItemIndex - 1 in 0 until mediaItemCount) {
+                        currentMediaItemIndex - 1
+                    } else {
+                        0 // 0번에서 뒤로 갈 때
+                    }
+                    seekTo(prevIndex, 0)
+                }
+                setPlayerListener()
+                musicServiceStart()
+            }
+            "SKIP_NEXT" -> { // Notification 에서 다음 곡 버튼을 누를 시
+                player?.run {
+                    val nextIndex = if (currentMediaItemIndex + 1 in 0 until mediaItemCount) {
+                        currentMediaItemIndex + 1
+                    } else {
+                        0
+                    }
+                    seekTo(nextIndex, 0)
+                }
+                setPlayerListener()
                 musicServiceStart()
             }
             "STOP" -> { // 정지
-                hideMiniPlayer()
             }
             "PERMISSION_DENIED" -> { // 권한 거부
                 finish()
             }
+//            else -> {
+//                musicServiceStart()
+//            }
         }
     }
 
-    // 미니 플레이어 보여주기
-    private fun showMiniPlayer() { binding.layoutMiniPlayer.visibility = View.VISIBLE }
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray,
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == REQ_READ) {
+            if (grantResults[0] != PackageManager.PERMISSION_GRANTED) {
+                Toast.makeText(this, "권한 요청을 승인해야만 앱을 실행할 수 있습니다.", Toast.LENGTH_SHORT).show()
+                EventBus.getInstance().post(Event("PERMISSION_DENIED"))
+//                finish()
+            } else {
+                setFragmentAdapter()
+                playerController.startPlayer()
+            }
+        }
+    }
 
-    // 미니 플레이어 가리기
-    private fun hideMiniPlayer() { binding.layoutMiniPlayer.visibility = View.GONE }
-
-    override fun stopService(name: Intent?): Boolean {
-        return super.stopService(name)
+    private fun isPermitted(): Boolean {
+        return ContextCompat.checkSelfPermission(
+            this,
+            permission
+        ) == PackageManager.PERMISSION_GRANTED
     }
 
     override fun onDestroy() {
         EventBus.getInstance().unregister(this)
+        val serviceIntent = Intent(this, MusicService::class.java)
+        stopService(serviceIntent)
         super.onDestroy()
     }
 
