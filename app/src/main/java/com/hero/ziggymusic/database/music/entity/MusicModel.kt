@@ -14,13 +14,13 @@ data class MusicModel (
     @PrimaryKey
     val id: String,    // 음원 자체의 ID
     @ColumnInfo(name = "title")
-    val musicTitle: String? = "",   // 음원 제목
+    val title: String? = "",   // 음원 제목
     @ColumnInfo(name = "artist")
-    val musicArtist: String? = "",  // 음원 아티스트
+    val artist: String? = "",  // 음원 아티스트
     @ColumnInfo(name = "album_id")
     val albumId: String? = "",    // 앨범 이미지 ID
     @ColumnInfo(name = "album")
-    val albumTitle: String? = "",    // 앨범명
+    val album: String? = "",    // 앨범명
     @ColumnInfo(name = "duration")
     val duration: Long? = 0,     // 음원 재생 시간
     @ColumnInfo(name = "is_playing")
