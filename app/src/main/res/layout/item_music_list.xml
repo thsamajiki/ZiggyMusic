@@ -49,7 +49,7 @@
                 app:layout_constraintEnd_toStartOf="@+id/iv_music_option_menu"
                 app:layout_constraintStart_toEndOf="@+id/iv_album"
                 app:layout_constraintTop_toTopOf="parent"
-                android:text="@{music.musicTitle}" />
+                android:text="@{music.title}" />
 
             <ImageView
                 android:id="@+id/iv_music_option_menu"
@@ -74,7 +74,7 @@
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toEndOf="@+id/iv_album"
                 app:layout_constraintTop_toBottomOf="@+id/tv_song_title"
-                android:text="@{music.musicArtist}" />
+                android:text="@{music.artist}" />
 
             <TextView
                 android:id="@+id/tv_duration"
