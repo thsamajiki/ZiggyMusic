@@ -53,6 +53,8 @@ class MusicLocalDataSourceImpl @Inject constructor(
         }
 
         musicFileDao.insertAll(musicList)
+
+        cursor?.close()
     }
 
     override suspend fun getMusic(key: String): MusicModel? {
