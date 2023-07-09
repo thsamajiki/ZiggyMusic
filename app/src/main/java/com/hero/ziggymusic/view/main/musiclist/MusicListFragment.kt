@@ -1,6 +1,11 @@
 package com.hero.ziggymusic.view.main.musiclist
 
+import android.content.ComponentName
+import android.content.Intent
+import android.content.ServiceConnection
 import android.os.Bundle
+import android.os.IBinder
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -17,6 +22,7 @@ import com.hero.ziggymusic.databinding.FragmentMusicListBinding
 import com.hero.ziggymusic.event.Event
 import com.hero.ziggymusic.event.EventBus
 import com.hero.ziggymusic.ext.playMusic
+import com.hero.ziggymusic.service.MusicService
 import com.hero.ziggymusic.view.listener.OnRecyclerItemClickListener
 import com.hero.ziggymusic.view.main.musiclist.viewmodel.MusicListViewModel
 import dagger.hilt.android.AndroidEntryPoint
@@ -32,10 +38,6 @@ class MusicListFragment : Fragment(), View.OnClickListener,
     private var playerModel: PlayerModel = PlayerModel()
 
     private lateinit var musicListAdapter: MusicListAdapter
-
-    companion object {
-        fun newInstance() = MusicListFragment()
-    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -64,7 +66,6 @@ class MusicListFragment : Fragment(), View.OnClickListener,
         musicListAdapter = MusicListAdapter()
 
         recyclerView.run {
-            setHasFixedSize(true)
             layoutManager = LinearLayoutManager(context)
             adapter = musicListAdapter
         }
@@ -74,11 +75,17 @@ class MusicListFragment : Fragment(), View.OnClickListener,
         when (view.id) {
             R.id.iv_music_option_menu -> openAddOrDeleteToFromMyPlaylistOptionMenu(data, view)
 
-            else -> playMusic(data.id)
+            else -> {
+                playMusic(data.id)
+                Log.d("onItemClick", "MusicModel: $data, ${data.id}")
+            }
         }
     }
 
     private fun playMusic(musicKey: String) {
+        val intent = Intent(requireActivity(), MusicService::class.java)
+        intent.putExtra("id", musicKey)
+        requireActivity().startService(intent)
         requireContext().playMusic(musicKey)
     }
 
@@ -113,12 +120,16 @@ class MusicListFragment : Fragment(), View.OnClickListener,
         musicListViewModel.deleteMusicFromMyPlaylist(musicModel)
     }
 
-    override fun onClick(view: View?) {
-    }
-
     override fun onDestroyView() {
         _binding = null
         EventBus.getInstance().unregister(this)
         super.onDestroyView()
+    }
+
+    companion object {
+        fun newInstance() = MusicListFragment()
+    }
+
+    override fun onClick(view: View?) {
     }
 }
