@@ -27,4 +27,18 @@ data class PlayerModel (
             currentMusic = newMusic
         }
     }
+
+    companion object {
+        private var instance: PlayerModel? = null
+
+//        fun getInstance(): PlayerModel {
+//            if (instance == null) {
+//                instance = PlayerModel()
+//            }
+//
+//            return instance as PlayerModel
+//        }
+        fun getInstance(): PlayerModel = instance
+            ?: PlayerModel().apply { instance = this }
+    }
 }
