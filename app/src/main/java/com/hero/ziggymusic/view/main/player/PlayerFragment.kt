@@ -19,6 +19,7 @@ import com.google.android.exoplayer2.upstream.DefaultDataSource
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetBehavior.BottomSheetCallback
 import com.hero.ziggymusic.R
+import com.hero.ziggymusic.ZiggyMusicApp
 import com.hero.ziggymusic.database.music.entity.MusicModel
 import com.hero.ziggymusic.database.music.entity.PlayerModel
 import com.hero.ziggymusic.databinding.FragmentPlayerBinding
@@ -37,11 +38,14 @@ class PlayerFragment : Fragment(), View.OnClickListener {
     private var _binding: FragmentPlayerBinding? = null
     private val binding get() = _binding!!
 
-    private var playerModel: PlayerModel = PlayerModel()
+    private var playerModel: PlayerModel = PlayerModel.getInstance()
     private val playerViewModel by viewModels<PlayerViewModel>()
 
-    private var player: ExoPlayer? = null
-    private var currentMusic: MusicModel? = null //현재 재생중인 음원
+//    private var player: ExoPlayer? = null
+    private val player by lazy {
+        (context?.applicationContext as ZiggyMusicApp).exoPlayer
+    }
+    private var currentMusic: MusicModel? = null // 현재 재생 중인 음원
 
     private lateinit var playerMotionManager: PlayerMotionManager
     private lateinit var playerBottomSheetManager: PlayerBottomSheetManager
@@ -51,17 +55,6 @@ class PlayerFragment : Fragment(), View.OnClickListener {
 
     private val updateSeekRunnable = Runnable {
         updateSeek()
-    }
-
-    companion object {
-        const val TAG = "PlayerFragment"
-        const val EXTRA_MUSIC_FILE_KEY: String = "id"
-        fun newInstance(musicKey: String): PlayerFragment =
-            PlayerFragment().apply {
-                arguments = Bundle().apply {
-                    putString(EXTRA_MUSIC_FILE_KEY, musicKey)
-                }
-            }
     }
 
     override fun onCreateView(
@@ -152,6 +145,8 @@ class PlayerFragment : Fragment(), View.OnClickListener {
                 it.id == musicId
             }
 
+        Log.d("changeMusic", "findIndex: $findIndex")
+
         if (findIndex != -1) {
             player?.seekTo(findIndex, 0)
             player?.play()
@@ -182,34 +177,18 @@ class PlayerFragment : Fragment(), View.OnClickListener {
             val player = this.player ?: return@setOnClickListener
 
             if (player.isPlaying) {
-                player.pause()
+                EventBus.getInstance().post(Event("PAUSE"))
             } else {
-                player.play()
+                EventBus.getInstance().post(Event("PLAY"))
             }
         }
 
         binding.ivNext.setOnClickListener {
-            player?.run {
-                val nextIndex = if (currentMediaItemIndex + 1 in 0 until mediaItemCount) {
-                    currentMediaItemIndex + 1
-                } else {
-                    0
-                }
-
-                seekTo(nextIndex, 0)
-            }
+            EventBus.getInstance().post(Event("SKIP_NEXT"))
         }
 
         binding.ivPrevious.setOnClickListener {
-            player?.run {
-                val prevIndex = if (currentMediaItemIndex -1 in 0 until mediaItemCount) {
-                    currentMediaItemIndex - 1
-                } else {
-                    0 // 0번에서 뒤로 갈때
-                }
-
-                seekTo(prevIndex, 0)
-            }
+            EventBus.getInstance().post(Event("SKIP_PREV"))
         }
 
         binding.ivPlaylist.setOnClickListener {
@@ -218,7 +197,7 @@ class PlayerFragment : Fragment(), View.OnClickListener {
     }
 
     private fun initPlayView() {
-        player = ExoPlayer.Builder(requireContext()).build()
+//        player = ExoPlayer.Builder(requireContext()).build()
         binding.vPlayer.player = player
 
         player?.addListener(object : Player.Listener {
@@ -244,14 +223,13 @@ class PlayerFragment : Fragment(), View.OnClickListener {
                 updatePlayerView(playerModel.currentMusic)
             }
 
-            // 재생, 재생완료, 버퍼링 상태 ...
+            // 재생, 재생 완료, 버퍼링 상태 ...
             override fun onPlaybackStateChanged(state: Int) {
                 super.onPlaybackStateChanged(state)
 
                 updateSeek()
             }
         })
-
     }
 
     private fun updateSeek() {
@@ -294,15 +272,15 @@ class PlayerFragment : Fragment(), View.OnClickListener {
     private fun updatePlayerView(musicModel: MusicModel?) {
         musicModel ?: return
 
-        binding.tvSongTitle.text = musicModel.musicTitle
-        binding.tvSongArtist.text = musicModel.musicArtist
+        binding.tvSongTitle.text = musicModel.title
+        binding.tvSongArtist.text = musicModel.artist
 
         Glide.with(binding.ivAlbumArt.context)
             .load(musicModel.getAlbumUri())
             .transform(RoundedCorners(12))
             .into(binding.ivAlbumArt)
 
-        binding.tvSongAlbum.text = musicModel.albumTitle
+        binding.tvSongAlbum.text = musicModel.album
     }
 
 
@@ -349,6 +327,17 @@ class PlayerFragment : Fragment(), View.OnClickListener {
 
         _binding = null
         player?.release()
+    }
+
+    companion object {
+        const val TAG = "PlayerFragment"
+        const val EXTRA_MUSIC_FILE_KEY: String = "id"
+        fun newInstance(musicKey: String): PlayerFragment =
+            PlayerFragment().apply {
+                arguments = Bundle().apply {
+                    putString(EXTRA_MUSIC_FILE_KEY, musicKey)
+                }
+            }
     }
 
     override fun onClick(view: View?) {
