@@ -1,5 +1,6 @@
 package com.hero.ziggymusic.view.main.myplaylist
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -17,6 +18,7 @@ import com.hero.ziggymusic.databinding.FragmentMyPlaylistBinding
 import com.hero.ziggymusic.event.Event
 import com.hero.ziggymusic.event.EventBus
 import com.hero.ziggymusic.ext.playMusic
+import com.hero.ziggymusic.service.MusicService
 import com.hero.ziggymusic.view.listener.OnRecyclerItemClickListener
 import com.hero.ziggymusic.view.main.myplaylist.viewmodel.MyPlaylistViewModel
 import dagger.hilt.android.AndroidEntryPoint
@@ -29,7 +31,7 @@ class MyPlaylistFragment : Fragment(), View.OnClickListener,
     private val binding get() = _binding!!
 
     private val myPlayListViewModel by viewModels<MyPlaylistViewModel>()
-    private var playerModel: PlayerModel = PlayerModel()
+    private val playerModel: PlayerModel = PlayerModel.getInstance()
 
     private lateinit var myPlayListAdapter: MyPlaylistAdapter
 
@@ -85,6 +87,8 @@ class MyPlaylistFragment : Fragment(), View.OnClickListener,
     }
 
     private fun playMusic(musicKey: String) {
+        val intent = Intent(requireActivity(), MusicService::class.java)
+        requireActivity().startService(intent)
         requireContext().playMusic(musicKey)
     }
 
