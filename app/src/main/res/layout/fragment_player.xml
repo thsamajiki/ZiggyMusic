@@ -96,7 +96,7 @@
             android:ellipsize="marquee"
             android:lines="1"
             android:marqueeRepeatLimit="marquee_forever"
-            android:text="@{music.musicTitle}"
+            android:text="@{music.title}"
             android:textAlignment="center"
             android:textColor="@color/normal_gray"
             android:textSize="@dimen/head_text_size"
@@ -111,7 +111,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="25dp"
             android:gravity="center"
-            android:text="@{music.musicArtist}"
+            android:text="@{music.artist}"
             android:textColor="@color/normal_gray"
             android:textSize="@dimen/title_text_size"
             app:layout_constraintTop_toBottomOf="@+id/iv_album_art" />
@@ -122,7 +122,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="25dp"
             android:gravity="center"
-            android:text="@{music.albumTitle}"
+            android:text="@{music.album}"
             android:textColor="@color/normal_gray"
             android:textSize="@dimen/title_text_size"
             app:layout_constraintTop_toBottomOf="@+id/tv_song_artist" />
