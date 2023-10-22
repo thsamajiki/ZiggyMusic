@@ -1,14 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="DesignSurface">
     <option name="filePathToZoomLevelMap">
       <map>
-        <entry key="..\:/Users/Hoseop/AndroidStudioProjects/ZiggyMusic/app/src/main/res/layout/activity_main.xml" value="0.11814345991561181" />
-        <entry key="..\:/Users/Hoseop/AndroidStudioProjects/ZiggyMusic/app/src/main/res/layout/fragment_music_list.xml" value="0.1" />
-        <entry key="..\:/Users/Hoseop/AndroidStudioProjects/ZiggyMusic/app/src/main/res/layout/fragment_my_playlist.xml" value="0.1" />
-        <entry key="..\:/Users/Hoseop/AndroidStudioProjects/ZiggyMusic/app/src/main/res/layout/fragment_player.xml" value="0.1" />
+        <entry key="..\:/Users/Hoseop/AndroidStudioProjects/ZiggyMusic/app/src/main/res/layout/activity_main.xml" value="0.22" />
+        <entry key="..\:/Users/Hoseop/AndroidStudioProjects/ZiggyMusic/app/src/main/res/layout/fragment_music_list.xml" value="0.286231884057971" />
+        <entry key="..\:/Users/Hoseop/AndroidStudioProjects/ZiggyMusic/app/src/main/res/layout/fragment_my_playlist.xml" value="0.286231884057971" />
+        <entry key="..\:/Users/Hoseop/AndroidStudioProjects/ZiggyMusic/app/src/main/res/layout/fragment_player.xml" value="0.21584699453551912" />
         <entry key="..\:/Users/Hoseop/AndroidStudioProjects/ZiggyMusic/app/src/main/res/layout/fragment_setting.xml" value="0.27905982905982907" />
-        <entry key="..\:/Users/Hoseop/AndroidStudioProjects/ZiggyMusic/app/src/main/res/layout/item_music_list.xml" value="0.22" />
-        <entry key="..\:/Users/Hoseop/AndroidStudioProjects/ZiggyMusic/app/src/main/res/layout/item_my_playlist.xml" value="0.22" />
+        <entry key="..\:/Users/Hoseop/AndroidStudioProjects/ZiggyMusic/app/src/main/res/layout/item_music_list.xml" value="0.1" />
+        <entry key="..\:/Users/Hoseop/AndroidStudioProjects/ZiggyMusic/app/src/main/res/layout/item_my_playlist.xml" value="0.2215909090909091" />
         <entry key="..\:/Users/Hoseop/AndroidStudioProjects/ZiggyMusic/app/src/main/res/menu/menu_add_music_to_my_playlist_option.xml" value="0.3411458333333333" />
         <entry key="..\:/Users/Hoseop/AndroidStudioProjects/ZiggyMusic/app/src/main/res/menu/menu_add_music_to_myplaylist_option.xml" value="0.15918367346938775" />
         <entry key="..\:/Users/Hoseop/AndroidStudioProjects/ZiggyMusic/app/src/main/res/menu/menu_bt_nav.xml" value="0.255859375" />
