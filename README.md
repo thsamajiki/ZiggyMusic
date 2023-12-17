@@ -21,8 +21,8 @@
 
 
 ## 앱의 버전
-- minSdkVersion : 27
-- targetSdkVersion : 33
+- minSdkVersion : 26
+- targetSdkVersion : 34
 
 
 ## 주요 기능
