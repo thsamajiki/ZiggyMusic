@@ -47,7 +47,7 @@
 - ExoPlayer2 (com.google.android.exoplayer:exoplayer:2.18.6)
 - 머티리얼 디자인 (com.google.android.material:material:1.6.1)
 - 사진 첨부 (com.github.bumptech.glide:glide:4.14.2)
-
+- EventBus (com.squareup:otto:1.3.8)
 
 
 ## 문제 및 해결 과정
