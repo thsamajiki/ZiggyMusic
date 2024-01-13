@@ -6,7 +6,6 @@ import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.commit
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
-import com.bumptech.glide.Glide.init
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.hero.ziggymusic.view.main.player.PlayerFragment
 
