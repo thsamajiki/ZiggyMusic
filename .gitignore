@@ -1,9 +1,11 @@
-# Created by https://www.toptal.com/developers/gitignore/api/windows,android,androidstudio,kotlin,java
-# Edit at https://www.toptal.com/developers/gitignore?templates=windows,android,androidstudio,kotlin,java
+# Created by https://www.toptal.com/developers/gitignore/api/android,androidstudio,kotlin,java
+# Edit at https://www.toptal.com/developers/gitignore?templates=android,androidstudio,kotlin,java
 
 ### Android ###
 # Gradle files
 .gradle/
+gradlew
+gradlew.bat
 build/
 
 # Local configuration file (sdk path, etc)
@@ -80,38 +82,22 @@ replay_pid*
 
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 
-### Windows ###
-# Windows thumbnail cache files
-Thumbs.db
-Thumbs.db:encryptable
-ehthumbs.db
-ehthumbs_vista.db
-
-# Dump file
-*.stackdump
-
-# Folder config file
-[Dd]esktop.ini
-
-# Recycle Bin used on file shares
-$RECYCLE.BIN/
-
-# Windows Installer files
-*.cab
-*.msi
-*.msix
-*.msm
-*.msp
-
-# Windows shortcuts
-*.lnk
-
 ### AndroidStudio ###
 # Covers files to be ignored for android development using Android Studio.
 
 # Built application files
+*.apk
 *.ap_
 *.aab
+/*/*.apk
+/*/*.ap_
+/*/*.aab
+**/*.apk
+**/*.ap_
+**/*.aab
+app-release.aab
+app/release/app-release.aab
+.app/release/app-release.aab
 
 # Files for the ART/Dalvik VM
 *.dex
@@ -151,6 +137,9 @@ proguard/
 
 # Google Services (e.g. APIs or Firebase)
 # google-services.json
+google-services.json
+app/src/google-services.json
+.app/src/google-services.json
 
 # Android Patch
 
@@ -171,10 +160,13 @@ obj/
 .idea/workspace.xml
 .idea/tasks.xml
 .idea/.name
+.idea/kotlinc.xml
+.idea/misc.xml
 .idea/compiler.xml
 .idea/copyright/profiles_settings.xml
 .idea/encodings.xml
 .idea/misc.xml
+.idea/deploymentTargetDropDown.xml
 .idea/modules.xml
 .idea/scopes/scope_settings.xml
 .idea/dictionaries
@@ -189,6 +181,15 @@ obj/
 .idea/gradle.xml
 .idea/jarRepositories.xml
 .idea/navEditor.xml
+
+.app/config/detekt.yml
+.app/config/lint.yml
+.app/config/lint/lint-baseline.yml
+.app/config/detekt.yml
+keystore_base64.txt
+google_play_app_signing_key_hash.txt
+private_key.pepk
+upload_certificate.pem
 
 # Legacy Eclipse project files
 .classpath
@@ -223,4 +224,7 @@ fabric.properties
 
 !/gradle/wrapper/gradle-wrapper.jar
 
-# End of https://www.toptal.com/developers/gitignore/api/windows,android,androidstudio,kotlin,java
+# End of https://www.toptal.com/developers/gitignore/api/android,androidstudio,kotlin,java
+/app/config/detekt.yml
+/app/config/lint/lint.xml
+/app/config/lint/lint-baseline.xml
