@@ -1,42 +1,53 @@
+@file:Suppress("UnstableApiUsage")
+
+@Suppress("DSL_SCOPE_VIOLATION")
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
     id("kotlin-parcelize")
     id("kotlin-kapt")
     id("com.google.dagger.hilt.android")
+    id("com.google.devtools.ksp")
 }
 
 android {
-    namespace "com.hero.ziggymusic"
-    compileSdk 34
+    namespace = "com.hero.ziggymusic"
+    compileSdk = 34
 
     defaultConfig {
-        applicationId "com.hero.ziggymusic"
-        minSdk 26
-        targetSdk 34
-        versionCode 1
-        versionName "1.0"
+        applicationId = "com.hero.ziggymusic"
+        minSdk = 26
+        targetSdk = 34
+        versionCode = 1
+        versionName = "1.0"
 
-        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
     }
 
     buildTypes {
-        release {
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
+        getByName("debug") {
+            isShrinkResources = false
+            isMinifyEnabled = false
+            isDebuggable = true
+        }
+        getByName("release") {
+            isShrinkResources = true
+            isMinifyEnabled = true
+            isDebuggable = false
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
     }
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_17
-        targetCompatibility JavaVersion.VERSION_17
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
     kotlinOptions {
         jvmTarget = "17"
     }
     buildFeatures {
-        viewBinding true
-        dataBinding true
+        viewBinding = true
+        dataBinding = true
     }
 }
 
@@ -55,33 +66,31 @@ dependencies {
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
 
     // Glide
-    def glide_version = "4.14.2"
+    val glide_version = "4.14.2"
     implementation("com.github.bumptech.glide:glide:$glide_version")
-    //noinspection KaptUsageInsteadOfKsp
-    kapt("com.github.bumptech.glide:compiler:$glide_version")
+    ksp("com.github.bumptech.glide:compiler:$glide_version")
 
     // Hilt
     implementation("com.google.dagger:hilt-android:2.48.1")
-    kapt("com.google.dagger:hilt-compiler:2.48.1")
+    ksp("com.google.dagger:hilt-compiler:2.48.1")
 
     implementation("com.github.skydoves:elasticviews:2.1.0")
     implementation("com.squareup:otto:1.3.8")
 
     // ViewModel
-    def lifecycle_version = "2.6.2"
+    val lifecycle_version= "2.6.2"
 
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:$lifecycle_version")
     implementation("androidx.lifecycle:lifecycle-livedata-ktx:$lifecycle_version")
     implementation("androidx.lifecycle:lifecycle-viewmodel-savedstate:$lifecycle_version")
 
     // Room components
-    def room_version = "2.6.1"
+    val room_version= "2.6.1"
 
     implementation("androidx.room:room-runtime:$room_version")
     implementation("androidx.room:room-ktx:$room_version")
     implementation("androidx.room:room-paging:$room_version")
-    //noinspection KaptUsageInsteadOfKsp
-    kapt("androidx.room:room-compiler:$room_version")
+    ksp("androidx.room:room-compiler:$room_version")
     testImplementation("androidx.room:room-testing:$room_version")
 
     // Media3 - ExoPlayer
@@ -91,5 +100,5 @@ dependencies {
 }
 
 kapt {
-    correctErrorTypes true
+    correctErrorTypes = true
 }
