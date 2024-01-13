@@ -1,10 +1,8 @@
 package com.hero.ziggymusic
 
 import android.app.Application
-import androidx.lifecycle.ViewModelProvider.NewInstanceFactory.Companion.instance
-import com.google.android.exoplayer2.ExoPlayer
+import androidx.media3.exoplayer.ExoPlayer
 import dagger.hilt.android.HiltAndroidApp
-import kotlin.text.Typography.dagger
 
 @HiltAndroidApp
 class ZiggyMusicApp : Application() {

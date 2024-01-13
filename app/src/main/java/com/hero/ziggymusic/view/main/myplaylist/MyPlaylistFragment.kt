@@ -15,7 +15,6 @@ import com.hero.ziggymusic.R
 import com.hero.ziggymusic.database.music.entity.MusicModel
 import com.hero.ziggymusic.database.music.entity.PlayerModel
 import com.hero.ziggymusic.databinding.FragmentMyPlaylistBinding
-import com.hero.ziggymusic.event.Event
 import com.hero.ziggymusic.event.EventBus
 import com.hero.ziggymusic.ext.playMusic
 import com.hero.ziggymusic.service.MusicService

@@ -1,7 +1,5 @@
 package com.hero.ziggymusic.ext
 
-import android.text.method.TextKeyListener.clear
-import android.widget.TextView
 import androidx.databinding.BindingAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.hero.ziggymusic.database.music.entity.MusicModel

@@ -9,7 +9,6 @@ import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.ImageDecoder
-import android.media.MediaPlayer
 import android.net.Uri
 import android.os.Binder
 import android.os.Build
@@ -18,15 +17,12 @@ import android.util.Log
 import android.widget.RemoteViews
 import android.widget.Toast
 import androidx.core.app.NotificationCompat
-import com.google.android.exoplayer2.ExoPlayer
-import com.google.common.eventbus.Subscribe
 import com.hero.ziggymusic.R
 import com.hero.ziggymusic.ZiggyMusicApp
 import com.hero.ziggymusic.database.music.entity.MusicModel
 import com.hero.ziggymusic.database.music.entity.PlayerModel
 import com.hero.ziggymusic.event.Event
 import com.hero.ziggymusic.event.EventBus
-import com.hero.ziggymusic.view.main.MainActivity
 import com.hero.ziggymusic.view.main.player.PlayerFragment
 import java.io.IOException
 import kotlin.system.exitProcess

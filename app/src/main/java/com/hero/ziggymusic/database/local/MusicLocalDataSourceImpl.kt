@@ -2,7 +2,6 @@ package com.hero.ziggymusic.database.local
 
 import android.app.Application
 import android.provider.MediaStore
-import android.util.Log
 import androidx.lifecycle.LiveData
 import com.hero.ziggymusic.database.music.dao.MusicFileDao
 import com.hero.ziggymusic.database.music.dao.PlaylistMusicDao

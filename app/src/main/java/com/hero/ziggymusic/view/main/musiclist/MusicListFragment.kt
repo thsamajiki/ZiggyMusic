@@ -1,10 +1,7 @@
 package com.hero.ziggymusic.view.main.musiclist
 
-import android.content.ComponentName
 import android.content.Intent
-import android.content.ServiceConnection
 import android.os.Bundle
-import android.os.IBinder
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -19,7 +16,6 @@ import com.hero.ziggymusic.R
 import com.hero.ziggymusic.database.music.entity.MusicModel
 import com.hero.ziggymusic.database.music.entity.PlayerModel
 import com.hero.ziggymusic.databinding.FragmentMusicListBinding
-import com.hero.ziggymusic.event.Event
 import com.hero.ziggymusic.event.EventBus
 import com.hero.ziggymusic.ext.playMusic
 import com.hero.ziggymusic.service.MusicService

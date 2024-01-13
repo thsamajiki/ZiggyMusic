@@ -6,16 +6,17 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.SeekBar
+import androidx.annotation.OptIn
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
+import androidx.media3.common.MediaItem
+import androidx.media3.common.Player
+import androidx.media3.common.util.UnstableApi
+import androidx.media3.datasource.DefaultDataSource
+import androidx.media3.exoplayer.source.ProgressiveMediaSource
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners
-import com.google.android.exoplayer2.ExoPlayer
-import com.google.android.exoplayer2.MediaItem
-import com.google.android.exoplayer2.Player
-import com.google.android.exoplayer2.source.ProgressiveMediaSource
-import com.google.android.exoplayer2.upstream.DefaultDataSource
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetBehavior.BottomSheetCallback
 import com.hero.ziggymusic.R
@@ -25,7 +26,6 @@ import com.hero.ziggymusic.database.music.entity.PlayerModel
 import com.hero.ziggymusic.databinding.FragmentPlayerBinding
 import com.hero.ziggymusic.event.Event
 import com.hero.ziggymusic.event.EventBus
-
 import com.hero.ziggymusic.view.main.player.viewmodel.PlayerViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
@@ -284,7 +284,7 @@ class PlayerFragment : Fragment(), View.OnClickListener {
     }
 
 
-    private fun playMusic(musicList: List<MusicModel>, nowPlayMusic: MusicModel?) {
+    @OptIn(UnstableApi::class) private fun playMusic(musicList: List<MusicModel>, nowPlayMusic: MusicModel?) {
         if (nowPlayMusic != null) {
             currentMusic = nowPlayMusic
             playerModel.updateCurrentMusic(nowPlayMusic)

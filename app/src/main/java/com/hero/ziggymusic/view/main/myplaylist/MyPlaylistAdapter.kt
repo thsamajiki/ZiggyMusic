@@ -1,7 +1,5 @@
 package com.hero.ziggymusic.view.main.myplaylist
 
-import android.net.Uri
-import android.provider.MediaStore
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
