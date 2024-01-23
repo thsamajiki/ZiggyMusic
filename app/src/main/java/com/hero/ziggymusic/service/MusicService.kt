@@ -17,6 +17,7 @@ import android.util.Log
 import android.widget.RemoteViews
 import android.widget.Toast
 import androidx.core.app.NotificationCompat
+import androidx.core.content.ContextCompat
 import com.hero.ziggymusic.R
 import com.hero.ziggymusic.ZiggyMusicApp
 import com.hero.ziggymusic.database.music.entity.MusicModel
@@ -168,6 +169,8 @@ class MusicService : Service() {
             .setShowWhen(false)
             .setSmallIcon(R.drawable.ic_music_note)
             .setStyle(NotificationCompat.DecoratedCustomViewStyle())
+            .setColor(ContextCompat.getColor(this, R.color.dark_black))
+            .setColorized(true)
             .setCustomContentView(remoteNotificationLayout)
             .setCustomBigContentView(remoteNotificationExtendedLayout)
             .setContentIntent(notificationTouchIntent)
@@ -244,7 +247,7 @@ class MusicService : Service() {
         )
         remoteNotificationExtendedLayout.setImageViewResource(
             R.id.btnNotificationExtendedClose,
-            R.drawable.ic_close
+            R.drawable.ic_white_close
         )
     }
 
