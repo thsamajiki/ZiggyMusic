@@ -277,6 +277,8 @@ class PlayerFragment : Fragment(), View.OnClickListener {
 
         Glide.with(binding.ivAlbumArt.context)
             .load(musicModel.getAlbumUri())
+            .error(R.drawable.ic_no_album_image)
+            .fallback(R.drawable.ic_no_album_image)
             .transform(RoundedCorners(12))
             .into(binding.ivAlbumArt)
 
