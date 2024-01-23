@@ -13,7 +13,7 @@
         android:id="@+id/constraintLayout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@color/background1"
+        android:background="@color/dark_black"
         app:layoutDescription="@xml/player_motion_scene">
 
         <androidx.appcompat.widget.Toolbar
@@ -23,7 +23,7 @@
             app:contentInsetStart="0dp"
             app:layout_constraintTop_toTopOf="parent">
 
-            <RelativeLayout
+            <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
                 android:layout_height="match_parent">
 
@@ -31,12 +31,16 @@
                     android:id="@+id/tv_now_playing_title"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_centerInParent="true"
                     android:text="@string/now_playing_title"
-                    android:textColor="@color/black"
-                    android:textSize="@dimen/title_text_size" />
+                    android:textColor="@color/white"
+                    android:textSize="@dimen/title_text_size"
+                    android:textStyle="bold"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
 
-            </RelativeLayout>
+            </androidx.constraintlayout.widget.ConstraintLayout>
 
         </androidx.appcompat.widget.Toolbar>
 
@@ -62,7 +66,7 @@
             android:id="@+id/v_album_background1"
             android:layout_width="0dp"
             android:layout_height="0dp"
-            android:background="@color/background2"
+            android:background="@color/black"
             app:layout_constraintBottom_toTopOf="@+id/v_supporter_album_art"
             app:layout_constraintEnd_toStartOf="@+id/v_supporter_album_art"
             app:layout_constraintStart_toStartOf="parent"
@@ -72,7 +76,7 @@
             android:id="@+id/v_album_background2"
             android:layout_width="0dp"
             android:layout_height="0dp"
-            android:background="@color/background2"
+            android:background="@color/black"
             app:layout_constraintBottom_toTopOf="@+id/v_player"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toEndOf="@+id/v_album_background1"
@@ -98,7 +102,7 @@
             android:marqueeRepeatLimit="marquee_forever"
             android:text="@{music.title}"
             android:textAlignment="center"
-            android:textColor="@color/normal_gray"
+            android:textColor="@color/white"
             android:textSize="@dimen/head_text_size"
             android:textStyle="bold"
             app:layout_constraintEnd_toEndOf="parent"
@@ -112,7 +116,7 @@
             android:layout_marginTop="25dp"
             android:gravity="center"
             android:text="@{music.artist}"
-            android:textColor="@color/normal_gray"
+            android:textColor="@color/white"
             android:textSize="@dimen/title_text_size"
             app:layout_constraintTop_toBottomOf="@+id/iv_album_art" />
 
@@ -123,7 +127,7 @@
             android:layout_marginTop="25dp"
             android:gravity="center"
             android:text="@{music.album}"
-            android:textColor="@color/normal_gray"
+            android:textColor="@color/white"
             android:textSize="@dimen/title_text_size"
             app:layout_constraintTop_toBottomOf="@+id/tv_song_artist" />
 
@@ -158,8 +162,8 @@
             android:clickable="false"
             android:paddingStart="0dp"
             android:paddingEnd="0dp"
-            android:progressTint="@color/purple_200"
-            android:thumbTint="@color/purple_200"
+            android:progressTint="@color/teal_200"
+            android:thumbTint="@color/teal_200"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="@id/v_player"
@@ -170,7 +174,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
-            android:textColor="@color/purple_200"
+            android:textColor="@color/white"
             android:textStyle="bold"
             app:layout_constraintStart_toStartOf="@id/sb_player"
             app:layout_constraintTop_toBottomOf="@id/sb_player"
@@ -181,7 +185,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
-            android:textColor="@color/purple_200"
+            android:textColor="@color/white"
             android:textStyle="bold"
             app:layout_constraintEnd_toEndOf="@id/sb_player"
             app:layout_constraintTop_toBottomOf="@id/sb_player"
