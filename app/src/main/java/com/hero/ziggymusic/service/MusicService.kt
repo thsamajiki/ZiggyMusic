@@ -15,7 +15,6 @@ import android.os.Build
 import android.os.IBinder
 import android.util.Log
 import android.widget.RemoteViews
-import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import com.hero.ziggymusic.R
@@ -34,15 +33,6 @@ class MusicService : Service() {
         (applicationContext as ZiggyMusicApp).exoPlayer
     }
     private val playerModel: PlayerModel = PlayerModel.getInstance()
-
-    companion object {
-        const val CHANNEL_ID = "MusicChannel" // 알림 채널 ID
-
-        const val PLAY_OR_PAUSE = "com.hero.ziggymusic.PLAY_OR_PAUSE" // Notification 에서 재생 / 일시 정지 버튼을 누를 시
-        const val SKIP_PREV = "com.hero.ziggymusic.SKIP_PREV" // Notification 에서 이전 곡 버튼을 누를 시
-        const val SKIP_NEXT = "com.hero.ziggymusic.SKIP_NEXT" // Notification 에서 다음 곡 버튼을 누를 시
-        const val CLOSE = "com.hero.ziggymusic.CLOSE" // 닫기 버튼을 누를 시
-    }
 
     private lateinit var remoteNotificationLayout: RemoteViews
     private lateinit var remoteNotificationExtendedLayout: RemoteViews
@@ -73,22 +63,22 @@ class MusicService : Service() {
                 val notification = createNotification() // Notification 생성
                 startForeground(1, notification) // Foreground 에서 실행
             }
-            PLAY_OR_PAUSE -> { // Notification 에서 재생 / 일시 정지 버튼을 누를 시
-                Log.d("onStartCommand", "PLAY_OR_PAUSE: $musicPlayer")
-                Log.d("onStartCommand", "PLAY_OR_PAUSE: ${musicPlayer?.isPlaying}")
-                Toast.makeText(this, "MiniPlayer - PLAY_OR_PAUSE", Toast.LENGTH_SHORT).show()
-                if(musicPlayer?.isPlaying == true) {
-                    EventBus.getInstance().post(Event("PAUSE"))
-                } else {
-                    EventBus.getInstance().post(Event("PLAY"))
-                }
+            PLAY -> { // Notification 에서 재생 / 일시 정지 버튼을 누를 시
+                Log.d("onStartCommand", "PLAY: ${musicPlayer?.isPlaying}")
+                EventBus.getInstance().post(Event("PLAY"))
+            }
+            PAUSE -> { // Notification 에서 재생 / 일시 정지 버튼을 누를 시
+                Log.d("onStartCommand", "PAUSE: ${musicPlayer?.isPlaying}")
+                EventBus.getInstance().post(Event("PAUSE"))
             }
             SKIP_PREV -> { // Notification 에서 이전 곡 버튼을 누를 시
                 Log.d("SKIP_PREV", "onStartCommand: $musicPlayer")
                 EventBus.getInstance().post(Event("SKIP_PREV"))
+//                EventBus.getInstance().post(Event("PLAY"))
             }
             SKIP_NEXT -> { // Notification 에서 다음 곡 버튼을 누를 시
                 EventBus.getInstance().post(Event("SKIP_NEXT"))
+//                EventBus.getInstance().post(Event("PLAY"))
             }
             CLOSE -> { // Notification 에서 닫기 버튼 누를 시
                 stopSelf()
@@ -119,25 +109,30 @@ class MusicService : Service() {
             PendingIntent.getService(this@MusicService, 0, this, PendingIntent.FLAG_IMMUTABLE)
         }
         val playIntent = Intent(this, MusicService::class.java).run {
-            action = PLAY_OR_PAUSE
+            action = PLAY
             PendingIntent.getService(this@MusicService, 1, this, PendingIntent.FLAG_IMMUTABLE)
+        }
+        val pauseIntent = Intent(this, MusicService::class.java).run {
+            action = PAUSE
+            PendingIntent.getService(this@MusicService, 2, this, PendingIntent.FLAG_IMMUTABLE)
         }
         val nextIntent = Intent(this, MusicService::class.java).run {
             action = SKIP_NEXT
-            PendingIntent.getService(this@MusicService, 2, this, PendingIntent.FLAG_IMMUTABLE)
+            PendingIntent.getService(this@MusicService, 3, this, PendingIntent.FLAG_IMMUTABLE)
         }
         val closeIntent = Intent(this, MusicService::class.java).run {
             action = CLOSE
-            PendingIntent.getService(this@MusicService, 3, this, PendingIntent.FLAG_IMMUTABLE)
+            PendingIntent.getService(this@MusicService, 4, this, PendingIntent.FLAG_IMMUTABLE)
         }
         val notificationTouchIntent = Intent(this, PlayerFragment::class.java).run {
             addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
-            PendingIntent.getActivity(this@MusicService, 4, this, PendingIntent.FLAG_IMMUTABLE)
+            PendingIntent.getActivity(this@MusicService, 5, this, PendingIntent.FLAG_IMMUTABLE)
         }
 
         // setOnClickPendingIntent()를 이용해서 클릭 리스너를 달아준다.
         remoteNotificationLayout.setOnClickPendingIntent(R.id.btnNotificationPrev, prevIntent)
         remoteNotificationLayout.setOnClickPendingIntent(R.id.btnNotificationPlay, playIntent)
+        remoteNotificationLayout.setOnClickPendingIntent(R.id.btnNotificationPlay, pauseIntent)
         remoteNotificationLayout.setOnClickPendingIntent(R.id.btnNotificationNext, nextIntent)
 
         remoteNotificationExtendedLayout.setOnClickPendingIntent(
@@ -147,6 +142,10 @@ class MusicService : Service() {
         remoteNotificationExtendedLayout.setOnClickPendingIntent(
             R.id.btnNotificationExtendedPlay,
             playIntent
+        )
+        remoteNotificationExtendedLayout.setOnClickPendingIntent(
+            R.id.btnNotificationExtendedPlay,
+            pauseIntent
         )
         remoteNotificationExtendedLayout.setOnClickPendingIntent(
             R.id.btnNotificationExtendedNext,
@@ -205,11 +204,11 @@ class MusicService : Service() {
             } else { // 앨범 아트 Uri 에 파일이 없는 경우 기본 앨범 아트를 사용
                 remoteNotificationLayout.setImageViewResource(
                     R.id.ivNotificationAlbum,
-                    R.drawable.ic_default_album_art
+                    R.drawable.ic_no_album_image
                 )
                 remoteNotificationExtendedLayout.setImageViewResource(
                     R.id.ivNotificationExtendedAlbum,
-                    R.drawable.ic_default_album_art
+                    R.drawable.ic_no_album_image
                 )
             }
         }
@@ -230,16 +229,17 @@ class MusicService : Service() {
             )
         }
 
+//        Toast.makeText(this, "title: ${music?.title}, artist: ${music?.artist}", Toast.LENGTH_SHORT).show()
         remoteNotificationLayout.setTextViewText(R.id.tvNotificationTitle, music?.title)
         remoteNotificationLayout.setTextViewText(R.id.tvNotificationArtist, music?.artist)
-        remoteNotificationLayout.setImageViewResource(R.id.btnNotificationPrev, R.drawable.ic_previous_button)
+        remoteNotificationLayout.setImageViewResource(R.id.btnNotificationPrev, R.drawable.ic_prev_button)
         remoteNotificationLayout.setImageViewResource(R.id.btnNotificationNext, R.drawable.ic_next_button)
 
         remoteNotificationExtendedLayout.setTextViewText(R.id.tvNotificationExtendedTitle, music?.title)
         remoteNotificationExtendedLayout.setTextViewText(R.id.tvNotificationExtendedArtist, music?.artist)
         remoteNotificationExtendedLayout.setImageViewResource(
             R.id.btnNotificationExtendedPrev,
-            R.drawable.ic_previous_button
+            R.drawable.ic_prev_button
         )
         remoteNotificationExtendedLayout.setImageViewResource(
             R.id.btnNotificationExtendedNext,
@@ -261,5 +261,16 @@ class MusicService : Service() {
         musicPlayer?.stop() // 플레이어 중단
         EventBus.getInstance().unregister(this)
         super.onDestroy()
+    }
+
+    companion object {
+        const val CHANNEL_ID = "MusicChannel" // 알림 채널 ID
+
+        const val PLAY_OR_PAUSE = "com.hero.ziggymusic.PLAY_OR_PAUSE" // Notification 에서 재생 / 일시 정지 버튼을 누를 시
+        const val PLAY = "com.hero.ziggymusic.PLAY" // Notification 에서 재생 버튼을 누를 시
+        const val PAUSE = "com.hero.ziggymusic.PAUSE" // Notification 에서 일시 정지 버튼을 누를 시
+        const val SKIP_PREV = "com.hero.ziggymusic.SKIP_PREV" // Notification 에서 이전 곡 버튼을 누를 시
+        const val SKIP_NEXT = "com.hero.ziggymusic.SKIP_NEXT" // Notification 에서 다음 곡 버튼을 누를 시
+        const val CLOSE = "com.hero.ziggymusic.CLOSE" // 닫기 버튼을 누를 시
     }
 }

@@ -159,13 +159,6 @@ class MainActivity : AppCompatActivity(),
         player?.addListener(object : Player.Listener {
             override fun onIsPlayingChanged(isPlaying: Boolean) {
                 super.onIsPlayingChanged(isPlaying)
-
-                // 플레이어가 재생 또는 일시정지 될 떄
-                if (isPlaying) {
-//                    binding.btnMiniPlay.setImageResource(R.drawable.ic_pause_button)
-                } else {
-//                    binding.btnMiniPlay.setImageResource(R.drawable.ic_play_button)
-                }
             }
 
             // 미디어 아이템이 바뀔 때
@@ -176,6 +169,12 @@ class MainActivity : AppCompatActivity(),
                 playerModel.changedMusic(newMusicKey)
 
 //                updatePlayerView(playerModel.currentMusic)
+                Log.d("onMediaItemTransition", "player.isPlaying: ${player.isPlaying}")
+                if (player.isPlaying) {
+                    player.pause()
+                } else {
+                    player.play()
+                }
             }
 
             // 재생, 재생 완료, 버퍼링 상태 ...
@@ -211,7 +210,7 @@ class MainActivity : AppCompatActivity(),
                 musicServiceStart()
             }
             "SKIP_PREV" -> { // Notification 에서 이전 곡 버튼을 누를 시
-                Log.d("MainActivity", "doEvent - SKIP_PREV: $player")
+                Log.d("MainActivity", "doEvent - SKIP_PREV: ${player.isPlaying}")
                 player?.run {
                     val prevIndex = if (currentMediaItemIndex - 1 in 0 until mediaItemCount) {
                         currentMediaItemIndex - 1
@@ -224,6 +223,7 @@ class MainActivity : AppCompatActivity(),
                 musicServiceStart()
             }
             "SKIP_NEXT" -> { // Notification 에서 다음 곡 버튼을 누를 시
+                Log.d("MainActivity", "doEvent - SKIP_NEXT: ${player.isPlaying}")
                 player?.run {
                     val nextIndex = if (currentMediaItemIndex + 1 in 0 until mediaItemCount) {
                         currentMediaItemIndex + 1
@@ -235,14 +235,6 @@ class MainActivity : AppCompatActivity(),
                 setPlayerListener()
                 musicServiceStart()
             }
-            "STOP" -> { // 정지
-            }
-            "PERMISSION_DENIED" -> { // 권한 거부
-                finish()
-            }
-//            else -> {
-//                musicServiceStart()
-//            }
         }
     }
 
