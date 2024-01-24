@@ -2,14 +2,17 @@
 <layout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools">
+
     <data>
+
         <import type="android.view.View" />
+
         <variable
             name="viewModel"
             type="com.hero.ziggymusic.view.main.musiclist.viewmodel.MusicListViewModel" />
     </data>
 
-    <LinearLayout
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/ll_fragment_music_list"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -19,10 +22,29 @@
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/rv_music_list"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             android:orientation="vertical"
+            android:visibility="@{viewModel.allMusics.size() == 0 ? View.GONE : View.VISIBLE}"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
             app:musicListItems="@{viewModel.allMusics}"
-            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
+            tools:listitem="@layout/item_music_list" />
 
-    </LinearLayout>
+        <TextView
+            android:id="@+id/tv_nothing_found"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@{viewModel.emptyStateMessage}"
+            android:textColor="@color/white"
+            android:textSize="@dimen/body_text_size"
+            android:textStyle="bold"
+            android:visibility="@{viewModel.allMusics.size() == 0 ? View.VISIBLE : View.INVISIBLE}"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="0.38" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>
