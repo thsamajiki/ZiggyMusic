@@ -76,7 +76,7 @@
             android:id="@+id/btnNotificationExtendedPrev"
             android:layout_width="50dp"
             android:layout_height="50dp"
-            android:src="@drawable/ic_previous_button" />
+            android:src="@drawable/ic_prev_button" />
 
         <ImageView
             android:id="@+id/btnNotificationExtendedPlay"

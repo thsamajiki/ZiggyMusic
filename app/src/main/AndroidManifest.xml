@@ -29,8 +29,9 @@
             android:exported="false"
             android:foregroundServiceType="specialUse">
             <intent-filter>
-                <action android:name="com.hero.ziggymusic.INITPLAY" />
-                <action android:name="com.hero.ziggymusic.PLAY_OR_PAUSE" />
+                <action android:name="com.hero.ziggymusic.PLAY_NEW_MUSIC" />
+                <action android:name="com.hero.ziggymusic.PLAY" />
+                <action android:name="com.hero.ziggymusic.PAUSE" />
                 <action android:name="com.hero.ziggymusic.SKIP_PREV" />
                 <action android:name="com.hero.ziggymusic.SKIP_NEXT" />
             </intent-filter>
