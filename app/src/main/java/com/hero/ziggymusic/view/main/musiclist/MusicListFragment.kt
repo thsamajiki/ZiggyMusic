@@ -54,10 +54,6 @@ class MusicListFragment : Fragment(), View.OnClickListener,
         setupListeners()
     }
 
-    private fun setupListeners() {
-        musicListAdapter.setOnRecyclerItemClickListener(this)
-    }
-
     private fun initRecyclerView(recyclerView: RecyclerView) {
         musicListAdapter = MusicListAdapter()
 
@@ -65,6 +61,10 @@ class MusicListFragment : Fragment(), View.OnClickListener,
             layoutManager = LinearLayoutManager(context)
             adapter = musicListAdapter
         }
+    }
+
+    private fun setupListeners() {
+        musicListAdapter.setOnRecyclerItemClickListener(this)
     }
 
     override fun onItemClick(position: Int, view: View, data: MusicModel) {
