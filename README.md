@@ -7,8 +7,8 @@
 
 
 ## 프로젝트 기간
-2022\. 09 ~ 2022\. 11
-
+2022\. 09 ~ 2022\. 11 <br>
+리뉴얼 : 2023\. 12 ~ 2024\. 01
 
 ## 기여도
 - 기획, 개발, 디자인 모두 했습니다.
@@ -66,10 +66,14 @@ EQ 조절이나 스킨 기능 등이 반영된 설정 기능을 추가하는 것
 
 
 ## 스크린샷
-<img src="/images/music_list.png" width="320px" height="640px" title="test_video" alt="music_list"></img>
-<img src="/images/my_playlist.png" width="320px" height="640px" title="test_video" alt="my_playlist"></img>
-<img src="/images/player_fragment.png" width="320px" height="640px" title="test_video" alt="player"></img>
-<img src="/images/music_playing_collapsed.png" width="320px" height="640px" title="test_video" alt="collapsed"></img>
+<img src="/images/music_list.png" width="320px" height="640px" title="music_list" alt="music_list"></img>
+<img src="/images/my_playlist.png" width="320px" height="640px" title="my_playlist" alt="my_playlist"></img>
+<img src="/images/player_fragment.png" width="320px" height="640px" title="player_fragment" alt="player"></img>
+<img src="/images/music_notification.png" width="320px" height="640px" title="music_notification" alt="notification"></img>
+
+
+## 시연 영상
+<img src="/images/ziggymusic_시연영상.mp4" width="320px" height="640px" title="test_video" alt="test_video"></img>
 
 
 
