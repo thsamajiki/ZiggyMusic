@@ -20,4 +20,6 @@
 
     <string name="add_music_to_my_playlist">플레이리스트에 추가</string>
     <string name="delete_music_from_my_playlist">플레이리스트에서 제거</string>
+
+    <string name="no_music_found">음원이 없습니다.</string>
 </resources>
