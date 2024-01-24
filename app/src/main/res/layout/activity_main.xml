@@ -154,7 +154,7 @@
             app:layout_constraintEnd_toStartOf="@id/btnMiniPlay"
             app:layout_constraintStart_toStartOf="@id/guideline2"
             app:layout_constraintTop_toTopOf="parent"
-            app:srcCompat="@drawable/ic_previous_button" />
+            app:srcCompat="@drawable/ic_prev_button" />
 
         <ImageButton
             android:id="@+id/btnMiniNext"
