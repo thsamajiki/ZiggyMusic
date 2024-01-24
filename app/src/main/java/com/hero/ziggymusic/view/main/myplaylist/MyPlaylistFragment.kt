@@ -2,6 +2,7 @@ package com.hero.ziggymusic.view.main.myplaylist
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -9,6 +10,7 @@ import androidx.appcompat.widget.PopupMenu
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.hero.ziggymusic.R
@@ -21,6 +23,7 @@ import com.hero.ziggymusic.service.MusicService
 import com.hero.ziggymusic.view.listener.OnRecyclerItemClickListener
 import com.hero.ziggymusic.view.main.myplaylist.viewmodel.MyPlaylistViewModel
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class MyPlaylistFragment : Fragment(), View.OnClickListener,
@@ -29,7 +32,7 @@ class MyPlaylistFragment : Fragment(), View.OnClickListener,
     private var _binding: FragmentMyPlaylistBinding? = null
     private val binding get() = _binding!!
 
-    private val myPlayListViewModel by viewModels<MyPlaylistViewModel>()
+    private val viewModel by viewModels<MyPlaylistViewModel>()
     private val playerModel: PlayerModel = PlayerModel.getInstance()
 
     private lateinit var myPlayListAdapter: MyPlaylistAdapter
@@ -44,7 +47,7 @@ class MyPlaylistFragment : Fragment(), View.OnClickListener,
     ): View {
         _binding = DataBindingUtil.inflate(inflater, R.layout.fragment_my_playlist, container, false)
         binding.lifecycleOwner = this
-        binding.viewModel = myPlayListViewModel
+        binding.viewModel = viewModel
 
         return binding.root
     }
@@ -57,17 +60,10 @@ class MyPlaylistFragment : Fragment(), View.OnClickListener,
         setupListeners()
     }
 
-    override fun onDestroyView() {
-        _binding = null
-        EventBus.getInstance().unregister(this)
-        super.onDestroyView()
-    }
-
     private fun initRecyclerView(recyclerView: RecyclerView) {
         myPlayListAdapter = MyPlaylistAdapter()
 
         recyclerView.run {
-            setHasFixedSize(true)
             layoutManager = LinearLayoutManager(context)
             adapter = myPlayListAdapter
         }
@@ -109,7 +105,13 @@ class MyPlaylistFragment : Fragment(), View.OnClickListener,
     }
 
     private fun deleteMusicFromMyPlayList(musicModel: MusicModel) {
-        myPlayListViewModel.deleteMusicFromMyPlaylist(musicModel)
+        viewModel.deleteMusicFromMyPlaylist(musicModel)
+    }
+
+    override fun onDestroyView() {
+        _binding = null
+        EventBus.getInstance().unregister(this)
+        super.onDestroyView()
     }
 
     override fun onClick(view: View?) {
