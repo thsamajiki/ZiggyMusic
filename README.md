@@ -71,8 +71,6 @@ EQ 조절이나 스킨 기능 등이 반영된 설정 기능을 추가하는 것
 <img src="/images/player_fragment.png" width="320px" height="675px" title="player_fragment" alt="player"></img>
 <img src="/images/music_notification.png" width="320px" height="354px" title="music_notification" alt="notification"></img>
 
-
-## 시연 영상
-<video controls width="400px" height="844px">
-  <source src="/images/ziggymusic_시연영상.mp4" type="video/mp4" />
+<video controls muted loop>
+  <source src="/images/ziggymusic_시연영상.mp4" width="400px" height="844px" type="video/mp4" />
 </video>
