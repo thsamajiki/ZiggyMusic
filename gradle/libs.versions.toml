@@ -1,7 +1,7 @@
 [versions]
 kotlin = "1.9.20"
 agp = "8.0.2"
-kotlinStdlib = "1.9.20"
+kotlinStdlib = "1.9.22"
 ksp = "1.9.20-1.0.14"
 comAndroid = "8.1.1"
 
