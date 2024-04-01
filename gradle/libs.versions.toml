@@ -19,7 +19,7 @@ lifecycle = "2.7.0"
 media3 = "1.2.1"
 room = "2.6.1"
 
-glide = "4.14.2"
+glide = "4.16.0"
 
 gson = "2.10.1"
 
