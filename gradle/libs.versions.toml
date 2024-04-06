@@ -16,7 +16,7 @@ recyclerview = "1.3.2"
 hilt = "2.51"
 
 lifecycle = "2.7.0"
-media3 = "1.2.1"
+media3 = "1.3.0"
 room = "2.6.1"
 
 glide = "4.16.0"
