@@ -76,7 +76,7 @@
             android:layout_width="30dp"
             android:layout_height="30dp"
             android:layout_gravity="center"
-            android:layout_weight="0"
+            android:layout_weight="1"
             android:src="@drawable/ic_prev_button"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toStartOf="@+id/btnNotificationPlay"
