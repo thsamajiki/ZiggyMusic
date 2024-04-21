@@ -64,9 +64,13 @@
             android:id="@+id/tv_song_artist"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            motion:layout_constraintStart_toStartOf="@id/tv_song_title"
+            android:layout_marginStart="5dp"
+            motion:layout_constraintStart_toEndOf="@id/iv_album_art"
             motion:layout_constraintTop_toBottomOf="@id/tv_song_title"
-            motion:layout_constraintBottom_toBottomOf="@id/iv_album_art">
+            motion:layout_constraintHorizontal_bias="0"
+            motion:layout_constraintEnd_toStartOf="@id/iv_play_pause"
+            motion:layout_constraintBottom_toBottomOf="@id/iv_album_art"
+            motion:layout_constrainedWidth="true">
 
             <CustomAttribute
                 motion:attributeName="textSize"
@@ -90,7 +94,6 @@
             android:id="@+id/sb_play_list"
             android:layout_width="0dp"
             android:layout_height="2dp"
-
             motion:layout_constraintEnd_toEndOf="parent"
             motion:layout_constraintStart_toStartOf="parent"
             motion:layout_constraintTop_toTopOf="parent" />
@@ -202,14 +205,16 @@
 
         <Constraint
             android:id="@+id/tv_song_title"
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="30dp"
             android:gravity="center"
             android:text="@string/current_song_title"
-            android:textColor="@color/normal_gray"
+            android:textColor="@color/white"
             android:textSize="@dimen/head_text_size"
             android:textStyle="bold"
+            motion:layout_constraintEnd_toEndOf="parent"
+            motion:layout_constraintStart_toStartOf="parent"
             motion:layout_constraintTop_toBottomOf="@+id/now_playing_title_toolbar">
 
             <CustomAttribute
@@ -220,13 +225,15 @@
 
         <Constraint
             android:id="@+id/tv_song_artist"
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="25dp"
             android:gravity="center"
             android:text="@string/current_song_artist"
-            android:textColor="@color/normal_gray"
+            android:textColor="@color/white"
             android:textSize="@dimen/title_text_size"
+            motion:layout_constraintEnd_toEndOf="parent"
+            motion:layout_constraintStart_toStartOf="parent"
             motion:layout_constraintTop_toBottomOf="@+id/iv_album_art">
 
             <CustomAttribute
@@ -237,13 +244,15 @@
 
         <Constraint
             android:id="@+id/tv_song_album"
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="25dp"
             android:gravity="center"
             android:text="@string/current_song_album"
-            android:textColor="@color/normal_gray"
+            android:textColor="@color/white"
             android:textSize="@dimen/title_text_size"
+            motion:layout_constraintEnd_toEndOf="parent"
+            motion:layout_constraintStart_toStartOf="parent"
             motion:layout_constraintTop_toBottomOf="@+id/tv_song_artist" />
 
         <Constraint
