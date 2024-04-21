@@ -191,14 +191,15 @@ class PlayerFragment : Fragment(), View.OnClickListener {
             EventBus.getInstance().post(Event("SKIP_PREV"))
         }
 
-        binding.ivPlaylist.setOnClickListener {
-            playerViewModel.changeState(PlayerMotionManager.State.COLLAPSED)
-        }
+//        binding.ivPlaylist.setOnClickListener {
+//            playerViewModel.changeState(PlayerMotionManager.State.COLLAPSED)
+//        }
     }
 
     private fun initPlayView() {
 //        player = ExoPlayer.Builder(requireContext()).build()
         binding.vPlayer.player = player
+        binding.animationViewVisualizer.pauseAnimation()
 
         player?.addListener(object : Player.Listener {
             override fun onIsPlayingChanged(isPlaying: Boolean) {
@@ -207,8 +208,10 @@ class PlayerFragment : Fragment(), View.OnClickListener {
                 // 플레이어가 재생 또는 일시정지 될 떄
                 if (isPlaying) {
                     binding.ivPlayPause.setImageResource(R.drawable.ic_pause_button)
+                    binding.animationViewVisualizer.playAnimation()
                 } else {
                     binding.ivPlayPause.setImageResource(R.drawable.ic_play_button)
+                    binding.animationViewVisualizer.pauseAnimation()
                 }
             }
 
@@ -277,6 +280,7 @@ class PlayerFragment : Fragment(), View.OnClickListener {
 
         Glide.with(binding.ivAlbumArt.context)
             .load(musicModel.getAlbumUri())
+            .override(binding.ivAlbumArt.layoutParams.width, binding.ivAlbumArt.layoutParams.height)
             .error(R.drawable.ic_no_album_image)
             .fallback(R.drawable.ic_no_album_image)
             .transform(RoundedCorners(12))
@@ -286,7 +290,8 @@ class PlayerFragment : Fragment(), View.OnClickListener {
     }
 
 
-    @OptIn(UnstableApi::class) private fun playMusic(musicList: List<MusicModel>, nowPlayMusic: MusicModel?) {
+    @OptIn(UnstableApi::class)
+    private fun playMusic(musicList: List<MusicModel>, nowPlayMusic: MusicModel?) {
         if (nowPlayMusic != null) {
             currentMusic = nowPlayMusic
             playerModel.updateCurrentMusic(nowPlayMusic)
