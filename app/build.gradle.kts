@@ -92,6 +92,8 @@ dependencies {
 
     // Media3
     implementation(libs.bundles.media3)
+
+    implementation(libs.lottie)
 }
 
 kapt {
