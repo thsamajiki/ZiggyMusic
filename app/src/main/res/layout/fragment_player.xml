@@ -115,6 +115,8 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="25dp"
             android:gravity="center"
+            android:lines="1"
+            android:ellipsize="end"
             android:text="@{music.artist}"
             android:textColor="@color/white"
             android:textSize="@dimen/title_text_size"
@@ -226,12 +228,24 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="@id/v_player" />
 
-        <ImageView
-            android:id="@+id/iv_playlist"
-            android:layout_width="30dp"
-            android:layout_height="30dp"
-            android:layout_marginStart="24dp"
-            android:src="@drawable/ic_back_playlist"
+<!--        <ImageView-->
+<!--            android:id="@+id/iv_playlist"-->
+<!--            android:layout_width="30dp"-->
+<!--            android:layout_height="30dp"-->
+<!--            android:layout_marginStart="24dp"-->
+<!--            android:src="@drawable/ic_back_playlist"-->
+<!--            app:layout_constraintBottom_toBottomOf="parent"-->
+<!--            app:layout_constraintStart_toStartOf="parent"-->
+<!--            app:layout_constraintTop_toTopOf="@id/v_player" />-->
+
+        <com.airbnb.lottie.LottieAnimationView
+            android:id="@+id/animationViewVisualizer"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginStart="20dp"
+            app:lottie_rawRes="@raw/audio_visualizer"
+            app:lottie_autoPlay="true"
+            app:lottie_loop="true"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="@id/v_player" />
