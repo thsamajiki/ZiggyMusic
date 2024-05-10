@@ -11,7 +11,21 @@
         <item name="colorSecondaryVariant">@color/teal_700</item>
         <item name="colorOnSecondary">@color/black</item>
         <!-- Status bar color. -->
-        <item name="android:statusBarColor" tools:targetApi="l">@color/dark_black</item>
+        <item name="android:statusBarColor">@color/dark_black</item>
         <!-- Customize your theme here. -->
+    </style>
+
+    <style name="SpinnerDivideStyle" parent="android:style/Widget.ListView.DropDown">
+        <item name="android:divider">@color/white</item> <!-- divider 색 -->
+        <item name="android:dividerHeight">1dp</item> <!-- divider 높이 -->
+    </style>
+
+    <style name="Widget.My.Spinner" parent="Widget.AppCompat.Spinner">
+        <item name="android:overlapAnchor">false</item> <!-- 드롭다운 메뉴가 스피너 아래로 고정 -->
+        <item name="overlapAnchor">false</item>
+        <item name="android:spinnerMode">dropdown</item>
+        <item name="android:dropDownWidth">wrap_content</item>
+        <item name="android:background">@drawable/bg_spinner</item>
+        <item name="android:dropDownListViewStyle">@style/SpinnerDivideStyle</item>
     </style>
 </resources>
