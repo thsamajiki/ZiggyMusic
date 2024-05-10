@@ -1,7 +1,6 @@
 package com.hero.ziggymusic.view.main
 
 import android.Manifest
-import android.content.ComponentName
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
@@ -10,26 +9,29 @@ import android.view.MenuItem
 import android.view.View
 import android.widget.Toast
 import androidx.activity.viewModels
+import androidx.annotation.OptIn
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.view.isGone
+import androidx.core.view.isInvisible
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
+import androidx.media3.common.util.UnstableApi
 import androidx.viewpager2.widget.ViewPager2
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.navigation.NavigationBarView
 import com.hero.ziggymusic.R
 import com.hero.ziggymusic.ZiggyMusicApp
-import com.hero.ziggymusic.database.music.entity.MusicModel
 import com.hero.ziggymusic.database.music.entity.PlayerModel
 import com.hero.ziggymusic.databinding.ActivityMainBinding
 import com.hero.ziggymusic.event.Event
 import com.hero.ziggymusic.event.EventBus
 import com.hero.ziggymusic.service.MusicService
-import com.hero.ziggymusic.view.main.player.PlayerFragment
+import com.hero.ziggymusic.view.main.setting.SoundEQSettings
+import com.hero.ziggymusic.view.main.setting.SettingFragment
 import com.squareup.otto.Subscribe
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
@@ -43,6 +45,8 @@ class MainActivity : AppCompatActivity(),
     private val permission = Manifest.permission.READ_EXTERNAL_STORAGE
     private var REQ_READ = 99
 
+    private var title: String = ""
+
     private val viewModel by viewModels<MainViewModel>()
 
 //    private var player: ExoPlayer? = null
@@ -52,6 +56,7 @@ class MainActivity : AppCompatActivity(),
     private val playerModel: PlayerModel = PlayerModel.getInstance()
     private lateinit var playerController: PlayerController
 
+    @OptIn(UnstableApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
@@ -84,6 +89,41 @@ class MainActivity : AppCompatActivity(),
             playerController.startPlayer()
         }
 
+        SoundEQSettings.init(player.audioSessionId)
+
+        setupListeners()
+    }
+
+    private fun setupListeners() {
+        val titleArr = resources.getStringArray(R.array.title_array)
+
+        binding.ivBack.setOnClickListener {
+            val transaction = supportFragmentManager.beginTransaction()
+            transaction.remove(supportFragmentManager.findFragmentById(R.id.frameLayout)!!).commit()
+            supportFragmentManager.popBackStack()
+
+            binding.ivBack.isInvisible = true
+            binding.ivSetting.isVisible = true
+            binding.ivSetting.isEnabled = true
+            binding.mainViewPager.isVisible = true
+
+            binding.tvMainTitle.text = title
+        }
+
+        binding.ivSetting.setOnClickListener {
+            val intent = SettingFragment.newInstance()
+            val transaction = supportFragmentManager.beginTransaction()
+            transaction.add(R.id.frameLayout, intent).commit()
+            supportFragmentManager.executePendingTransactions()
+
+            binding.ivBack.isVisible = true
+            binding.ivSetting.isInvisible = true
+            binding.ivSetting.isEnabled = false
+            binding.mainViewPager.isInvisible = true
+
+            binding.tvMainTitle.text = titleArr[2]
+        }
+
         binding.mainBottomNav.setOnItemSelectedListener(this)
     }
 
@@ -113,6 +153,7 @@ class MainActivity : AppCompatActivity(),
                 super.onPageSelected(position)
                 binding.mainBottomNav.menu.getItem(position).isChecked = true
                 binding.tvMainTitle.text = titleArr[position]
+                title = titleArr[position]
             }
 
             override fun onPageScrollStateChanged(state: Int) {
@@ -143,11 +184,6 @@ class MainActivity : AppCompatActivity(),
             R.id.menu_my_play_list -> {
                 binding.mainViewPager.currentItem = 1
             }
-//            R.id.menu_setting -> {
-//                val settingFragment = SettingFragment()
-//                binding.mainViewPager.currentItem = 2
-//                supportFragmentManager.beginTransaction().replace(R.id.main_view_pager, settingFragment).commit()
-//            }
         }
         return false
     }
