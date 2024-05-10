@@ -7,7 +7,7 @@
     <string-array name="title_array">
         <item>음악 목록</item>
         <item>나의 플레이리스트</item>
-        <!--        <item>설정</item>-->
+        <item>설정</item>
     </string-array>
 
     <string name="now_playing_title">지금 재생 중</string>
