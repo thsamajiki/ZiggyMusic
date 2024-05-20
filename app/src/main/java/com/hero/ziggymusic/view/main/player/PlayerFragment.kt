@@ -1,5 +1,11 @@
 package com.hero.ziggymusic.view.main.player
 
+import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.graphics.drawable.BitmapDrawable
+import android.graphics.drawable.Drawable
+import android.media.AudioManager
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -7,6 +13,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.SeekBar
 import androidx.annotation.OptIn
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
@@ -50,6 +57,10 @@ class PlayerFragment : Fragment(), View.OnClickListener {
     private lateinit var playerMotionManager: PlayerMotionManager
     private lateinit var playerBottomSheetManager: PlayerBottomSheetManager
 
+    private lateinit var audioManager: AudioManager
+    private var currentVolume: Int = 0  // 현재 볼륨
+    private var previousVolume: Int = 0 // 이전 볼륨 저장
+
     private val musicKey: String
         get() = requireArguments().getString(EXTRA_MUSIC_FILE_KEY).orEmpty()
 
@@ -63,11 +74,16 @@ class PlayerFragment : Fragment(), View.OnClickListener {
         savedInstanceState: Bundle?
     ): View {
         _binding = FragmentPlayerBinding.inflate(inflater, container, false)
+
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        audioManager = context?.getSystemService(Context.AUDIO_SERVICE) as AudioManager
+        currentVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
+        previousVolume = currentVolume
 
         initPlayView()
         initViewModel()
@@ -115,11 +131,41 @@ class PlayerFragment : Fragment(), View.OnClickListener {
             playerViewModel.changeState(toggleState)
         }
 
+        binding.ivVolume.setOnClickListener {
+            toggleVolumeIcon()
+        }
+
         viewLifecycleOwner.lifecycleScope.launch {
             playerViewModel.state
                 .collect { state ->
                     playerMotionManager.changeState(state)
                 }
+        }
+    }
+
+    private fun toggleVolumeIcon() {
+        val volumeDrawable = binding.ivVolume.drawable
+        val volumeBitmap = drawableToBitmap(volumeDrawable)
+
+        val muteDrawable = ContextCompat.getDrawable(requireContext(), R.drawable.ic_mute)
+
+        if (muteDrawable != null) {
+            val muteBitmap = drawableToBitmap(muteDrawable)
+
+            if (areBitmapsEqual(volumeBitmap, muteBitmap)) {
+                binding.ivVolume.setImageResource(R.drawable.ic_volume)
+                currentVolume = previousVolume
+                audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, currentVolume, 0)
+                binding.sbVolume.progress = currentVolume
+
+            } else {
+                binding.ivVolume.setImageResource(R.drawable.ic_mute)
+                val muteValue = AudioManager.ADJUST_MUTE
+                previousVolume = currentVolume
+                currentVolume = 0
+                audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, muteValue, 0)
+                binding.sbVolume.progress = 0
+            }
         }
     }
 
@@ -154,6 +200,8 @@ class PlayerFragment : Fragment(), View.OnClickListener {
     }
 
     private fun initSeekBar() {
+        changeVolume()
+
         binding.sbPlayer.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(
                 seekBar: SeekBar?,
@@ -167,6 +215,43 @@ class PlayerFragment : Fragment(), View.OnClickListener {
 
             override fun onStopTrackingTouch(seekBar: SeekBar) {
                 player?.seekTo(seekBar.progress * 1000L)
+            }
+        })
+    }
+
+    private fun changeVolume() {
+        val maxVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
+
+        previousVolume = currentVolume
+        binding.sbVolume.progress = currentVolume
+
+        binding.sbVolume.max = maxVolume
+
+        binding.sbVolume.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(
+                seekBar: SeekBar?,
+                progress: Int,
+                fromUser: Boolean,
+            ) {
+                if (fromUser) {
+                    currentVolume = progress
+                    audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, progress, 0)
+                }
+            }
+
+            override fun onStartTrackingTouch(seekBar: SeekBar?) {
+            }
+
+            override fun onStopTrackingTouch(seekBar: SeekBar) {
+                if (seekBar.progress == 0) {
+                    binding.ivVolume.setImageResource(R.drawable.ic_mute)
+                } else {
+                    binding.ivVolume.setImageResource(R.drawable.ic_volume)
+                }
+
+                binding.sbVolume.progress = seekBar.progress
+                currentVolume = seekBar.progress
+                audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, currentVolume, 0)
             }
         })
     }
@@ -253,11 +338,11 @@ class PlayerFragment : Fragment(), View.OnClickListener {
     }
 
     private fun updateSeekUi(duration: Long, position: Long) {
-        binding.sbPlayList.max = (duration / 1000).toInt() // 총 길이를 설정. 1000으로 나눠 작게
-        binding.sbPlayList.progress = (position / 1000).toInt() // 동일하게 1000으로 나눠 작게
+        binding.sbPlayer.max = (duration / 1000).toInt() // 총 길이를 설정. 1000으로 나눠 작게
+        binding.sbPlayer.progress = (position / 1000).toInt() // 동일하게 1000으로 나눠 작게
 
-        binding.sbPlayer.max = (duration / 1000).toInt()
-        binding.sbPlayer.progress = (position / 1000).toInt()
+//        binding.sbPlayer.max = (duration / 1000).toInt()
+//        binding.sbPlayer.progress = (position / 1000).toInt()
 
         binding.tvCurrentPlayTime.text = String.format(
             "%02d:%02d",
@@ -319,6 +404,23 @@ class PlayerFragment : Fragment(), View.OnClickListener {
             seekTo(max(playIndex, 0), 0) // positionsMs=0 초 부터 시작
 //            play()
         }
+    }
+
+    private fun drawableToBitmap(drawable: Drawable): Bitmap {
+        if (drawable is BitmapDrawable) {
+            return drawable.bitmap
+        }
+
+        val bitmap = Bitmap.createBitmap(drawable.intrinsicWidth, drawable.intrinsicHeight, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(bitmap)
+        drawable.setBounds(0, 0, canvas.width, canvas.height)
+        drawable.draw(canvas)
+
+        return bitmap
+    }
+
+    private fun areBitmapsEqual(bitmap1: Bitmap, bitmap2: Bitmap): Boolean {
+        return bitmap1.sameAs(bitmap2)
     }
 
     override fun onStop() {
