@@ -87,13 +87,15 @@
             android:visibility="gone" />
 
         <Constraint
-            android:id="@+id/sb_player"
+            android:id="@+id/layoutVolume"
             android:visibility="gone" />
 
         <Constraint
-            android:id="@+id/sb_play_list"
+            android:id="@+id/sbPlayer"
             android:layout_width="0dp"
             android:layout_height="2dp"
+            android:paddingStart="0dp"
+            android:paddingEnd="0dp"
             motion:layout_constraintEnd_toEndOf="parent"
             motion:layout_constraintStart_toStartOf="parent"
             motion:layout_constraintTop_toTopOf="parent" />
@@ -266,7 +268,7 @@
             motion:use_controller="false" />
 
         <Constraint
-            android:id="@+id/sb_player"
+            android:id="@+id/layoutVolume"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginBottom="30dp"
@@ -279,14 +281,13 @@
             motion:layout_constraintStart_toStartOf="parent" />
 
         <Constraint
-            android:id="@+id/sb_play_list"
+            android:id="@+id/sbPlayer"
             android:layout_width="0dp"
-            android:layout_height="2dp"
-            android:clickable="false"
-            android:paddingStart="0dp"
-            android:paddingEnd="0dp"
-            android:progressTint="@color/purple_200"
-            android:thumbTint="@color/purple_200"
+            android:layout_height="wrap_content"
+            android:paddingStart="15dp"
+            android:paddingEnd="15dp"
+            android:progressTint="@color/teal_200"
+            android:thumbTint="@color/teal_200"
             motion:layout_constraintEnd_toEndOf="parent"
             motion:layout_constraintStart_toStartOf="parent"
             motion:layout_constraintTop_toTopOf="@id/v_player" />
@@ -299,8 +300,8 @@
             android:layout_marginStart="4dp"
             android:textColor="@color/purple_200"
             android:textStyle="bold"
-            motion:layout_constraintStart_toStartOf="@id/sb_player"
-            motion:layout_constraintTop_toBottomOf="@id/sb_player" />
+            motion:layout_constraintStart_toStartOf="@id/layoutVolume"
+            motion:layout_constraintTop_toBottomOf="@id/layoutVolume" />
 
         <Constraint
             android:id="@+id/tv_total_time"
@@ -310,8 +311,8 @@
             android:layout_marginEnd="4dp"
             android:textColor="@color/purple_200"
             android:textStyle="bold"
-            motion:layout_constraintEnd_toEndOf="@id/sb_player"
-            motion:layout_constraintTop_toBottomOf="@id/sb_player" />
+            motion:layout_constraintEnd_toEndOf="@id/layoutVolume"
+            motion:layout_constraintTop_toBottomOf="@id/layoutVolume" />
 
         <Constraint
             android:id="@+id/iv_play_pause"
