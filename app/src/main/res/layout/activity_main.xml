@@ -112,7 +112,7 @@
         app:backgroundTint="@color/dark_black"
         app:itemIconTint="@color/normal_gray"
         app:itemTextColor="@color/normal_gray"
-        app:labelVisibilityMode="selected"
+        app:labelVisibilityMode="labeled"
         app:layout_constraintBottom_toBottomOf="parent"
         app:menu="@menu/menu_bt_nav" />
 
