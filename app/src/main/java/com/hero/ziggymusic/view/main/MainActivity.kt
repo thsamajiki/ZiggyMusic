@@ -208,8 +208,6 @@ class MainActivity : AppCompatActivity(),
                 Log.d("onMediaItemTransition", "player.isPlaying: ${player.isPlaying}")
                 if (player.isPlaying) {
                     player.pause()
-                } else {
-                    player.play()
                 }
             }
 
