@@ -43,7 +43,7 @@
             motion:layout_constraintTop_toTopOf="parent" />
 
         <Constraint
-            android:id="@+id/tv_song_title"
+            android:id="@+id/tvSongTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="5dp"
@@ -51,7 +51,7 @@
             motion:layout_constraintEnd_toStartOf="@id/iv_play_pause"
             motion:layout_constraintHorizontal_bias="0"
             motion:layout_constraintStart_toEndOf="@id/iv_album_art"
-            motion:layout_constraintBottom_toTopOf="@id/tv_song_artist"
+            motion:layout_constraintBottom_toTopOf="@id/tvSongArtist"
             motion:layout_constrainedWidth="true">
 
             <CustomAttribute
@@ -61,12 +61,12 @@
         </Constraint>
 
         <Constraint
-            android:id="@+id/tv_song_artist"
+            android:id="@+id/tvSongArtist"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="5dp"
             motion:layout_constraintStart_toEndOf="@id/iv_album_art"
-            motion:layout_constraintTop_toBottomOf="@id/tv_song_title"
+            motion:layout_constraintTop_toBottomOf="@id/tvSongTitle"
             motion:layout_constraintHorizontal_bias="0"
             motion:layout_constraintEnd_toStartOf="@id/iv_play_pause"
             motion:layout_constraintBottom_toBottomOf="@id/iv_album_art"
@@ -79,7 +79,7 @@
         </Constraint>
 
         <Constraint
-            android:id="@+id/tv_song_album"
+            android:id="@+id/tvSongAlbum"
             android:visibility="gone" />
 
         <Constraint
@@ -206,7 +206,7 @@
             motion:layout_constraintTop_toTopOf="@+id/v_supporter_album_art" />
 
         <Constraint
-            android:id="@+id/tv_song_title"
+            android:id="@+id/tvSongTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="30dp"
@@ -215,6 +215,8 @@
             android:textColor="@color/white"
             android:textSize="@dimen/head_text_size"
             android:textStyle="bold"
+            android:marqueeRepeatLimit="marquee_forever"
+            android:ellipsize="marquee"
             motion:layout_constraintEnd_toEndOf="parent"
             motion:layout_constraintStart_toStartOf="parent"
             motion:layout_constraintTop_toBottomOf="@+id/now_playing_title_toolbar">
@@ -226,7 +228,7 @@
         </Constraint>
 
         <Constraint
-            android:id="@+id/tv_song_artist"
+            android:id="@+id/tvSongArtist"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="25dp"
@@ -234,6 +236,7 @@
             android:text="@string/current_song_artist"
             android:textColor="@color/white"
             android:textSize="@dimen/title_text_size"
+            android:ellipsize="marquee"
             motion:layout_constraintEnd_toEndOf="parent"
             motion:layout_constraintStart_toStartOf="parent"
             motion:layout_constraintTop_toBottomOf="@+id/iv_album_art">
@@ -245,7 +248,7 @@
         </Constraint>
 
         <Constraint
-            android:id="@+id/tv_song_album"
+            android:id="@+id/tvSongAlbum"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="25dp"
@@ -253,9 +256,10 @@
             android:text="@string/current_song_album"
             android:textColor="@color/white"
             android:textSize="@dimen/title_text_size"
+            android:ellipsize="marquee"
             motion:layout_constraintEnd_toEndOf="parent"
             motion:layout_constraintStart_toStartOf="parent"
-            motion:layout_constraintTop_toBottomOf="@+id/tv_song_artist" />
+            motion:layout_constraintTop_toBottomOf="@+id/tvSongArtist" />
 
         <Constraint
             android:id="@+id/v_player"

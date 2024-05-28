@@ -93,10 +93,11 @@
             app:layout_constraintTop_toTopOf="@+id/v_supporter_album_art" />
 
         <TextView
-            android:id="@+id/tv_song_title"
+            android:id="@+id/tvSongTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="30dp"
+            android:layout_marginHorizontal="30dp"
             android:ellipsize="marquee"
             android:lines="1"
             android:marqueeRepeatLimit="marquee_forever"
@@ -110,28 +111,29 @@
             app:layout_constraintTop_toBottomOf="@+id/now_playing_title_toolbar" />
 
         <TextView
-            android:id="@+id/tv_song_artist"
-            android:layout_width="match_parent"
+            android:id="@+id/tvSongArtist"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="25dp"
             android:gravity="center"
             android:lines="1"
-            android:ellipsize="end"
+            android:ellipsize="marquee"
             android:text="@{music.artist}"
             android:textColor="@color/white"
             android:textSize="@dimen/title_text_size"
             app:layout_constraintTop_toBottomOf="@+id/iv_album_art" />
 
         <TextView
-            android:id="@+id/tv_song_album"
-            android:layout_width="match_parent"
+            android:id="@+id/tvSongAlbum"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="25dp"
             android:gravity="center"
             android:text="@{music.album}"
             android:textColor="@color/white"
             android:textSize="@dimen/title_text_size"
-            app:layout_constraintTop_toBottomOf="@+id/tv_song_artist" />
+            android:ellipsize="marquee"
+            app:layout_constraintTop_toBottomOf="@+id/tvSongArtist" />
 
         <androidx.media3.ui.PlayerView
             android:id="@+id/v_player"
