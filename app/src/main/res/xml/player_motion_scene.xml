@@ -351,11 +351,23 @@
             motion:layout_constraintTop_toTopOf="@id/v_player" />
 
         <Constraint
-            android:id="@+id/iv_playlist"
-            android:layout_width="30dp"
-            android:layout_height="30dp"
-            android:layout_marginStart="24dp"
-            android:src="@drawable/ic_back_playlist"
+            android:id="@+id/ivRepeatMode"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginEnd="20dp"
+            android:src="@drawable/ic_repeat_all"
+            motion:layout_constraintBottom_toBottomOf="parent"
+            motion:layout_constraintEnd_toEndOf="parent"
+            motion:layout_constraintTop_toTopOf="@id/v_player" />
+
+        <Constraint
+            android:id="@+id/animationViewVisualizer"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginStart="20dp"
+            motion:lottie_rawRes="@raw/audio_visualizer"
+            motion:lottie_autoPlay="true"
+            motion:lottie_loop="true"
             motion:layout_constraintBottom_toBottomOf="parent"
             motion:layout_constraintStart_toStartOf="parent"
             motion:layout_constraintTop_toTopOf="@id/v_player" />
