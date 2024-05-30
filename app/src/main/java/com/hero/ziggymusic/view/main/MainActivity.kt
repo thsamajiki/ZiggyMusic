@@ -206,9 +206,6 @@ class MainActivity : AppCompatActivity(),
 
 //                updatePlayerView(playerModel.currentMusic)
                 Log.d("onMediaItemTransition", "player.isPlaying: ${player.isPlaying}")
-                if (player.isPlaying) {
-                    player.pause()
-                }
             }
 
             // 재생, 재생 완료, 버퍼링 상태 ...
@@ -249,7 +246,12 @@ class MainActivity : AppCompatActivity(),
                     val prevIndex = if (currentMediaItemIndex - 1 in 0 until mediaItemCount) {
                         currentMediaItemIndex - 1
                     } else {
-                        0 // 0번에서 뒤로 갈 때
+                        // 전 곡 반복 재생 모드에서 0번 트랙에서 뒤로 갈 때 마지막 트랙으로 이동
+                        if (player.repeatMode == Player.REPEAT_MODE_ALL) {
+                            mediaItemCount - 1
+                        } else {
+                            0
+                        }
                     }
                     seekTo(prevIndex, 0)
                 }
