@@ -141,6 +141,19 @@ class PlayerFragment : Fragment(), View.OnClickListener {
                     playerMotionManager.changeState(state)
                 }
         }
+
+        binding.ivRepeatMode.setOnClickListener {
+            if (player.repeatMode == Player.REPEAT_MODE_OFF) { // 반복 재생 모드 해제 상태일 때
+                player.repeatMode = Player.REPEAT_MODE_ONE
+                binding.ivRepeatMode.setImageResource(R.drawable.ic_repeat_one_on) // 한 곡 반복 재생 모드일 때
+            } else if (player.repeatMode == Player.REPEAT_MODE_ONE) {
+                player.repeatMode = Player.REPEAT_MODE_ALL
+                binding.ivRepeatMode.setImageResource(R.drawable.ic_repeat_all_on)
+            } else { // 전 곡 반복 재생 모드일 때
+                player.repeatMode = Player.REPEAT_MODE_OFF
+                binding.ivRepeatMode.setImageResource(R.drawable.ic_repeat_all)
+            }
+        }
     }
 
     private fun toggleVolumeIcon() {
@@ -275,10 +288,6 @@ class PlayerFragment : Fragment(), View.OnClickListener {
         binding.ivPrevious.setOnClickListener {
             EventBus.getInstance().post(Event("SKIP_PREV"))
         }
-
-//        binding.ivPlaylist.setOnClickListener {
-//            playerViewModel.changeState(PlayerMotionManager.State.COLLAPSED)
-//        }
     }
 
     private fun initPlayView() {
@@ -316,6 +325,16 @@ class PlayerFragment : Fragment(), View.OnClickListener {
                 super.onPlaybackStateChanged(state)
 
                 updateSeek()
+
+                // 재생 반복 해제 모드 & 마지막 트랙 재생이 끝났을 때 -> 첫번째 트랙으로 이동 & 일시정지 상태
+                if (player.repeatMode == Player.REPEAT_MODE_OFF &&
+                    player.currentMediaItemIndex == player.mediaItemCount - 1 &&
+                    state == Player.STATE_ENDED) {
+
+                    player.seekTo(0, 0)
+                    updatePlayerView(playerModel.currentMusic)
+                    player.pause()
+                }
             }
         })
     }
