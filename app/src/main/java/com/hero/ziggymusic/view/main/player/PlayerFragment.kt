@@ -142,6 +142,10 @@ class PlayerFragment : Fragment(), View.OnClickListener {
                 }
         }
 
+        toggleRepeatModeIcon()
+    }
+
+    private fun toggleRepeatModeIcon() {
         binding.ivRepeatMode.setOnClickListener {
             if (player.repeatMode == Player.REPEAT_MODE_OFF) { // 반복 재생 모드 해제 상태일 때
                 player.repeatMode = Player.REPEAT_MODE_ONE
