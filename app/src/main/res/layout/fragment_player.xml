@@ -245,15 +245,16 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="@id/v_player" />
 
-<!--        <ImageView-->
-<!--            android:id="@+id/iv_playlist"-->
-<!--            android:layout_width="30dp"-->
-<!--            android:layout_height="30dp"-->
-<!--            android:layout_marginStart="24dp"-->
-<!--            android:src="@drawable/ic_back_playlist"-->
-<!--            app:layout_constraintBottom_toBottomOf="parent"-->
-<!--            app:layout_constraintStart_toStartOf="parent"-->
-<!--            app:layout_constraintTop_toTopOf="@id/v_player" />-->
+        <com.skydoves.elasticviews.ElasticImageView
+            android:id="@+id/ivRepeatMode"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginEnd="20dp"
+            android:src="@drawable/ic_repeat_all"
+            app:imageView_duration="200"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="@id/v_player" />
 
         <com.airbnb.lottie.LottieAnimationView
             android:id="@+id/animationViewVisualizer"
