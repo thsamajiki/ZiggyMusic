@@ -131,9 +131,7 @@ class PlayerFragment : Fragment(), View.OnClickListener {
             playerViewModel.changeState(toggleState)
         }
 
-        binding.ivVolume.setOnClickListener {
-            toggleVolumeIcon()
-        }
+        toggleVolumeIcon()
 
         viewLifecycleOwner.lifecycleScope.launch {
             playerViewModel.state
@@ -161,27 +159,29 @@ class PlayerFragment : Fragment(), View.OnClickListener {
     }
 
     private fun toggleVolumeIcon() {
-        val volumeDrawable = binding.ivVolume.drawable
-        val volumeBitmap = drawableToBitmap(volumeDrawable)
+        binding.ivVolume.setOnClickListener {
+            val volumeDrawable = binding.ivVolume.drawable
+            val volumeBitmap = drawableToBitmap(volumeDrawable)
 
-        val muteDrawable = ContextCompat.getDrawable(requireContext(), R.drawable.ic_mute)
+            val muteDrawable = ContextCompat.getDrawable(requireContext(), R.drawable.ic_mute)
 
-        if (muteDrawable != null) {
-            val muteBitmap = drawableToBitmap(muteDrawable)
+            if (muteDrawable != null) {
+                val muteBitmap = drawableToBitmap(muteDrawable)
 
-            if (areBitmapsEqual(volumeBitmap, muteBitmap)) {
-                binding.ivVolume.setImageResource(R.drawable.ic_volume)
-                currentVolume = previousVolume
-                audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, currentVolume, 0)
-                binding.sbVolume.progress = currentVolume
+                if (areBitmapsEqual(volumeBitmap, muteBitmap)) {
+                    binding.ivVolume.setImageResource(R.drawable.ic_volume)
+                    currentVolume = previousVolume
+                    audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, currentVolume, 0)
+                    binding.sbVolume.progress = currentVolume
 
-            } else {
-                binding.ivVolume.setImageResource(R.drawable.ic_mute)
-                val muteValue = AudioManager.ADJUST_MUTE
-                previousVolume = currentVolume
-                currentVolume = 0
-                audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, muteValue, 0)
-                binding.sbVolume.progress = 0
+                } else {
+                    binding.ivVolume.setImageResource(R.drawable.ic_mute)
+                    val muteValue = AudioManager.ADJUST_MUTE
+                    previousVolume = currentVolume
+                    currentVolume = 0
+                    audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, muteValue, 0)
+                    binding.sbVolume.progress = 0
+                }
             }
         }
     }
