@@ -93,29 +93,7 @@ class PlayerFragment : Fragment(), View.OnClickListener {
 //        val musicList = requireActivity().intent.getStringExtra("musicList") as Playlist?
         val currentPosition = requireActivity().intent.getIntExtra("currentPosition", player?.currentMediaItemIndex ?: 0)
 
-        playerBottomSheetManager = PlayerBottomSheetManager(
-            viewLifecycleOwner.lifecycle,
-            binding.constraintLayout,
-            object : BottomSheetCallback() {
-                override fun onStateChanged(bottomSheet: View, newState: Int) {
-                    when (newState) {
-                        BottomSheetBehavior.STATE_EXPANDED -> {
-                            playerViewModel.changeState(PlayerMotionManager.State.EXPANDED)
-                        }
-                        BottomSheetBehavior.STATE_COLLAPSED -> {
-                            playerViewModel.changeState(PlayerMotionManager.State.COLLAPSED)
-                        }
-                        BottomSheetBehavior.STATE_HIDDEN -> {
-                            playerBottomSheetManager.collapse()
-                        }
-                    }
-                }
-
-                override fun onSlide(bottomSheet: View, slideOffset: Float) {
-//                    binding.constraintLayout.progress = slideOffset
-                }
-            }
-        )
+        initPlayerBottomSheetManager()
 
         playerMotionManager = PlayerMotionManager(
             binding.constraintLayout,
@@ -141,6 +119,34 @@ class PlayerFragment : Fragment(), View.OnClickListener {
         }
 
         toggleRepeatModeIcon()
+    }
+
+    private fun initPlayerBottomSheetManager() {
+        playerBottomSheetManager = PlayerBottomSheetManager(
+            viewLifecycleOwner.lifecycle,
+            binding.constraintLayout,
+            object : BottomSheetCallback() {
+                override fun onStateChanged(bottomSheet: View, newState: Int) {
+                    when (newState) {
+                        BottomSheetBehavior.STATE_EXPANDED -> {
+                            playerViewModel.changeState(PlayerMotionManager.State.EXPANDED)
+                        }
+
+                        BottomSheetBehavior.STATE_COLLAPSED -> {
+                            playerViewModel.changeState(PlayerMotionManager.State.COLLAPSED)
+                        }
+
+                        BottomSheetBehavior.STATE_HIDDEN -> {
+                            playerBottomSheetManager.collapse()
+                        }
+                    }
+                }
+
+                override fun onSlide(bottomSheet: View, slideOffset: Float) {
+    //                    binding.constraintLayout.progress = slideOffset
+                }
+            }
+        )
     }
 
     private fun toggleRepeatModeIcon() {
