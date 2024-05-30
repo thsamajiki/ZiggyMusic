@@ -100,6 +100,17 @@ class PlayerFragment : Fragment(), View.OnClickListener {
             playerBottomSheetManager
         )
 
+        viewLifecycleOwner.lifecycleScope.launch {
+            playerViewModel.state
+                .collect { state ->
+                    playerMotionManager.changeState(state)
+                }
+        }
+
+        initListeners()
+    }
+
+    private fun initListeners() {
         binding.root.setOnClickListener {
             val toggleState = when (playerViewModel.state.value) {
                 PlayerMotionManager.State.COLLAPSED -> PlayerMotionManager.State.EXPANDED
@@ -110,14 +121,6 @@ class PlayerFragment : Fragment(), View.OnClickListener {
         }
 
         toggleVolumeIcon()
-
-        viewLifecycleOwner.lifecycleScope.launch {
-            playerViewModel.state
-                .collect { state ->
-                    playerMotionManager.changeState(state)
-                }
-        }
-
         toggleRepeatModeIcon()
     }
 
