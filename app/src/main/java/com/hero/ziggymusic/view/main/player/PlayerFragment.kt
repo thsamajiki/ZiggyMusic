@@ -22,6 +22,7 @@ import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.DefaultDataSource
 import androidx.media3.exoplayer.source.ProgressiveMediaSource
+import androidx.media3.exoplayer.source.ShuffleOrder
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.google.android.material.bottomsheet.BottomSheetBehavior
@@ -38,6 +39,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import java.util.concurrent.TimeUnit
 import kotlin.math.max
+import kotlin.random.Random
 
 @AndroidEntryPoint
 class PlayerFragment : Fragment(), View.OnClickListener {
@@ -122,6 +124,7 @@ class PlayerFragment : Fragment(), View.OnClickListener {
 
         toggleVolumeIcon()
         toggleRepeatModeIcon()
+        toggleShuffleModeIcon()
     }
 
     private fun initPlayerBottomSheetManager() {
@@ -150,6 +153,20 @@ class PlayerFragment : Fragment(), View.OnClickListener {
                 }
             }
         )
+    }
+
+    @OptIn(UnstableApi::class)
+    private fun toggleShuffleModeIcon() {
+        binding.ivShuffleMode.setOnClickListener {
+            if (player.shuffleModeEnabled) { // 셔플 모드가 On일 때
+                player.shuffleModeEnabled = false
+                binding.ivShuffleMode.setImageResource(R.drawable.ic_shuffle_off)
+            } else { // 셔플 모드가 Off일 때
+                player.shuffleModeEnabled = true
+                player.setShuffleOrder(ShuffleOrder.DefaultShuffleOrder(playerViewModel.musicList.value.orEmpty().size, Random.nextLong()))
+                binding.ivShuffleMode.setImageResource(R.drawable.ic_shuffle_on)
+            }
+        }
     }
 
     private fun toggleRepeatModeIcon() {
