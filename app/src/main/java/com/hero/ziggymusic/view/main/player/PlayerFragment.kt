@@ -37,6 +37,7 @@ import com.hero.ziggymusic.event.EventBus
 import com.hero.ziggymusic.view.main.player.viewmodel.PlayerViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
+import java.util.Locale
 import java.util.concurrent.TimeUnit
 import kotlin.math.max
 import kotlin.random.Random
@@ -394,12 +395,14 @@ class PlayerFragment : Fragment(), View.OnClickListener {
 //        binding.sbPlayer.progress = (position / 1000).toInt()
 
         binding.tvCurrentPlayTime.text = String.format(
+            Locale.KOREA,
             "%02d:%02d",
             TimeUnit.MINUTES.convert(position, TimeUnit.MILLISECONDS), // 현재 분
             (position / 1000) % 60 // 분 단위를 제외한 현재 초
         )
 
         binding.tvTotalTime.text = String.format(
+            Locale.KOREA,
             "%02d:%02d",
             TimeUnit.MINUTES.convert(duration, TimeUnit.MILLISECONDS), // 전체 분
             (duration / 1000) % 60 // 분 단위를 제외한 초
