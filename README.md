@@ -48,6 +48,7 @@
 - Material 디자인
 - Glide (사진 첨부)
 - EventBus
+- ElasticViews
 
 
 ## 문제 및 해결 과정
