@@ -71,6 +71,7 @@ EQ 조절이나 스킨 기능 등이 반영된 설정 기능을 추가하는 것
 <img src="/images/music_list.png" width="320px" height="675px" title="music_list" alt="music_list"></img>
 <img src="/images/my_playlist.png" width="320px" height="675px" title="my_playlist" alt="my_playlist"></img>
 <img src="/images/player_fragment.png" width="320px" height="675px" title="player_fragment" alt="player"></img>
+<img src="/images/music_setting.png" width="320px" height="675px" title="music_setting" alt="music_setting"></img>
 <img src="/images/music_notification.png" width="320px" height="354px" title="music_notification" alt="notification"></img>
 
 <video controls muted loop>
