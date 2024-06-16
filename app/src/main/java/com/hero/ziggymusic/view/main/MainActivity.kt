@@ -47,7 +47,7 @@ class MainActivity : AppCompatActivity(),
     private val permissionUnder33 = Manifest.permission.READ_EXTERNAL_STORAGE
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     private val permissionOver33 = Manifest.permission.READ_MEDIA_AUDIO
-    private var REQ_READ = 99
+    private val requestReadCode = 99
 
     private var title: String = ""
 
@@ -87,9 +87,9 @@ class MainActivity : AppCompatActivity(),
 
         if (!isPermitted()) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                ActivityCompat.requestPermissions(this, arrayOf(permissionOver33), REQ_READ)
+                ActivityCompat.requestPermissions(this, arrayOf(permissionOver33), requestReadCode)
             } else {
-                ActivityCompat.requestPermissions(this, arrayOf(permissionUnder33), REQ_READ)
+                ActivityCompat.requestPermissions(this, arrayOf(permissionUnder33), requestReadCode)
             }
         } else {
             // 2가지 동작이 권한이 있을 때에만 호출되도록
@@ -288,7 +288,7 @@ class MainActivity : AppCompatActivity(),
         grantResults: IntArray,
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == REQ_READ) {
+        if (requestCode == requestReadCode) {
             if (grantResults[0] != PackageManager.PERMISSION_GRANTED) {
                 Toast.makeText(this, "권한 요청을 승인해야만 앱을 실행할 수 있습니다.", Toast.LENGTH_SHORT).show()
                 EventBus.getInstance().post(Event("PERMISSION_DENIED"))
