@@ -162,6 +162,7 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:layout_marginBottom="30dp"
+            android:gravity="center_horizontal"
             android:paddingStart="50dp"
             android:paddingEnd="50dp"
             app:layout_constraintBottom_toTopOf="@id/v_player"
