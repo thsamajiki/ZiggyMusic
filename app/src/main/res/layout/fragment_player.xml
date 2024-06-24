@@ -40,16 +40,7 @@
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />
 
-                <com.skydoves.elasticviews.ElasticImageView
-                    android:id="@+id/ivShuffleMode"
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
-                    android:layout_marginEnd="20dp"
-                    android:src="@drawable/ic_shuffle_off"
-                    app:imageView_duration="200"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintTop_toTopOf="parent" />
+
 
             </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -145,6 +136,18 @@
             android:textSize="@dimen/title_text_size"
             android:ellipsize="marquee"
             app:layout_constraintTop_toBottomOf="@+id/tvSongArtist" />
+
+        <com.airbnb.lottie.LottieAnimationView
+            android:id="@+id/animationViewVisualizer"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginStart="20dp"
+            app:lottie_rawRes="@raw/audio_visualizer"
+            app:lottie_autoPlay="true"
+            app:lottie_loop="true"
+            app:layout_constraintBottom_toTopOf="@id/layoutVolume"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tvSongAlbum" />
 
         <androidx.media3.ui.PlayerView
             android:id="@+id/v_player"
@@ -268,14 +271,13 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="@id/v_player" />
 
-        <com.airbnb.lottie.LottieAnimationView
-            android:id="@+id/animationViewVisualizer"
+        <com.skydoves.elasticviews.ElasticImageView
+            android:id="@+id/ivShuffleMode"
             android:layout_width="40dp"
             android:layout_height="40dp"
             android:layout_marginStart="20dp"
-            app:lottie_rawRes="@raw/audio_visualizer"
-            app:lottie_autoPlay="true"
-            app:lottie_loop="true"
+            android:src="@drawable/ic_shuffle_off"
+            app:imageView_duration="200"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="@id/v_player" />

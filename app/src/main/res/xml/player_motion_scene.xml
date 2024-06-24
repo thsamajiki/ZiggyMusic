@@ -83,6 +83,10 @@
             android:visibility="gone" />
 
         <Constraint
+            android:id="@+id/animationViewVisualizer"
+            android:visibility="gone" />
+
+        <Constraint
             android:id="@+id/v_player"
             android:visibility="gone" />
 
@@ -262,6 +266,18 @@
             motion:layout_constraintTop_toBottomOf="@+id/tvSongArtist" />
 
         <Constraint
+            android:id="@+id/animationViewVisualizer"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginStart="20dp"
+            motion:lottie_rawRes="@raw/audio_visualizer"
+            motion:lottie_autoPlay="true"
+            motion:lottie_loop="true"
+            motion:layout_constraintBottom_toTopOf="@id/layoutVolume"
+            motion:layout_constraintStart_toStartOf="parent"
+            motion:layout_constraintTop_toBottomOf="@id/tvSongAlbum" />
+
+        <Constraint
             android:id="@+id/v_player"
             android:layout_width="0dp"
             android:layout_height="100dp"
@@ -361,13 +377,12 @@
             motion:layout_constraintTop_toTopOf="@id/v_player" />
 
         <Constraint
-            android:id="@+id/animationViewVisualizer"
+            android:id="@+id/ivShuffleMode"
             android:layout_width="40dp"
             android:layout_height="40dp"
             android:layout_marginStart="20dp"
-            motion:lottie_rawRes="@raw/audio_visualizer"
-            motion:lottie_autoPlay="true"
-            motion:lottie_loop="true"
+            android:src="@drawable/ic_shuffle_off"
+            motion:imageView_duration="200"
             motion:layout_constraintBottom_toBottomOf="parent"
             motion:layout_constraintStart_toStartOf="parent"
             motion:layout_constraintTop_toTopOf="@id/v_player" />
