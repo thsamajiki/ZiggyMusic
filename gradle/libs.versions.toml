@@ -17,6 +17,7 @@ hilt = "2.51"
 
 lifecycle = "2.7.0"
 media3 = "1.3.1"
+lifecycleViewmodelComposeAndroid = "2.8.3"
 room = "2.6.1"
 
 glide = "4.16.0"
@@ -79,6 +80,7 @@ gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
 lifecycle-viewmodel = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-ktx", version.ref = "lifecycle" }
 lifecycle-livedata = { group = "androidx.lifecycle", name = "lifecycle-livedata-ktx", version.ref = "lifecycle" }
 lifecycle-viewmodel-savedState = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-savedstate", version.ref = "lifecycle" }
+lifecycle-viewmodel-compose-android = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-compose-android", version.ref = "lifecycleViewmodelComposeAndroid" }
 
 # Hilt
 hilt-android = { group = "com.google.dagger", name = "hilt-android", version.ref = "hilt" }
@@ -95,6 +97,7 @@ room-testing = { module = "androidx.room:room-testing", version.ref = "room" }
 media3-exoplayer = { group = "androidx.media3", name = "media3-exoplayer", version.ref = "media3" }
 media3-exoplayer-dash = { group = "androidx.media3", name = "media3-exoplayer-dash", version.ref = "media3" }
 media3-ui = { group = "androidx.media3", name = "media3-ui", version.ref = "media3" }
+media3-session = { group = "androidx.media3", name = "media3-session", version.ref = "media3" }
 
 elastic-view = { module = "com.github.skydoves:elasticviews", version.ref = "elasticView" }
 otto = { module = "com.squareup:otto", version.ref = "otto" }
@@ -125,7 +128,8 @@ hilt = [
 media3 = [
     "media3-exoplayer",
     "media3-exoplayer-dash",
-    "media3-ui"
+    "media3-ui",
+    "media3-session"
 ]
 glide = [
     "glide", "glide-compiler"
