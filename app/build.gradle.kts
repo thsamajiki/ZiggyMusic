@@ -29,11 +29,12 @@ android {
         getByName("debug") {
             isShrinkResources = false
             isMinifyEnabled = false
-            isDebuggable = true
+            isDebuggable = false
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
         getByName("release") {
-            isShrinkResources = true
-            isMinifyEnabled = true
+            isShrinkResources = false
+            isMinifyEnabled = false
             isDebuggable = false
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
@@ -61,6 +62,7 @@ dependencies {
     implementation(libs.material)
 
     implementation(libs.gson)
+    implementation(libs.lifecycle.viewmodel.compose.android) // Needed MediaSessionCompat.Token
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.testjunit)
