@@ -7,7 +7,7 @@ import androidx.room.RoomDatabase
 import com.hero.ziggymusic.database.music.dao.PlaylistMusicDao
 import com.hero.ziggymusic.database.music.entity.MusicModel
 
-@Database(entities = [MusicModel::class], version = 1)
+@Database(entities = [MusicModel::class], version = 1, exportSchema = false)
 abstract class AppMyPlaylistDatabase: RoomDatabase() {
 
     abstract fun playlistMusicDao(): PlaylistMusicDao
