@@ -87,6 +87,10 @@
             android:visibility="gone" />
 
         <Constraint
+            android:id="@+id/bluetooth"
+            android:visibility="gone" />
+
+        <Constraint
             android:id="@+id/v_player"
             android:visibility="gone" />
 
@@ -207,7 +211,7 @@
             motion:layout_constraintBottom_toBottomOf="@+id/v_supporter_album_art"
             motion:layout_constraintEnd_toEndOf="parent"
             motion:layout_constraintStart_toStartOf="parent"
-            motion:layout_constraintTop_toTopOf="@+id/v_supporter_album_art" />
+            motion:layout_constraintTop_toTopOf="@id/v_supporter_album_art" />
 
         <Constraint
             android:id="@+id/tvSongTitle"
@@ -267,14 +271,24 @@
 
         <Constraint
             android:id="@+id/animationViewVisualizer"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
             android:layout_marginStart="20dp"
             motion:lottie_rawRes="@raw/audio_visualizer"
             motion:lottie_autoPlay="true"
             motion:lottie_loop="true"
             motion:layout_constraintBottom_toTopOf="@id/layoutVolume"
             motion:layout_constraintStart_toStartOf="parent"
+            motion:layout_constraintTop_toBottomOf="@id/tvSongAlbum" />
+
+        <Constraint
+            android:id="@+id/bluetooth"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:layout_marginEnd="20dp"
+            android:src="@drawable/ic_airplay"
+            motion:layout_constraintBottom_toTopOf="@id/layoutVolume"
+            motion:layout_constraintEnd_toEndOf="parent"
             motion:layout_constraintTop_toBottomOf="@id/tvSongAlbum" />
 
         <Constraint
@@ -318,6 +332,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
             android:layout_marginStart="4dp"
+            android:textSize="@dimen/small_text_size"
             android:textColor="@color/purple_200"
             android:textStyle="bold"
             motion:layout_constraintStart_toStartOf="@id/layoutVolume"
@@ -329,6 +344,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
             android:layout_marginEnd="4dp"
+            android:textSize="@dimen/small_text_size"
             android:textColor="@color/purple_200"
             android:textStyle="bold"
             motion:layout_constraintEnd_toEndOf="@id/layoutVolume"
