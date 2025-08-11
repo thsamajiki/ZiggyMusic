@@ -1,11 +1,20 @@
 package com.hero.ziggymusic.view.main.player
 
+import android.Manifest
+import android.annotation.SuppressLint
+import android.bluetooth.BluetoothAdapter
+import android.bluetooth.BluetoothGatt
+import android.bluetooth.BluetoothManager
+import android.bluetooth.BluetoothProfile
 import android.content.Context
+import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
+import android.media.AudioDeviceInfo
 import android.media.AudioManager
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -13,6 +22,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.SeekBar
 import androidx.annotation.OptIn
+import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -51,9 +61,45 @@ class PlayerFragment : Fragment(), View.OnClickListener {
     private var playerModel: PlayerModel = PlayerModel.getInstance()
     private val playerViewModel by viewModels<PlayerViewModel>()
 
-//    private var player: ExoPlayer? = null
+    //    private var player: ExoPlayer? = null
     private val player by lazy {
         (context?.applicationContext as ZiggyMusicApp).exoPlayer
+    }
+
+    // AudioDeviceInfo를 이용한 블루투스 오디오 기기 탐지 (Android 6.0+)
+    private fun isBluetoothAudioDeviceConnected(audioManager: AudioManager): Boolean {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            val devices = audioManager.getDevices(AudioManager.GET_DEVICES_OUTPUTS)
+            for (device in devices) {
+                when (device.type) {
+                    AudioDeviceInfo.TYPE_BLUETOOTH_A2DP,
+                    AudioDeviceInfo.TYPE_BLUETOOTH_SCO,
+                        -> {
+                        Log.d("Bluetooth", "Bluetooth output device connected: type=${device.type}")
+                        return true
+                    }
+                }
+            }
+        }
+        return false
+    }
+
+    // AudioDeviceInfo를 이용한 유선 오디오 기기 탐지 (Android 6.0+)
+    private fun isWiredAudioDeviceConnected(audioManager: AudioManager): Boolean {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            val devices = audioManager.getDevices(AudioManager.GET_DEVICES_OUTPUTS)
+            for (device in devices) {
+                when (device.type) {
+                    AudioDeviceInfo.TYPE_WIRED_HEADPHONES,
+                    AudioDeviceInfo.TYPE_WIRED_HEADSET,
+                        -> {
+                        Log.d("Bluetooth", "Wired output device connected: type=${device.type}")
+                        return true
+                    }
+                }
+            }
+        }
+        return false
     }
     private var currentMusic: MusicModel? = null // 현재 재생 중인 음원
 
@@ -69,6 +115,11 @@ class PlayerFragment : Fragment(), View.OnClickListener {
 
     private val updateSeekRunnable = Runnable {
         updateSeek()
+    }
+
+    private val updateBluetoothRunnable = Runnable {
+        updateBluetoothIcon()
+        scheduleBluetoothUpdate()
     }
 
     override fun onCreateView(
@@ -126,6 +177,143 @@ class PlayerFragment : Fragment(), View.OnClickListener {
         toggleVolumeIcon()
         toggleRepeatModeIcon()
         toggleShuffleModeIcon()
+        setupBluetoothMonitoring()
+    }
+
+    private fun setupBluetoothMonitoring() {
+        // 블루투스 아이콘 클릭 리스너 - 테스트용 토글 기능
+        binding.bluetooth.setOnClickListener {
+            // 테스트용: 클릭할 때마다 아이콘 토글
+            val currentDrawable = binding.bluetooth.drawable
+            val airplayDrawable = ContextCompat.getDrawable(requireContext(), R.drawable.ic_airplay)
+            val airpodsDrawable = ContextCompat.getDrawable(requireContext(), R.drawable.ic_airpods)
+
+            if (airplayDrawable != null && airpodsDrawable != null) {
+                val currentBitmap = drawableToBitmap(currentDrawable)
+                val airplayBitmap = drawableToBitmap(airplayDrawable)
+
+                if (areBitmapsEqual(currentBitmap, airplayBitmap)) {
+                    binding.bluetooth.setImageResource(R.drawable.ic_airpods)
+                    Log.d("Bluetooth", "Manual toggle: switched to airpods icon")
+                } else {
+                    binding.bluetooth.setImageResource(R.drawable.ic_airplay)
+                    Log.d("Bluetooth", "Manual toggle: switched to airplay icon")
+                }
+            }
+
+            // 실제 블루투스 상태도 다시 확인
+            binding.root.postDelayed({ updateBluetoothIcon() }, 100)
+        }
+
+        // 초기 블루투스 상태 체크 및 아이콘 설정
+        updateBluetoothIcon()
+
+        // 주기적으로 블루투스 상태 업데이트
+        scheduleBluetoothUpdate()
+    }
+
+    private fun updateBluetoothIcon() {
+        Log.d("Bluetooth", "Updating bluetooth icon...")
+
+        try {
+            // AudioManager.getDevices()를 활용하여 블루투스 및 유선 오디오 기기 체크 (Android 6.0 이상)
+            val hasBluetoothDevice = isBluetoothAudioDeviceConnected(audioManager)
+            val hasWiredDevice = isWiredAudioDeviceConnected(audioManager)
+
+            Log.d(
+                "Bluetooth",
+                "Audio device detect - Bluetooth: $hasBluetoothDevice, Wired: $hasWiredDevice"
+            )
+
+            // 블루투스 오디오 기기가 연결되어 있고 유선 기기는 없을 때
+            if (hasBluetoothDevice && !hasWiredDevice) {
+                binding.bluetooth.setImageResource(R.drawable.ic_airpods)
+                Log.d("Bluetooth", "Bluetooth audio is active - showing airpods icon")
+                return
+            }
+
+            // 블루투스 권한 체크 후 추가 확인
+            if (ActivityCompat.checkSelfPermission(
+                    requireContext(),
+                    Manifest.permission.BLUETOOTH_CONNECT
+                ) == PackageManager.PERMISSION_GRANTED
+            ) {
+                val bluetoothManager = ContextCompat.getSystemService(
+                    requireContext(),
+                    BluetoothManager::class.java
+                )
+
+                bluetoothManager?.let { manager ->
+                    val bluetoothAdapter = manager.adapter
+
+                    if (bluetoothAdapter?.isEnabled == true) {
+                        // 연결된 블루투스 기기가 있는지 확인
+                        val isBluetoothConnected = checkBluetoothConnection(manager)
+
+                        if (isBluetoothConnected) {
+                            binding.bluetooth.setImageResource(R.drawable.ic_airpods)
+                            Log.d(
+                                "Bluetooth",
+                                "Bluetooth device connected via profile - showing airpods icon"
+                            )
+                            return
+                        }
+                    }
+                }
+            }
+
+            // 기본값: 블루투스가 연결되지 않음
+            binding.bluetooth.setImageResource(R.drawable.ic_airplay)
+            Log.d("Bluetooth", "No bluetooth connection detected - showing airplay icon")
+
+        } catch (e: Exception) {
+            Log.e("Bluetooth", "Error updating bluetooth icon", e)
+            binding.bluetooth.setImageResource(R.drawable.ic_airplay)
+        }
+    }
+
+    @SuppressLint("MissingPermission")
+    private fun checkBluetoothConnection(bluetoothManager: BluetoothManager): Boolean {
+        if (ActivityCompat.checkSelfPermission(
+                requireContext(),
+                Manifest.permission.BLUETOOTH_CONNECT
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            return false
+        }
+
+        try {
+            val bluetoothAdapter: BluetoothAdapter? = bluetoothManager.adapter
+
+            // Check classic profile connections
+            val a2dpConnected =
+                bluetoothAdapter?.getProfileConnectionState(BluetoothProfile.A2DP) == BluetoothAdapter.STATE_CONNECTED
+            val headsetConnected =
+                bluetoothAdapter?.getProfileConnectionState(BluetoothProfile.HEADSET) == BluetoothAdapter.STATE_CONNECTED
+
+            if (a2dpConnected || headsetConnected) {
+                Log.d(
+                    "Bluetooth",
+                    "Audio Profile connected: A2DP=$a2dpConnected, HEADSET=$headsetConnected"
+                )
+                return true
+            }
+
+            // As fallback, also check GATT connections
+            val bluetoothDevices = bluetoothAdapter?.bondedDevices ?: emptySet()
+            bluetoothDevices.forEach { device ->
+                val connectionState =
+                    bluetoothManager.getConnectionState(device, BluetoothGatt.GATT)
+                if (connectionState == BluetoothGatt.STATE_CONNECTED) {
+                    Log.d("Bluetooth", "Connected GATT device found: ${device.name}")
+                    return true
+                }
+            }
+        } catch (e: Exception) {
+            Log.e("Bluetooth", "Error checking bluetooth connection", e)
+        }
+
+        return false
     }
 
     private fun initPlayerBottomSheetManager() {
@@ -150,7 +338,7 @@ class PlayerFragment : Fragment(), View.OnClickListener {
                 }
 
                 override fun onSlide(bottomSheet: View, slideOffset: Float) {
-    //                    binding.constraintLayout.progress = slideOffset
+                    //                    binding.constraintLayout.progress = slideOffset
                 }
             }
         )
@@ -481,6 +669,14 @@ class PlayerFragment : Fragment(), View.OnClickListener {
         player?.pause()
         EventBus.getInstance().post(Event("STOP"))
         binding.root.removeCallbacks(updateSeekRunnable)
+        binding.root.removeCallbacks(updateBluetoothRunnable)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // 화면이 다시 보일 때 블루투스 상태 업데이트
+        updateBluetoothIcon()
+        scheduleBluetoothUpdate()
     }
 
     override fun onDestroy() {
@@ -488,6 +684,11 @@ class PlayerFragment : Fragment(), View.OnClickListener {
 
         _binding = null
         player?.release()
+    }
+
+    private fun scheduleBluetoothUpdate() {
+        binding.root.removeCallbacks(updateBluetoothRunnable)
+        binding.root.postDelayed(updateBluetoothRunnable, 5000) // 5초마다 업데이트
     }
 
     companion object {
