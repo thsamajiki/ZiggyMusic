@@ -294,22 +294,6 @@ class MusicService : MediaLibraryService() {
             }
         }
 
-        Log.d("setMusicInNotification", "musicPlayer?.isPlaying: ${player.isPlaying}")
-        // 시작 / 일시 정지 버튼 설정
-        if(player.isPlaying) {
-            remoteNotificationLayout.setImageViewResource(R.id.btnNotificationPlay, R.drawable.ic_pause_button)
-            remoteNotificationExtendedLayout.setImageViewResource(
-                R.id.btnNotificationExtendedPlay,
-                R.drawable.ic_pause_button
-            )
-        } else {
-            remoteNotificationLayout.setImageViewResource(R.id.btnNotificationPlay, R.drawable.ic_play_button)
-            remoteNotificationExtendedLayout.setImageViewResource(
-                R.id.btnNotificationExtendedPlay,
-                R.drawable.ic_play_button
-            )
-        }
-
         remoteNotificationLayout.setTextViewText(R.id.tvNotificationTitle, music?.title)
         remoteNotificationLayout.setTextViewText(R.id.tvNotificationArtist, music?.artist)
         remoteNotificationLayout.setImageViewResource(R.id.btnNotificationPrev, R.drawable.ic_prev_button)
