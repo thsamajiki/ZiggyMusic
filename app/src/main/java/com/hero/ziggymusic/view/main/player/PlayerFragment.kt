@@ -133,7 +133,7 @@ class PlayerFragment : Fragment(), View.OnClickListener {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        audioManager = context?.getSystemService(Context.AUDIO_SERVICE) as AudioManager
+        audioManager = requireContext().getSystemService(Context.AUDIO_SERVICE) as AudioManager
         currentVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
         previousVolume = currentVolume
 
@@ -186,7 +186,7 @@ class PlayerFragment : Fragment(), View.OnClickListener {
             val airplayDrawable = ContextCompat.getDrawable(requireContext(), R.drawable.ic_airplay)
             val airpodsDrawable = ContextCompat.getDrawable(requireContext(), R.drawable.ic_airpods)
 
-            if (airplayDrawable != null && airpodsDrawable != null) {
+            if (airplayDrawable != null && airpodsDrawable != null && currentDrawable != null) {
                 val currentBitmap = drawableToBitmap(currentDrawable)
                 val airplayBitmap = drawableToBitmap(airplayDrawable)
 
@@ -640,7 +640,6 @@ class PlayerFragment : Fragment(), View.OnClickListener {
             setMediaSources(musicMediaItems)
             prepare()
             seekTo(max(playIndex, 0), 0) // positionsMs=0 초 부터 시작
-//            play()
         }
     }
 
@@ -664,8 +663,7 @@ class PlayerFragment : Fragment(), View.OnClickListener {
     override fun onStop() {
         super.onStop()
 
-        player.pause()
-        EventBus.getInstance().post(Event("STOP"))
+        // player.pause() 및 이벤트 제거 → 백그라운드에서도 재생 유지
         binding.root.removeCallbacks(updateSeekRunnable)
         binding.root.removeCallbacks(updateBluetoothRunnable)
     }
@@ -677,11 +675,17 @@ class PlayerFragment : Fragment(), View.OnClickListener {
         scheduleBluetoothUpdate()
     }
 
+    override fun onDestroyView() {
+        // Detach player from view to avoid leaking the surface
+        _binding?.vPlayer?.player = null
+        super.onDestroyView()
+    }
+
     override fun onDestroy() {
         super.onDestroy()
 
         _binding = null
-        player.release()
+        // player.release() 제거 → 싱글톤 플레이어 상태 유지
     }
 
     private fun scheduleBluetoothUpdate() {

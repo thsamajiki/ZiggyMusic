@@ -54,7 +54,6 @@ class MainActivity : AppCompatActivity(),
 
     private val viewModel by viewModels<MainViewModel>()
 
-//    private var player: ExoPlayer? = null
     @Inject
     lateinit var player: ExoPlayer
     private val playerModel: PlayerModel = PlayerModel.getInstance()
@@ -314,8 +313,8 @@ class MainActivity : AppCompatActivity(),
 
     override fun onDestroy() {
         EventBus.getInstance().unregister(this)
-        val serviceIntent = Intent(this, MusicService::class.java)
-        stopService(serviceIntent)
+        // MainActivity.onDestroy()에서 stopService 제거
+        // -> 액티비티 종료/재생성 Notification 클릭 등과 무관하게 백그라운드 재생 유지
         super.onDestroy()
     }
 
