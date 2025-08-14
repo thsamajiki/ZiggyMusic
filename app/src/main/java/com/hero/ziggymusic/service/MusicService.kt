@@ -335,7 +335,6 @@ class MusicService : MediaLibraryService() {
     companion object {
         const val CHANNEL_ID = "MusicChannel" // 알림 채널 ID
 
-        const val PLAY_OR_PAUSE = "com.hero.ziggymusic.PLAY_OR_PAUSE" // Notification 에서 재생 / 일시 정지 버튼을 누를 시
         const val PLAY = "com.hero.ziggymusic.PLAY" // Notification 에서 재생 버튼을 누를 시
         const val PAUSE = "com.hero.ziggymusic.PAUSE" // Notification 에서 일시 정지 버튼을 누를 시
         const val SKIP_PREV = "com.hero.ziggymusic.SKIP_PREV" // Notification 에서 이전 곡 버튼을 누를 시
