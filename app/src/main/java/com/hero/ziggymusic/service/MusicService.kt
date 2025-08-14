@@ -47,9 +47,23 @@ class MusicService : MediaLibraryService() {
 
         EventBus.getInstance().register(this)
 
-        mediaLibrarySession = MediaLibrarySession.Builder(this, player, object : MediaLibrarySession.Callback {
-            // 필요에 따라 다른 콜백도 구현 가능
+        mediaLibrarySession = MediaLibrarySession.Builder(
+            this,
+            player,
+            object : MediaLibrarySession.Callback {
         }).build()
+
+        // ExoPlayer 상태 변화 감지 리스너 등록
+        player.addListener(object : Player.Listener {
+            override fun onIsPlayingChanged(isPlaying: Boolean) {
+                // 재생/일시정지 상태가 바뀔 때마다 Notification 갱신
+                updateNotification()
+            }
+            override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
+                // 곡이 바뀔 때도 Notification 갱신
+                updateNotification()
+            }
+        })
     }
 
     override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaLibrarySession? {
@@ -65,11 +79,20 @@ class MusicService : MediaLibraryService() {
 
         Log.d("MusicServiceAction", "action = ${intent?.action}")
 
+        // 예외 발생 시에도 반드시 임시 알림으로 startForeground 호출
+        val notification = try {
+            createNotification()
+        } catch (e: Exception) {
+            Log.e("MusicService", "createNotification() 실패, 기본 알림으로 대체", e)
+            NotificationCompat.Builder(this, CHANNEL_ID)
+                .setContentTitle("Ziggy Music")
+                .setContentText("음악 재생 중")
+                .setSmallIcon(R.drawable.ic_music_note)
+                .build()
+        }
+        startForeground(1, notification) // Foreground 에서 실행
+
         when(intent?.action) {
-            null -> {
-                val notification = createNotification() // Notification 생성
-                startForeground(1, notification) // Foreground 에서 실행
-            }
             PLAY -> { // Notification 에서 재생 / 일시 정지 버튼을 누를 시
                 Log.d("onStartCommand", "PLAY: ${player.isPlaying}")
                 EventBus.getInstance().post(Event("PLAY"))
@@ -81,11 +104,9 @@ class MusicService : MediaLibraryService() {
             SKIP_PREV -> { // Notification 에서 이전 곡 버튼을 누를 시
                 Log.d("SKIP_PREV", "onStartCommand: $player")
                 EventBus.getInstance().post(Event("SKIP_PREV"))
-//                EventBus.getInstance().post(Event("PLAY"))
             }
             SKIP_NEXT -> { // Notification 에서 다음 곡 버튼을 누를 시
                 EventBus.getInstance().post(Event("SKIP_NEXT"))
-//                EventBus.getInstance().post(Event("PLAY"))
             }
             CLOSE -> { // Notification 에서 닫기 버튼 누를 시
                 stopSelf()
@@ -94,6 +115,40 @@ class MusicService : MediaLibraryService() {
         }
 
         return super.onStartCommand(intent, flags, startId)
+    }
+
+    private fun updateNotification() {
+        val notification = try {
+            createNotification()
+        } catch (e: Exception) {
+            NotificationCompat.Builder(this, CHANNEL_ID)
+                .setContentTitle("Ziggy Music")
+                .setContentText("음악 재생 중")
+                .setSmallIcon(R.drawable.ic_music_note)
+                .build()
+        }
+
+        // 음악 재생 상태 변화 등 이벤트가 발생할 때 알림 UI가 최신 상태로 유지
+        val manager = getSystemService(NotificationManager::class.java)
+        manager.notify(1, notification)
+    }
+
+    @Subscribe
+    fun onEvent(event: Event) {
+        when (event.getEvent()) {
+            "PLAY" -> {
+                player.play()
+            }
+            "PAUSE" -> {
+                player.pause()
+            }
+            "SKIP_PREV" -> {
+
+            }
+            "SKIP_NEXT" -> {
+
+            }
+        }
     }
 
     // 알림 채널을 생성
@@ -136,23 +191,23 @@ class MusicService : MediaLibraryService() {
             PendingIntent.getActivity(this@MusicService, 5, this, PendingIntent.FLAG_IMMUTABLE)
         }
 
-        // setOnClickPendingIntent()를 이용해서 클릭 리스너를 달아준다.
-        remoteNotificationLayout.setOnClickPendingIntent(R.id.btnNotificationPrev, prevIntent)
-        remoteNotificationLayout.setOnClickPendingIntent(R.id.btnNotificationPlay, playIntent)
-        remoteNotificationLayout.setOnClickPendingIntent(R.id.btnNotificationPlay, pauseIntent)
-        remoteNotificationLayout.setOnClickPendingIntent(R.id.btnNotificationNext, nextIntent)
+        val isPlaying = player.isPlaying
 
+        // Play/Pause 버튼 이미지와 PendingIntent를 상태에 따라 동적으로 설정
+        setPlayPauseButtonState(isPlaying)
+
+        // setOnClickPendingIntent()를 이용해서 클릭 리스너를 달아준다.
+        remoteNotificationLayout.setOnClickPendingIntent(
+            R.id.btnNotificationPrev,
+            prevIntent
+        )
+        remoteNotificationLayout.setOnClickPendingIntent(
+            R.id.btnNotificationNext,
+            nextIntent
+        )
         remoteNotificationExtendedLayout.setOnClickPendingIntent(
             R.id.btnNotificationExtendedPrev,
             prevIntent
-        )
-        remoteNotificationExtendedLayout.setOnClickPendingIntent(
-            R.id.btnNotificationExtendedPlay,
-            playIntent
-        )
-        remoteNotificationExtendedLayout.setOnClickPendingIntent(
-            R.id.btnNotificationExtendedPlay,
-            pauseIntent
         )
         remoteNotificationExtendedLayout.setOnClickPendingIntent(
             R.id.btnNotificationExtendedNext,
@@ -182,6 +237,29 @@ class MusicService : MediaLibraryService() {
             .setContentIntent(notificationTouchIntent)
             .setOngoing(true)
             .build()
+    }
+
+    private fun setPlayPauseButtonState(isPlaying: Boolean) {
+        if (isPlaying) {
+            remoteNotificationLayout.setImageViewResource(R.id.btnNotificationPlay, R.drawable.ic_pause_button)
+            remoteNotificationLayout.setOnClickPendingIntent(R.id.btnNotificationPlay, getPauseIntent())
+            remoteNotificationExtendedLayout.setImageViewResource(R.id.btnNotificationExtendedPlay, R.drawable.ic_pause_button)
+            remoteNotificationExtendedLayout.setOnClickPendingIntent(R.id.btnNotificationExtendedPlay, getPauseIntent())
+        } else {
+            remoteNotificationLayout.setImageViewResource(R.id.btnNotificationPlay, R.drawable.ic_play_button)
+            remoteNotificationLayout.setOnClickPendingIntent(R.id.btnNotificationPlay, getPlayIntent())
+            remoteNotificationExtendedLayout.setImageViewResource(R.id.btnNotificationExtendedPlay, R.drawable.ic_play_button)
+            remoteNotificationExtendedLayout.setOnClickPendingIntent(R.id.btnNotificationExtendedPlay, getPlayIntent())
+        }
+    }
+
+    private fun getPlayIntent(): PendingIntent {
+        val playIntent = Intent(this, MusicService::class.java).apply { action = PLAY }
+        return PendingIntent.getService(this, 1, playIntent, PendingIntent.FLAG_IMMUTABLE)
+    }
+    private fun getPauseIntent(): PendingIntent {
+        val pauseIntent = Intent(this, MusicService::class.java).apply { action = PAUSE }
+        return PendingIntent.getService(this, 2, pauseIntent, PendingIntent.FLAG_IMMUTABLE)
     }
 
     private fun setMusicInNotification(music: MusicModel?) {
@@ -222,7 +300,7 @@ class MusicService : MediaLibraryService() {
 
         Log.d("setMusicInNotification", "musicPlayer?.isPlaying: ${player.isPlaying}")
         // 시작 / 일시 정지 버튼 설정
-        if(player.isPlaying == true) {
+        if(player.isPlaying) {
             remoteNotificationLayout.setImageViewResource(R.id.btnNotificationPlay, R.drawable.ic_pause_button)
             remoteNotificationExtendedLayout.setImageViewResource(
                 R.id.btnNotificationExtendedPlay,
