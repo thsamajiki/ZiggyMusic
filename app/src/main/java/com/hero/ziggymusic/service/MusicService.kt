@@ -218,12 +218,10 @@ class MusicService : MediaLibraryService() {
             closeIntent
         )
 
-        val music = playerModel.currentMusic
-        Log.d("createNotification", "playerModel: $playerModel")
-        Log.d("createNotification", "music: $music")
+        val currentMusic = playerModel.currentMusic
 
         // 알림으로 사용할 레이아웃에 음원 정보를 설정
-        setMusicInNotification(music)
+        setMusicInNotification(currentMusic)
 
         // 알림 생성
         return NotificationCompat.Builder(this, CHANNEL_ID)
@@ -265,8 +263,6 @@ class MusicService : MediaLibraryService() {
     private fun setMusicInNotification(music: MusicModel?) {
         var bitmap: Bitmap? = null
         val albumUri = music?.getAlbumUri() ?: Uri.parse("")
-
-        Log.d("setMusicInNotification", "music: $music")
 
         try {
             bitmap = if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) { // P 이상인 경우
@@ -314,7 +310,6 @@ class MusicService : MediaLibraryService() {
             )
         }
 
-//        Toast.makeText(this, "title: ${music?.title}, artist: ${music?.artist}", Toast.LENGTH_SHORT).show()
         remoteNotificationLayout.setTextViewText(R.id.tvNotificationTitle, music?.title)
         remoteNotificationLayout.setTextViewText(R.id.tvNotificationArtist, music?.artist)
         remoteNotificationLayout.setImageViewResource(R.id.btnNotificationPrev, R.drawable.ic_prev_button)
