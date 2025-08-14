@@ -323,6 +323,7 @@ class MusicService : MediaLibraryService() {
     // 서비스가 완전히 종료되면
     override fun onDestroy() {
         player.stop() // 플레이어 중단
+        player.release()
 
         if (::mediaLibrarySession.isInitialized) {
             mediaLibrarySession.release()
