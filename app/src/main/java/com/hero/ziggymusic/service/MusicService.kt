@@ -4,52 +4,59 @@ import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
-import android.app.Service
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.ImageDecoder
 import android.net.Uri
-import android.os.Binder
 import android.os.Build
-import android.os.IBinder
 import android.util.Log
 import android.widget.RemoteViews
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
+import androidx.media3.common.MediaItem
+import androidx.media3.common.Player
+import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.session.MediaLibraryService
+import androidx.media3.session.MediaSession
 import com.hero.ziggymusic.R
-import com.hero.ziggymusic.ZiggyMusicApp
 import com.hero.ziggymusic.database.music.entity.MusicModel
 import com.hero.ziggymusic.database.music.entity.PlayerModel
 import com.hero.ziggymusic.event.Event
 import com.hero.ziggymusic.event.EventBus
 import com.hero.ziggymusic.view.main.player.PlayerFragment
 import java.io.IOException
+import javax.inject.Inject
 import kotlin.system.exitProcess
+import com.squareup.otto.Subscribe
+import dagger.hilt.android.AndroidEntryPoint
 
-class MusicService : Service() {
-//    private var musicPlayer: ExoPlayer? = null
-    private val musicPlayer by lazy {
-        (applicationContext as ZiggyMusicApp).exoPlayer
-    }
+@AndroidEntryPoint
+class MusicService : MediaLibraryService() {
+    @Inject
+    lateinit var player: ExoPlayer
+
     private val playerModel: PlayerModel = PlayerModel.getInstance()
 
+    private lateinit var mediaLibrarySession: MediaLibrarySession
     private lateinit var remoteNotificationLayout: RemoteViews
     private lateinit var remoteNotificationExtendedLayout: RemoteViews
 
-    override fun onBind(intent: Intent): IBinder {
-        return Binder()
-    }
-
     override fun onCreate() {
         super.onCreate()
-//        musicPlayer = ExoPlayer.Builder(this).build()
+
         EventBus.getInstance().register(this)
+
+        mediaLibrarySession = MediaLibrarySession.Builder(this, player, object : MediaLibrarySession.Callback {
+            // 필요에 따라 다른 콜백도 구현 가능
+        }).build()
+    }
+
+    override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaLibrarySession? {
+        return mediaLibrarySession
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-//        musicPlayer = ExoPlayer.Builder(this).build()
-
         createNotificationChannel() // 알림 채널 생성
 
         // Notification 에 사용할 RemoteViews 생성
@@ -64,15 +71,15 @@ class MusicService : Service() {
                 startForeground(1, notification) // Foreground 에서 실행
             }
             PLAY -> { // Notification 에서 재생 / 일시 정지 버튼을 누를 시
-                Log.d("onStartCommand", "PLAY: ${musicPlayer?.isPlaying}")
+                Log.d("onStartCommand", "PLAY: ${player.isPlaying}")
                 EventBus.getInstance().post(Event("PLAY"))
             }
             PAUSE -> { // Notification 에서 재생 / 일시 정지 버튼을 누를 시
-                Log.d("onStartCommand", "PAUSE: ${musicPlayer?.isPlaying}")
+                Log.d("onStartCommand", "PAUSE: ${player.isPlaying}")
                 EventBus.getInstance().post(Event("PAUSE"))
             }
             SKIP_PREV -> { // Notification 에서 이전 곡 버튼을 누를 시
-                Log.d("SKIP_PREV", "onStartCommand: $musicPlayer")
+                Log.d("SKIP_PREV", "onStartCommand: $player")
                 EventBus.getInstance().post(Event("SKIP_PREV"))
 //                EventBus.getInstance().post(Event("PLAY"))
             }
@@ -213,9 +220,9 @@ class MusicService : Service() {
             }
         }
 
-        Log.d("setMusicInNotification", "musicPlayer?.isPlaying: ${musicPlayer?.isPlaying}")
+        Log.d("setMusicInNotification", "musicPlayer?.isPlaying: ${player.isPlaying}")
         // 시작 / 일시 정지 버튼 설정
-        if(musicPlayer?.isPlaying == true) {
+        if(player.isPlaying == true) {
             remoteNotificationLayout.setImageViewResource(R.id.btnNotificationPlay, R.drawable.ic_pause_button)
             remoteNotificationExtendedLayout.setImageViewResource(
                 R.id.btnNotificationExtendedPlay,
@@ -258,7 +265,12 @@ class MusicService : Service() {
 
     // 서비스가 완전히 종료되면
     override fun onDestroy() {
-        musicPlayer?.stop() // 플레이어 중단
+        player.stop() // 플레이어 중단
+
+        if (::mediaLibrarySession.isInitialized) {
+            mediaLibrarySession.release()
+        }
+
         EventBus.getInstance().unregister(this)
         super.onDestroy()
     }
