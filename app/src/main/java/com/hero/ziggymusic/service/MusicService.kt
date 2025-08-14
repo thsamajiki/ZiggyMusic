@@ -24,7 +24,7 @@ import com.hero.ziggymusic.database.music.entity.MusicModel
 import com.hero.ziggymusic.database.music.entity.PlayerModel
 import com.hero.ziggymusic.event.Event
 import com.hero.ziggymusic.event.EventBus
-import com.hero.ziggymusic.view.main.player.PlayerFragment
+import com.hero.ziggymusic.view.main.MainActivity
 import java.io.IOException
 import javax.inject.Inject
 import kotlin.system.exitProcess
@@ -186,7 +186,7 @@ class MusicService : MediaLibraryService() {
             action = CLOSE
             PendingIntent.getService(this@MusicService, 4, this, PendingIntent.FLAG_IMMUTABLE)
         }
-        val notificationTouchIntent = Intent(this, PlayerFragment::class.java).run {
+        val notificationTouchIntent = Intent(this, MainActivity::class.java).run {
             addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
             PendingIntent.getActivity(this@MusicService, 5, this, PendingIntent.FLAG_IMMUTABLE)
         }
