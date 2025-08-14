@@ -1,13 +1,15 @@
 package com.hero.ziggymusic
 
 import android.app.Application
-import androidx.media3.exoplayer.ExoPlayer
 import dagger.hilt.android.HiltAndroidApp
 
 @HiltAndroidApp
 class ZiggyMusicApp : Application() {
+    override fun onCreate() {
+        super.onCreate()
 
-    val exoPlayer by lazy { ExoPlayer.Builder(this).build() }
+        instance = this
+    }
 
     companion object {
         lateinit var instance : ZiggyMusicApp
@@ -15,11 +17,5 @@ class ZiggyMusicApp : Application() {
         fun getInstance() : Application {
             return instance
         }
-    }
-
-    override fun onCreate() {
-        super.onCreate()
-
-        instance = this
     }
 }

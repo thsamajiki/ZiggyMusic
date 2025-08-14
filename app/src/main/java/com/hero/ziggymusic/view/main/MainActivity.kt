@@ -22,11 +22,11 @@ import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
+import androidx.media3.exoplayer.ExoPlayer
 import androidx.viewpager2.widget.ViewPager2
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.navigation.NavigationBarView
 import com.hero.ziggymusic.R
-import com.hero.ziggymusic.ZiggyMusicApp
 import com.hero.ziggymusic.database.music.entity.PlayerModel
 import com.hero.ziggymusic.databinding.ActivityMainBinding
 import com.hero.ziggymusic.event.Event
@@ -37,6 +37,7 @@ import com.hero.ziggymusic.view.main.setting.SettingFragment
 import com.squareup.otto.Subscribe
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity(),
@@ -54,9 +55,8 @@ class MainActivity : AppCompatActivity(),
     private val viewModel by viewModels<MainViewModel>()
 
 //    private var player: ExoPlayer? = null
-    private val player by lazy {
-        (applicationContext as ZiggyMusicApp).exoPlayer
-    }
+    @Inject
+    lateinit var player: ExoPlayer
     private val playerModel: PlayerModel = PlayerModel.getInstance()
     private lateinit var playerController: PlayerController
 
@@ -97,7 +97,18 @@ class MainActivity : AppCompatActivity(),
             playerController.startPlayer()
         }
 
-        SoundEQSettings.init(player.audioSessionId)
+        if (player.audioSessionId != 0) {
+            SoundEQSettings.init(player.audioSessionId)
+        } else {
+            player.addListener(object : Player.Listener {
+                override fun onAudioSessionIdChanged(audioSessionId: Int) {
+                    if (audioSessionId != 0) {
+                        SoundEQSettings.init(audioSessionId)
+                        player.removeListener(this)
+                    }
+                }
+            })
+        }
 
         setupListeners()
     }
@@ -198,13 +209,7 @@ class MainActivity : AppCompatActivity(),
 
     // 미니 플레이어에서 사용하는 버튼에 리스너 세팅
     private fun setPlayerListener() {
-//        player = ExoPlayer.Builder(this).build()
-
-        player?.addListener(object : Player.Listener {
-            override fun onIsPlayingChanged(isPlaying: Boolean) {
-                super.onIsPlayingChanged(isPlaying)
-            }
-
+        player.addListener(object : Player.Listener {
             // 미디어 아이템이 바뀔 때
             override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
                 super.onMediaItemTransition(mediaItem, reason)
@@ -250,7 +255,7 @@ class MainActivity : AppCompatActivity(),
             }
             "SKIP_PREV" -> { // Notification 에서 이전 곡 버튼을 누를 시
                 Log.d("MainActivity", "doEvent - SKIP_PREV: ${player.isPlaying}")
-                player?.run {
+                player.run {
                     val prevIndex = if (currentMediaItemIndex - 1 in 0 until mediaItemCount) {
                         currentMediaItemIndex - 1
                     } else {
@@ -268,7 +273,7 @@ class MainActivity : AppCompatActivity(),
             }
             "SKIP_NEXT" -> { // Notification 에서 다음 곡 버튼을 누를 시
                 Log.d("MainActivity", "doEvent - SKIP_NEXT: ${player.isPlaying}")
-                player?.run {
+                player.run {
                     val nextIndex = if (currentMediaItemIndex + 1 in 0 until mediaItemCount) {
                         currentMediaItemIndex + 1
                     } else {

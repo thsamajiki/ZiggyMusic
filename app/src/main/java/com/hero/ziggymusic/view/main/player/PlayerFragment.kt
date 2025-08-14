@@ -31,6 +31,7 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.DefaultDataSource
+import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.source.ProgressiveMediaSource
 import androidx.media3.exoplayer.source.ShuffleOrder
 import com.bumptech.glide.Glide
@@ -38,7 +39,6 @@ import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetBehavior.BottomSheetCallback
 import com.hero.ziggymusic.R
-import com.hero.ziggymusic.ZiggyMusicApp
 import com.hero.ziggymusic.database.music.entity.MusicModel
 import com.hero.ziggymusic.database.music.entity.PlayerModel
 import com.hero.ziggymusic.databinding.FragmentPlayerBinding
@@ -49,22 +49,20 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import java.util.Locale
 import java.util.concurrent.TimeUnit
+import javax.inject.Inject
 import kotlin.math.max
 import kotlin.random.Random
 
 @AndroidEntryPoint
 class PlayerFragment : Fragment(), View.OnClickListener {
-
     private var _binding: FragmentPlayerBinding? = null
     private val binding get() = _binding!!
 
     private var playerModel: PlayerModel = PlayerModel.getInstance()
     private val playerViewModel by viewModels<PlayerViewModel>()
 
-    //    private var player: ExoPlayer? = null
-    private val player by lazy {
-        (context?.applicationContext as ZiggyMusicApp).exoPlayer
-    }
+    @Inject
+    lateinit var player: ExoPlayer
 
     // AudioDeviceInfo를 이용한 블루투스 오디오 기기 탐지 (Android 6.0+)
     private fun isBluetoothAudioDeviceConnected(audioManager: AudioManager): Boolean {
@@ -145,7 +143,7 @@ class PlayerFragment : Fragment(), View.OnClickListener {
         initSeekBar()
 
 //        val musicList = requireActivity().intent.getStringExtra("musicList") as Playlist?
-        val currentPosition = requireActivity().intent.getIntExtra("currentPosition", player?.currentMediaItemIndex ?: 0)
+        val currentPosition = requireActivity().intent.getIntExtra("currentPosition", player.currentMediaItemIndex ?: 0)
 
         initPlayerBottomSheetManager()
 
@@ -426,8 +424,8 @@ class PlayerFragment : Fragment(), View.OnClickListener {
         Log.d("changeMusic", "findIndex: $findIndex")
 
         if (findIndex != -1) {
-            player?.seekTo(findIndex, 0)
-            player?.play()
+            player.seekTo(findIndex, 0)
+            player.play()
         }
     }
 
@@ -446,7 +444,7 @@ class PlayerFragment : Fragment(), View.OnClickListener {
             }
 
             override fun onStopTrackingTouch(seekBar: SeekBar) {
-                player?.seekTo(seekBar.progress * 1000L)
+                player.seekTo(seekBar.progress * 1000L)
             }
         })
     }
@@ -491,7 +489,7 @@ class PlayerFragment : Fragment(), View.OnClickListener {
     private fun initPlayControlButtons() {
         // 재생 or 일시정지 버튼
         binding.ivPlayPause.setOnClickListener {
-            val player = this.player ?: return@setOnClickListener
+            val player = this.player
 
             if (player.isPlaying) {
                 EventBus.getInstance().post(Event("PAUSE"))
@@ -514,7 +512,7 @@ class PlayerFragment : Fragment(), View.OnClickListener {
         binding.vPlayer.player = player
         binding.animationViewVisualizer.pauseAnimation()
 
-        player?.addListener(object : Player.Listener {
+        player.addListener(object : Player.Listener {
             override fun onIsPlayingChanged(isPlaying: Boolean) {
                 super.onIsPlayingChanged(isPlaying)
 
@@ -559,7 +557,7 @@ class PlayerFragment : Fragment(), View.OnClickListener {
     }
 
     private fun updateSeek() {
-        val player = this.player ?: return
+        val player = this.player
         val duration = if (player.duration >= 0) player.duration else 0 // 전체 음악 길이
         val position = player.currentPosition
 
@@ -638,7 +636,7 @@ class PlayerFragment : Fragment(), View.OnClickListener {
 
         val playIndex = musicList.indexOf(nowPlayMusic)
 
-        player?.run {
+        player.run {
             setMediaSources(musicMediaItems)
             prepare()
             seekTo(max(playIndex, 0), 0) // positionsMs=0 초 부터 시작
@@ -666,7 +664,7 @@ class PlayerFragment : Fragment(), View.OnClickListener {
     override fun onStop() {
         super.onStop()
 
-        player?.pause()
+        player.pause()
         EventBus.getInstance().post(Event("STOP"))
         binding.root.removeCallbacks(updateSeekRunnable)
         binding.root.removeCallbacks(updateBluetoothRunnable)
@@ -683,7 +681,7 @@ class PlayerFragment : Fragment(), View.OnClickListener {
         super.onDestroy()
 
         _binding = null
-        player?.release()
+        player.release()
     }
 
     private fun scheduleBluetoothUpdate() {
