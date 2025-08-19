@@ -548,6 +548,7 @@ class PlayerFragment : Fragment(), View.OnClickListener {
         binding.vPlayer.player = player
 
         syncPlayerUi()
+        startSeekUpdates() // 포그라운드 진입 직후 진행바 시작
 
         player.addListener(object : Player.Listener {
             override fun onIsPlayingChanged(isPlaying: Boolean) {
@@ -555,6 +556,7 @@ class PlayerFragment : Fragment(), View.OnClickListener {
 
                 // 재생 아이콘 및 비주얼라이저 동기화
                 syncPlayerUi()
+                if (isPlaying) startSeekUpdates() else stopSeekUpdates()
             }
 
             // 미디어 아이템이 바뀔 때
@@ -614,6 +616,20 @@ class PlayerFragment : Fragment(), View.OnClickListener {
         )
         if (isPlaying) binding.animationViewVisualizer.playAnimation()
         else binding.animationViewVisualizer.pauseAnimation()
+    }
+
+    private fun startSeekUpdates() {
+        if (_binding == null) return
+
+        binding.root.removeCallbacks(updateSeekRunnable)
+
+        updateSeek() // 즉시 1회 갱신하고, 내부에서 다음 주기를 예약
+    }
+
+    private fun stopSeekUpdates() {
+        if (_binding == null) return
+
+        binding.root.removeCallbacks(updateSeekRunnable)
     }
 
     private fun updateSeek() {
@@ -725,6 +741,7 @@ class PlayerFragment : Fragment(), View.OnClickListener {
         super.onStop()
 
         // player.pause() 및 이벤트 제거 → 백그라운드에서도 재생 유지
+        stopSeekUpdates()
         binding.root.removeCallbacks(updateBluetoothRunnable)
     }
 
@@ -744,6 +761,9 @@ class PlayerFragment : Fragment(), View.OnClickListener {
                 updatePlayerView(music)
             }
         }
+
+        // 포그라운드 복귀 시 반드시 루프 재시작
+        startSeekUpdates()
     }
 
     override fun onDestroyView() {
@@ -752,7 +772,7 @@ class PlayerFragment : Fragment(), View.OnClickListener {
         playerListener = null
 
         _binding?.vPlayer?.player = null
-
+        stopSeekUpdates()
         binding.root.removeCallbacks(updateBluetoothRunnable)
         _binding = null
         super.onDestroyView()
