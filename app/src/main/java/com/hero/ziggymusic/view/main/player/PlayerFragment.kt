@@ -550,7 +550,10 @@ class PlayerFragment : Fragment(), View.OnClickListener {
         syncPlayerUi()
         startSeekUpdates() // 포그라운드 진입 직후 진행바 시작
 
-        player.addListener(object : Player.Listener {
+        // 화면 회전/재진입 등으로 initPlayView()가 여러 번 호출되면, 기존 리스너 위에 새 리스너가 계속 추가되어 콜백이 중복 실행됨 -> 이를 방지
+        playerListener?.let { player.removeListener(it) }
+
+        playerListener = object : Player.Listener {
             override fun onIsPlayingChanged(isPlaying: Boolean) {
                 super.onIsPlayingChanged(isPlaying)
 
@@ -582,14 +585,16 @@ class PlayerFragment : Fragment(), View.OnClickListener {
                 // 재생 반복 해제 모드 & 마지막 트랙 재생이 끝났을 때 -> 첫번째 트랙으로 이동 & 일시정지 상태
                 if (player.repeatMode == Player.REPEAT_MODE_OFF &&
                     player.currentMediaItemIndex == player.mediaItemCount - 1 &&
-                    state == Player.STATE_ENDED) {
-
+                    state == Player.STATE_ENDED
+                ) {
                     player.seekTo(0, 0)
                     updatePlayerView(playerModel.currentMusic)
                     player.pause()
                 }
             }
-        })
+        }
+
+        player.addListener(playerListener!!)
     }
 
     private fun syncCollapsedPlayerWithNotification() {
