@@ -65,6 +65,7 @@ class PlayerFragment : Fragment(), View.OnClickListener {
 
     private var playerModel: PlayerModel = PlayerModel.getInstance()
     private val playerViewModel by viewModels<PlayerViewModel>()
+    private var playerListener: Player.Listener? = null
 
     @Inject
     lateinit var player: ExoPlayer
@@ -225,6 +226,7 @@ class PlayerFragment : Fragment(), View.OnClickListener {
     }
 
     private fun updateBluetoothIcon() {
+        if (_binding == null) return
         Log.d("Bluetooth", "Updating bluetooth icon...")
 
         try {
@@ -416,6 +418,8 @@ class PlayerFragment : Fragment(), View.OnClickListener {
     private fun initViewModel() {
         viewLifecycleOwner.lifecycleScope.launch {
             playerViewModel.musicList.observe(viewLifecycleOwner) { musicList ->
+                if (_binding == null) return@observe
+
                 Log.d("initViewModel", "playerModel: $playerModel")
                 playerModel.replaceMusicList(musicList)
 
@@ -543,9 +547,14 @@ class PlayerFragment : Fragment(), View.OnClickListener {
 //        player = ExoPlayer.Builder(requireContext()).build()
         binding.vPlayer.player = player
 
+        syncPlayerUi()
+
         player.addListener(object : Player.Listener {
             override fun onIsPlayingChanged(isPlaying: Boolean) {
                 super.onIsPlayingChanged(isPlaying)
+
+                // 재생 아이콘 및 비주얼라이저 동기화
+                syncPlayerUi()
             }
 
             // 미디어 아이템이 바뀔 때
@@ -557,6 +566,9 @@ class PlayerFragment : Fragment(), View.OnClickListener {
 
                 Log.d("onMediaItemTransition", "playerModel.currentMusic: ${playerModel.currentMusic}")
                 updatePlayerView(playerModel.currentMusic)
+
+                // 트랙 전환 시 제목/아티스트/아트 동기화
+                syncCollapsedPlayerWithNotification()
             }
 
             // 재생, 재생 완료, 버퍼링 상태 ...
@@ -578,7 +590,34 @@ class PlayerFragment : Fragment(), View.OnClickListener {
         })
     }
 
+    private fun syncCollapsedPlayerWithNotification() {
+        // 현재 트랙을 우선 ExoPlayer에서, 없으면 PlayerModel에서 조회
+        val currentMusic = playerModel.currentMusic
+
+        currentMusic?.let { music ->
+            // 프로젝트의 기존 메서드로 텍스트/아트 일괄 반영
+            updatePlayerView(music)
+        }
+
+        // 재생/일시정지 아이콘 및 비주얼라이저 동기화
+        syncPlayerUi()
+    }
+
+    private fun syncPlayerUi() {
+        if (!isAdded || _binding == null) return // 뷰가 준비되지 않았거나 파괴된 상태면 아무 작업도 하지 않음
+
+        val isPlaying = player.isPlaying
+
+        // 플레이어가 재생 또는 일시정지 될 때 재생/일시정지 버튼 아이콘 전환하고 애니메이션 재생/정지
+        binding.ivPlayPause.setImageResource(
+            if (isPlaying) R.drawable.ic_pause_button else R.drawable.ic_play_button
+        )
+        if (isPlaying) binding.animationViewVisualizer.playAnimation()
+        else binding.animationViewVisualizer.pauseAnimation()
+    }
+
     private fun updateSeek() {
+        if (_binding == null) return
         val player = this.player
         val duration = if (player.duration >= 0) player.duration else 0 // 전체 음악 길이
         val position = player.currentPosition
@@ -618,7 +657,7 @@ class PlayerFragment : Fragment(), View.OnClickListener {
     }
 
     private fun updatePlayerView(musicModel: MusicModel?) {
-        musicModel ?: return
+        if (_binding == null || musicModel == null) return
 
         binding.tvSongTitle.text = musicModel.title
         binding.tvSongArtist.text = musicModel.artist
@@ -708,6 +747,10 @@ class PlayerFragment : Fragment(), View.OnClickListener {
     }
 
     override fun onDestroyView() {
+        // Detach player from view to avoid leaking the surface
+        playerListener?.let { player.removeListener(it) }
+        playerListener = null
+
         _binding?.vPlayer?.player = null
 
         binding.root.removeCallbacks(updateBluetoothRunnable)
@@ -723,6 +766,8 @@ class PlayerFragment : Fragment(), View.OnClickListener {
     }
 
     private fun scheduleBluetoothUpdate() {
+        if (_binding == null) return
+
         binding.root.removeCallbacks(updateBluetoothRunnable)
         binding.root.postDelayed(updateBluetoothRunnable, 5000) // 5초마다 업데이트
     }
