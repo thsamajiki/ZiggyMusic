@@ -7,6 +7,7 @@ import android.bluetooth.BluetoothGatt
 import android.bluetooth.BluetoothManager
 import android.bluetooth.BluetoothProfile
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.Canvas
@@ -30,6 +31,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
+import androidx.core.content.ContextCompat.startForegroundService
 import androidx.media3.datasource.DefaultDataSource
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.source.ProgressiveMediaSource
@@ -42,8 +44,11 @@ import com.hero.ziggymusic.R
 import com.hero.ziggymusic.database.music.entity.MusicModel
 import com.hero.ziggymusic.database.music.entity.PlayerModel
 import com.hero.ziggymusic.databinding.FragmentPlayerBinding
-import com.hero.ziggymusic.event.Event
-import com.hero.ziggymusic.event.EventBus
+import com.hero.ziggymusic.service.MusicService
+import com.hero.ziggymusic.service.MusicService.Companion.PLAY
+import com.hero.ziggymusic.service.MusicService.Companion.PAUSE
+import com.hero.ziggymusic.service.MusicService.Companion.SKIP_PREV
+import com.hero.ziggymusic.service.MusicService.Companion.SKIP_NEXT
 import com.hero.ziggymusic.view.main.player.viewmodel.PlayerViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
@@ -157,6 +162,15 @@ class PlayerFragment : Fragment(), View.OnClickListener {
                 .collect { state ->
                     playerMotionManager.changeState(state)
                 }
+        }
+
+        // 현재 재생 중인 곡 정보를 즉시 UI에 반영
+        player.currentMediaItem?.mediaId?.let { mediaId ->
+            val music = playerViewModel.musicList.value?.find { it.id == mediaId }
+            if (music != null) {
+                playerModel.updateCurrentMusic(music)
+                updatePlayerView(music)
+            }
         }
 
         initListeners()
@@ -404,11 +418,21 @@ class PlayerFragment : Fragment(), View.OnClickListener {
             playerViewModel.musicList.observe(viewLifecycleOwner) { musicList ->
                 Log.d("initViewModel", "playerModel: $playerModel")
                 playerModel.replaceMusicList(musicList)
-                val nowMusic = musicList.find {
-                    it.id == musicKey
-                } ?: musicList.getOrNull(0)
 
-                if (musicList.isNotEmpty()) {
+                // 현재 ExoPlayer가 재생 중인 곡의 id를 우선 사용
+                val currentMediaId = player.currentMediaItem?.mediaId
+                val nowMusic = musicList.find { it.id == currentMediaId }
+                    ?: musicList.find { it.id == musicKey }
+                    ?: musicList.getOrNull(0)
+
+                // PlayerModel, UI 동기화
+                if (nowMusic != null) {
+                    playerModel.updateCurrentMusic(nowMusic)
+                    updatePlayerView(nowMusic)
+                }
+
+                // 이미 재생 중인 곡이 있으면 playMusic을 다시 호출하지 않음
+                if (player.currentMediaItem == null && nowMusic != null) {
                     playMusic(musicList, nowMusic)
                 }
             }
@@ -489,41 +513,39 @@ class PlayerFragment : Fragment(), View.OnClickListener {
     private fun initPlayControlButtons() {
         // 재생 or 일시정지 버튼
         binding.ivPlayPause.setOnClickListener {
-            val player = this.player
-
-            if (player.isPlaying) {
-                EventBus.getInstance().post(Event("PAUSE"))
-            } else {
-                EventBus.getInstance().post(Event("PLAY"))
-            }
+            val action =
+                if (player.isPlaying) PAUSE
+                else PLAY
+            sendServiceAction(action)
         }
 
         binding.ivNext.setOnClickListener {
-            EventBus.getInstance().post(Event("SKIP_NEXT"))
+            Log.d("PlayerFragment", "Next 버튼 클릭됨")
+            sendServiceAction(SKIP_NEXT)
         }
 
         binding.ivPrevious.setOnClickListener {
-            EventBus.getInstance().post(Event("SKIP_PREV"))
+            Log.d("PlayerFragment", "Prev 버튼 클릭됨")
+            sendServiceAction(SKIP_PREV)
         }
+    }
+
+    private fun sendServiceAction(action: String) {
+        val appCtx = requireContext().applicationContext
+        val intent = Intent(appCtx, MusicService::class.java).apply {
+            this.action = action
+        }
+        // 서비스가 이미 실행 중이면 일반 startService로 전달되고, O+에서 미실행이면 FG로 승격됨
+        startForegroundService(appCtx, intent)
     }
 
     private fun initPlayView() {
 //        player = ExoPlayer.Builder(requireContext()).build()
         binding.vPlayer.player = player
-        binding.animationViewVisualizer.pauseAnimation()
 
         player.addListener(object : Player.Listener {
             override fun onIsPlayingChanged(isPlaying: Boolean) {
                 super.onIsPlayingChanged(isPlaying)
-
-                // 플레이어가 재생 또는 일시정지 될 떄
-                if (isPlaying) {
-                    binding.ivPlayPause.setImageResource(R.drawable.ic_pause_button)
-                    binding.animationViewVisualizer.playAnimation()
-                } else {
-                    binding.ivPlayPause.setImageResource(R.drawable.ic_play_button)
-                    binding.animationViewVisualizer.pauseAnimation()
-                }
             }
 
             // 미디어 아이템이 바뀔 때
@@ -664,20 +686,32 @@ class PlayerFragment : Fragment(), View.OnClickListener {
         super.onStop()
 
         // player.pause() 및 이벤트 제거 → 백그라운드에서도 재생 유지
-        binding.root.removeCallbacks(updateSeekRunnable)
         binding.root.removeCallbacks(updateBluetoothRunnable)
     }
 
     override fun onResume() {
         super.onResume()
         // 화면이 다시 보일 때 블루투스 상태 업데이트
-        updateBluetoothIcon()
-        scheduleBluetoothUpdate()
+        if (_binding != null) {
+            updateBluetoothIcon()
+            scheduleBluetoothUpdate()
+        }
+
+        // 현재 재생 중인 곡 정보를 즉시 UI에 반영
+        player.currentMediaItem?.mediaId?.let { mediaId ->
+            val music = playerViewModel.musicList.value?.find { it.id == mediaId }
+            if (music != null) {
+                playerModel.updateCurrentMusic(music)
+                updatePlayerView(music)
+            }
+        }
     }
 
     override fun onDestroyView() {
-        // Detach player from view to avoid leaking the surface
         _binding?.vPlayer?.player = null
+
+        binding.root.removeCallbacks(updateBluetoothRunnable)
+        _binding = null
         super.onDestroyView()
     }
 
