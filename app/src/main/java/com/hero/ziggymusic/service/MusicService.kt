@@ -94,19 +94,24 @@ class MusicService : MediaLibraryService() {
 
         when(intent?.action) {
             PLAY -> { // Notification 에서 재생 / 일시 정지 버튼을 누를 시
-                Log.d("onStartCommand", "PLAY: ${player.isPlaying}")
-                EventBus.getInstance().post(Event("PLAY"))
+                if (!player.isPlaying) {
+                    Log.d("onStartCommand", "PLAY")
+                    player.play()
+                }
             }
             PAUSE -> { // Notification 에서 재생 / 일시 정지 버튼을 누를 시
-                Log.d("onStartCommand", "PAUSE: ${player.isPlaying}")
-                EventBus.getInstance().post(Event("PAUSE"))
+                if (player.isPlaying) {
+                    Log.d("onStartCommand", "PAUSE")
+                    player.pause()
+                }
             }
             SKIP_PREV -> { // Notification 에서 이전 곡 버튼을 누를 시
-                Log.d("SKIP_PREV", "onStartCommand: $player")
-                EventBus.getInstance().post(Event("SKIP_PREV"))
+                Log.d("onStartCommand", "SKIP_PREV")
+                player.seekToPrevious()
             }
             SKIP_NEXT -> { // Notification 에서 다음 곡 버튼을 누를 시
-                EventBus.getInstance().post(Event("SKIP_NEXT"))
+                Log.d("onStartCommand", "SKIP_NEXT")
+                player.seekToNext()
             }
             CLOSE -> { // Notification 에서 닫기 버튼 누를 시
                 stopSelf()
@@ -143,10 +148,10 @@ class MusicService : MediaLibraryService() {
                 player.pause()
             }
             "SKIP_PREV" -> {
-
+                player.seekToPrevious()
             }
             "SKIP_NEXT" -> {
-
+                player.seekToNext()
             }
         }
     }
