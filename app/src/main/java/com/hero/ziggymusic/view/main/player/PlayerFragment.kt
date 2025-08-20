@@ -16,6 +16,7 @@ import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.media.AudioDeviceInfo
 import android.media.AudioManager
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
@@ -826,10 +827,7 @@ class PlayerFragment : Fragment(), View.OnClickListener {
         if (volumeObserver != null) return
 
         volumeObserver = object : ContentObserver(Handler(Looper.getMainLooper())) {
-            override fun onChange(selfChange: Boolean) {
-                updateVolumeFromSystem()
-            }
-            override fun onChange(selfChange: Boolean, uri: android.net.Uri?) {
+            override fun onChange(selfChange: Boolean, uri: Uri?) {
                 updateVolumeFromSystem()
             }
         }
