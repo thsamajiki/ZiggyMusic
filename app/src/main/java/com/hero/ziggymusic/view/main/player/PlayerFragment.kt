@@ -9,14 +9,19 @@ import android.bluetooth.BluetoothProfile
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.database.ContentObserver
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.media.AudioDeviceInfo
 import android.media.AudioManager
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
+import android.provider.Settings
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -113,6 +118,8 @@ class PlayerFragment : Fragment(), View.OnClickListener {
     private lateinit var audioManager: AudioManager
     private var currentVolume: Int = 0  // 현재 볼륨
     private var previousVolume: Int = 0 // 이전 볼륨 저장
+
+    private var volumeObserver: ContentObserver? = null // 시스템 볼륨 변경 이벤트 옵저버
 
     private val musicKey: String
         get() = requireArguments().getString(EXTRA_MUSIC_FILE_KEY).orEmpty()
@@ -748,6 +755,7 @@ class PlayerFragment : Fragment(), View.OnClickListener {
         // player.pause() 및 이벤트 제거 → 백그라운드에서도 재생 유지
         stopSeekUpdates()
         binding.root.removeCallbacks(updateBluetoothRunnable)
+        stopVolumeObserver()    // 하드웨어 볼륨 변경 감지 중지
     }
 
     override fun onResume() {
@@ -769,6 +777,7 @@ class PlayerFragment : Fragment(), View.OnClickListener {
 
         // 포그라운드 복귀 시 반드시 루프 재시작
         startSeekUpdates()
+        startVolumeObserver()   // 하드웨어 볼륨 변경 감지 시작
     }
 
     override fun onDestroyView() {
@@ -795,6 +804,60 @@ class PlayerFragment : Fragment(), View.OnClickListener {
 
         binding.root.removeCallbacks(updateBluetoothRunnable)
         binding.root.postDelayed(updateBluetoothRunnable, 5000) // 5초마다 업데이트
+    }
+
+    // 시스템 볼륨 → UI 동기화
+    private fun updateVolumeFromSystem() {
+        if (_binding == null) return
+        val max = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
+        val current = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
+
+        binding.sbVolume.max = max
+        binding.sbVolume.progress = current
+        currentVolume = current
+
+        binding.ivVolume.setImageResource(
+            if (current == 0) R.drawable.ic_mute else R.drawable.ic_volume
+        )
+    }
+
+    // 볼륨 옵저버 등록/해제
+    private fun startVolumeObserver() {
+        val resolver = context?.contentResolver
+        if (volumeObserver != null) return
+
+        volumeObserver = object : ContentObserver(Handler(Looper.getMainLooper())) {
+            override fun onChange(selfChange: Boolean, uri: Uri?) {
+                updateVolumeFromSystem()
+            }
+        }
+
+        try {
+            resolver?.registerContentObserver(
+                Settings.System.CONTENT_URI,
+                true,
+                volumeObserver!!
+            )
+            // 등록 직후 1회 동기화
+            updateVolumeFromSystem()
+        } catch (t: Throwable) {
+            Log.e(TAG, "Failed to register volumeObserver", t)
+            // 등록 실패 시 누수 방지
+            volumeObserver = null
+        }
+    }
+
+    private fun stopVolumeObserver() {
+        val resolver = context?.contentResolver
+        val observer = volumeObserver ?: return
+
+        try {
+            resolver?.unregisterContentObserver(observer)
+        } catch (e: Throwable) {
+            Log.e(TAG, "Failed to unregister volumeObserver", e)
+        } finally {
+            volumeObserver = null
+        }
     }
 
     companion object {
