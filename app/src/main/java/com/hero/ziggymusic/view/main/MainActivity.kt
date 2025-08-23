@@ -42,7 +42,6 @@ import androidx.core.view.get
 
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity(),
-    View.OnClickListener,
     NavigationBarView.OnItemSelectedListener {
 
     private lateinit var binding: ActivityMainBinding
@@ -297,8 +296,5 @@ class MainActivity : AppCompatActivity(),
         EventBus.getInstance().unregister(this)
         // -> 액티비티 종료/재생성 Notification 클릭 등과 무관하게 백그라운드 재생 유지
         super.onDestroy()
-    }
-
-    override fun onClick(view: View?) {
     }
 }
