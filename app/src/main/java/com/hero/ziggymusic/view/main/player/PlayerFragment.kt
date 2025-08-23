@@ -99,7 +99,7 @@ class PlayerFragment : Fragment(), View.OnClickListener {
         scheduleBluetoothUpdate()
     }
 
-    // AudioDeviceInfo를 이용한 블루투스 오디오 기기 탐지 (Android 6.0+)
+    // AudioDeviceInfo를 이용한 블루투스 오디오 기기 탐지
     private fun isBluetoothAudioDeviceConnected(audioManager: AudioManager): Boolean {
         val devices = audioManager.getDevices(AudioManager.GET_DEVICES_OUTPUTS)
         for (device in devices) {
@@ -116,7 +116,7 @@ class PlayerFragment : Fragment(), View.OnClickListener {
         return false
     }
 
-    // AudioDeviceInfo를 이용한 유선 오디오 기기 탐지 (Android 6.0+)
+    // AudioDeviceInfo를 이용한 유선 오디오 기기 탐지
     private fun isWiredAudioDeviceConnected(audioManager: AudioManager): Boolean {
         val devices = audioManager.getDevices(AudioManager.GET_DEVICES_OUTPUTS)
         for (device in devices) {
@@ -299,7 +299,7 @@ class PlayerFragment : Fragment(), View.OnClickListener {
         try {
             val bluetoothAdapter: BluetoothAdapter? = bluetoothManager.adapter
 
-            // Check classic profile connections
+            // 블루투스 profile connections
             val a2dpConnected =
                 bluetoothAdapter?.getProfileConnectionState(BluetoothProfile.A2DP) == BluetoothAdapter.STATE_CONNECTED
             val headsetConnected =
@@ -313,7 +313,7 @@ class PlayerFragment : Fragment(), View.OnClickListener {
                 return true
             }
 
-            // As fallback, also check GATT connections
+            // GATT connections 검사
             val bluetoothDevices = bluetoothAdapter?.bondedDevices ?: emptySet()
             bluetoothDevices.forEach { device ->
                 val connectionState =
