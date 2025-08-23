@@ -7,7 +7,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import com.hero.ziggymusic.R
 import com.hero.ziggymusic.database.music.entity.MusicModel
-import com.hero.ziggymusic.database.music.repository.MusicRepository
+import com.hero.ziggymusic.domain.music.repository.MusicRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
