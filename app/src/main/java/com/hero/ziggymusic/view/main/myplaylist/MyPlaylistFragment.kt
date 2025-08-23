@@ -33,7 +33,6 @@ class MyPlaylistFragment : Fragment(),
     private val binding get() = _binding!!
 
     private val viewModel by viewModels<MyPlaylistViewModel>()
-    private val playerModel: PlayerModel = PlayerModel.getInstance()
 
     private lateinit var myPlayListAdapter: MyPlaylistAdapter
 
