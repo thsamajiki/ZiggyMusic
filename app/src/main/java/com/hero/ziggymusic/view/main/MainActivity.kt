@@ -38,6 +38,7 @@ import com.squareup.otto.Subscribe
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import androidx.core.view.get
 
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity(),
@@ -161,7 +162,7 @@ class MainActivity : AppCompatActivity(),
         binding.mainViewPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
             override fun onPageSelected(position: Int) {
                 super.onPageSelected(position)
-                binding.mainBottomNav.menu.getItem(position).isChecked = true
+                binding.mainBottomNav.menu[position].isChecked = true
                 binding.tvMainTitle.text = titleArr[position]
                 title = titleArr[position]
             }
