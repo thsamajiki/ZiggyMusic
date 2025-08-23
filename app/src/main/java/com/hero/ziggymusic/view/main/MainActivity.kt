@@ -159,23 +159,11 @@ class MainActivity : AppCompatActivity(),
         val titleArr = resources.getStringArray(R.array.title_array)
 
         binding.mainViewPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
-            override fun onPageScrolled(
-                position: Int,
-                positionOffset: Float,
-                positionOffsetPixels: Int,
-            ) {
-                super.onPageScrolled(position, positionOffset, positionOffsetPixels)
-            }
-
             override fun onPageSelected(position: Int) {
                 super.onPageSelected(position)
                 binding.mainBottomNav.menu.getItem(position).isChecked = true
                 binding.tvMainTitle.text = titleArr[position]
                 title = titleArr[position]
-            }
-
-            override fun onPageScrollStateChanged(state: Int) {
-                super.onPageScrollStateChanged(state)
             }
         })
     }
@@ -218,11 +206,6 @@ class MainActivity : AppCompatActivity(),
 
                 Log.d("onMediaItemTransition", "player.isPlaying: ${player.isPlaying}")
             }
-
-            // 재생, 재생 완료, 버퍼링 상태 ...
-            override fun onPlaybackStateChanged(state: Int) {
-                super.onPlaybackStateChanged(state)
-            }
         })
     }
 
@@ -262,8 +245,10 @@ class MainActivity : AppCompatActivity(),
                             0
                         }
                     }
+
                     seekTo(prevIndex, 0)
                 }
+
                 setPlayerListener()
                 musicServiceStart()
             }
