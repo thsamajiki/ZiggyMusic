@@ -77,37 +77,35 @@ class PlayerFragment : Fragment(), View.OnClickListener {
 
     // AudioDeviceInfo를 이용한 블루투스 오디오 기기 탐지 (Android 6.0+)
     private fun isBluetoothAudioDeviceConnected(audioManager: AudioManager): Boolean {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            val devices = audioManager.getDevices(AudioManager.GET_DEVICES_OUTPUTS)
-            for (device in devices) {
-                when (device.type) {
-                    AudioDeviceInfo.TYPE_BLUETOOTH_A2DP,
-                    AudioDeviceInfo.TYPE_BLUETOOTH_SCO,
-                        -> {
-                        Log.d("Bluetooth", "Bluetooth output device connected: type=${device.type}")
-                        return true
-                    }
+        val devices = audioManager.getDevices(AudioManager.GET_DEVICES_OUTPUTS)
+        for (device in devices) {
+            when (device.type) {
+                AudioDeviceInfo.TYPE_BLUETOOTH_A2DP,
+                AudioDeviceInfo.TYPE_BLUETOOTH_SCO,
+                    -> {
+                    Log.d("Bluetooth", "Bluetooth output device connected: type=${device.type}")
+                    return true
                 }
             }
         }
+
         return false
     }
 
     // AudioDeviceInfo를 이용한 유선 오디오 기기 탐지 (Android 6.0+)
     private fun isWiredAudioDeviceConnected(audioManager: AudioManager): Boolean {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            val devices = audioManager.getDevices(AudioManager.GET_DEVICES_OUTPUTS)
-            for (device in devices) {
-                when (device.type) {
-                    AudioDeviceInfo.TYPE_WIRED_HEADPHONES,
-                    AudioDeviceInfo.TYPE_WIRED_HEADSET,
-                        -> {
-                        Log.d("Bluetooth", "Wired output device connected: type=${device.type}")
-                        return true
-                    }
+        val devices = audioManager.getDevices(AudioManager.GET_DEVICES_OUTPUTS)
+        for (device in devices) {
+            when (device.type) {
+                AudioDeviceInfo.TYPE_WIRED_HEADPHONES,
+                AudioDeviceInfo.TYPE_WIRED_HEADSET,
+                    -> {
+                    Log.d("Bluetooth", "Wired output device connected: type=${device.type}")
+                    return true
                 }
             }
         }
+
         return false
     }
     private var currentMusic: MusicModel? = null // 현재 재생 중인 음원
