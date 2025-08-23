@@ -31,7 +31,6 @@ class MusicListFragment : Fragment(),
     private val binding get() = _binding!!
 
     private val musicListViewModel by viewModels<MusicListViewModel>()
-    private var playerModel: PlayerModel = PlayerModel()
 
     private lateinit var musicListAdapter: MusicListAdapter
 
