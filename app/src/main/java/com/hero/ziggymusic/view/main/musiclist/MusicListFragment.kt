@@ -24,7 +24,7 @@ import com.hero.ziggymusic.view.main.musiclist.viewmodel.MusicListViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-class MusicListFragment : Fragment(), View.OnClickListener,
+class MusicListFragment : Fragment(),
     OnRecyclerItemClickListener<MusicModel> {
 
     private var _binding: FragmentMusicListBinding? = null
@@ -124,8 +124,5 @@ class MusicListFragment : Fragment(), View.OnClickListener,
 
     companion object {
         fun newInstance() = MusicListFragment()
-    }
-
-    override fun onClick(view: View?) {
     }
 }
