@@ -216,15 +216,12 @@ class MainActivity : AppCompatActivity(),
                 val newMusicKey: String = mediaItem?.mediaId ?: return
                 playerModel.changedMusic(newMusicKey)
 
-//                updatePlayerView(playerModel.currentMusic)
                 Log.d("onMediaItemTransition", "player.isPlaying: ${player.isPlaying}")
             }
 
             // 재생, 재생 완료, 버퍼링 상태 ...
             override fun onPlaybackStateChanged(state: Int) {
                 super.onPlaybackStateChanged(state)
-
-//                updateSeek()
             }
         })
     }
@@ -296,7 +293,6 @@ class MainActivity : AppCompatActivity(),
             if (grantResults[0] != PackageManager.PERMISSION_GRANTED) {
                 Toast.makeText(this, "권한 요청을 승인해야만 앱을 실행할 수 있습니다.", Toast.LENGTH_SHORT).show()
                 EventBus.getInstance().post(Event("PERMISSION_DENIED"))
-//                finish()
             } else {
                 setFragmentAdapter()
                 playerController.startPlayer()
@@ -313,7 +309,6 @@ class MainActivity : AppCompatActivity(),
 
     override fun onDestroy() {
         EventBus.getInstance().unregister(this)
-        // MainActivity.onDestroy()에서 stopService 제거
         // -> 액티비티 종료/재생성 Notification 클릭 등과 무관하게 백그라운드 재생 유지
         super.onDestroy()
     }
