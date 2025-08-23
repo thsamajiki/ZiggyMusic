@@ -17,7 +17,6 @@ import android.graphics.drawable.Drawable
 import android.media.AudioDeviceInfo
 import android.media.AudioManager
 import android.net.Uri
-import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -65,7 +64,7 @@ import kotlin.random.Random
 import androidx.core.graphics.createBitmap
 
 @AndroidEntryPoint
-class PlayerFragment : Fragment(), View.OnClickListener {
+class PlayerFragment : Fragment() {
     private var _binding: FragmentPlayerBinding? = null
     private val binding get() = _binding!!
 
@@ -850,8 +849,5 @@ class PlayerFragment : Fragment(), View.OnClickListener {
                     putString(EXTRA_MUSIC_FILE_KEY, musicKey)
                 }
             }
-    }
-
-    override fun onClick(view: View?) {
     }
 }
