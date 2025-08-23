@@ -62,6 +62,7 @@ import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import kotlin.math.max
 import kotlin.random.Random
+import androidx.core.graphics.createBitmap
 
 @AndroidEntryPoint
 class PlayerFragment : Fragment(), View.OnClickListener {
@@ -135,7 +136,7 @@ class PlayerFragment : Fragment(), View.OnClickListener {
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
-        savedInstanceState: Bundle?
+        savedInstanceState: Bundle?,
     ): View {
         _binding = FragmentPlayerBinding.inflate(inflater, container, false)
 
@@ -720,7 +721,7 @@ class PlayerFragment : Fragment(), View.OnClickListener {
             return drawable.bitmap
         }
 
-        val bitmap = Bitmap.createBitmap(drawable.intrinsicWidth, drawable.intrinsicHeight, Bitmap.Config.ARGB_8888)
+        val bitmap = createBitmap(drawable.intrinsicWidth, drawable.intrinsicHeight)
         val canvas = Canvas(bitmap)
         drawable.setBounds(0, 0, canvas.width, canvas.height)
         drawable.draw(canvas)
