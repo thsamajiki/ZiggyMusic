@@ -75,6 +75,29 @@ class PlayerFragment : Fragment(), View.OnClickListener {
     @Inject
     lateinit var player: ExoPlayer
 
+    private var currentMusic: MusicModel? = null // 현재 재생 중인 음원
+
+    private lateinit var playerMotionManager: PlayerMotionManager
+    private lateinit var playerBottomSheetManager: PlayerBottomSheetManager
+
+    private lateinit var audioManager: AudioManager
+    private var currentVolume: Int = 0  // 현재 볼륨
+    private var previousVolume: Int = 0 // 이전 볼륨 저장
+
+    private var volumeObserver: ContentObserver? = null // 시스템 볼륨 변경 이벤트 옵저버
+
+    private val musicKey: String
+        get() = requireArguments().getString(EXTRA_MUSIC_FILE_KEY).orEmpty()
+
+    private val updateSeekRunnable = Runnable {
+        updateSeek()
+    }
+
+    private val updateBluetoothRunnable = Runnable {
+        updateBluetoothIcon()
+        scheduleBluetoothUpdate()
+    }
+
     // AudioDeviceInfo를 이용한 블루투스 오디오 기기 탐지 (Android 6.0+)
     private fun isBluetoothAudioDeviceConnected(audioManager: AudioManager): Boolean {
         val devices = audioManager.getDevices(AudioManager.GET_DEVICES_OUTPUTS)
@@ -107,28 +130,6 @@ class PlayerFragment : Fragment(), View.OnClickListener {
         }
 
         return false
-    }
-    private var currentMusic: MusicModel? = null // 현재 재생 중인 음원
-
-    private lateinit var playerMotionManager: PlayerMotionManager
-    private lateinit var playerBottomSheetManager: PlayerBottomSheetManager
-
-    private lateinit var audioManager: AudioManager
-    private var currentVolume: Int = 0  // 현재 볼륨
-    private var previousVolume: Int = 0 // 이전 볼륨 저장
-
-    private var volumeObserver: ContentObserver? = null // 시스템 볼륨 변경 이벤트 옵저버
-
-    private val musicKey: String
-        get() = requireArguments().getString(EXTRA_MUSIC_FILE_KEY).orEmpty()
-
-    private val updateSeekRunnable = Runnable {
-        updateSeek()
-    }
-
-    private val updateBluetoothRunnable = Runnable {
-        updateBluetoothIcon()
-        scheduleBluetoothUpdate()
     }
 
     override fun onCreateView(
