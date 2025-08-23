@@ -1,4 +1,4 @@
-package com.hero.ziggymusic.database.di
+package com.hero.ziggymusic.di
 
 import com.hero.ziggymusic.database.music.repository.MusicRepositoryImpl
 import com.hero.ziggymusic.database.music.repository.MusicRepository
@@ -11,7 +11,6 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 abstract class RepositoryModule {
-
     @Singleton
     @Binds
     abstract fun bindMusicRepository(

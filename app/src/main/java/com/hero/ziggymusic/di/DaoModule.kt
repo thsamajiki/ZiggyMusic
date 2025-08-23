@@ -1,4 +1,4 @@
-package com.hero.ziggymusic.database.di
+package com.hero.ziggymusic.di
 
 import android.app.Application
 import com.hero.ziggymusic.database.AppMusicDatabase
@@ -14,7 +14,6 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 class DaoModule {
-
     @Singleton
     @Provides
     fun provideMusicDao(appMusicDatabase: AppMusicDatabase): MusicFileDao {
