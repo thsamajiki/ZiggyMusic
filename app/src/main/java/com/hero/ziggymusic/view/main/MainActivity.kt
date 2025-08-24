@@ -7,7 +7,6 @@ import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.MenuItem
-import android.view.View
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.annotation.OptIn
@@ -38,10 +37,10 @@ import com.squareup.otto.Subscribe
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import androidx.core.view.get
 
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity(),
-    View.OnClickListener,
     NavigationBarView.OnItemSelectedListener {
 
     private lateinit var binding: ActivityMainBinding
@@ -159,23 +158,11 @@ class MainActivity : AppCompatActivity(),
         val titleArr = resources.getStringArray(R.array.title_array)
 
         binding.mainViewPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
-            override fun onPageScrolled(
-                position: Int,
-                positionOffset: Float,
-                positionOffsetPixels: Int,
-            ) {
-                super.onPageScrolled(position, positionOffset, positionOffsetPixels)
-            }
-
             override fun onPageSelected(position: Int) {
                 super.onPageSelected(position)
-                binding.mainBottomNav.menu.getItem(position).isChecked = true
+                binding.mainBottomNav.menu[position].isChecked = true
                 binding.tvMainTitle.text = titleArr[position]
                 title = titleArr[position]
-            }
-
-            override fun onPageScrollStateChanged(state: Int) {
-                super.onPageScrollStateChanged(state)
             }
         })
     }
@@ -216,15 +203,7 @@ class MainActivity : AppCompatActivity(),
                 val newMusicKey: String = mediaItem?.mediaId ?: return
                 playerModel.changedMusic(newMusicKey)
 
-//                updatePlayerView(playerModel.currentMusic)
                 Log.d("onMediaItemTransition", "player.isPlaying: ${player.isPlaying}")
-            }
-
-            // 재생, 재생 완료, 버퍼링 상태 ...
-            override fun onPlaybackStateChanged(state: Int) {
-                super.onPlaybackStateChanged(state)
-
-//                updateSeek()
             }
         })
     }
@@ -265,8 +244,10 @@ class MainActivity : AppCompatActivity(),
                             0
                         }
                     }
+
                     seekTo(prevIndex, 0)
                 }
+
                 setPlayerListener()
                 musicServiceStart()
             }
@@ -296,7 +277,6 @@ class MainActivity : AppCompatActivity(),
             if (grantResults[0] != PackageManager.PERMISSION_GRANTED) {
                 Toast.makeText(this, "권한 요청을 승인해야만 앱을 실행할 수 있습니다.", Toast.LENGTH_SHORT).show()
                 EventBus.getInstance().post(Event("PERMISSION_DENIED"))
-//                finish()
             } else {
                 setFragmentAdapter()
                 playerController.startPlayer()
@@ -313,11 +293,7 @@ class MainActivity : AppCompatActivity(),
 
     override fun onDestroy() {
         EventBus.getInstance().unregister(this)
-        // MainActivity.onDestroy()에서 stopService 제거
         // -> 액티비티 종료/재생성 Notification 클릭 등과 무관하게 백그라운드 재생 유지
         super.onDestroy()
-    }
-
-    override fun onClick(view: View?) {
     }
 }

@@ -1,4 +1,4 @@
-package com.hero.ziggymusic.database.di
+package com.hero.ziggymusic.di
 
 import com.hero.ziggymusic.database.local.MusicLocalDataSource
 import com.hero.ziggymusic.database.local.MusicLocalDataSourceImpl
@@ -11,7 +11,6 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 abstract class DataSourceModule {
-
     @Singleton
     @Binds
     abstract fun bindMusicLocalDataSource(

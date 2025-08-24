@@ -4,7 +4,7 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import com.hero.ziggymusic.database.music.entity.MusicModel
-import com.hero.ziggymusic.database.music.repository.MusicRepository
+import com.hero.ziggymusic.domain.music.repository.MusicRepository
 import com.hero.ziggymusic.view.main.player.PlayerMotionManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow

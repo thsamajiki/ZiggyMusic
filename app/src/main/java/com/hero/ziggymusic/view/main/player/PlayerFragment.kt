@@ -17,7 +17,6 @@ import android.graphics.drawable.Drawable
 import android.media.AudioDeviceInfo
 import android.media.AudioManager
 import android.net.Uri
-import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -62,9 +61,10 @@ import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import kotlin.math.max
 import kotlin.random.Random
+import androidx.core.graphics.createBitmap
 
 @AndroidEntryPoint
-class PlayerFragment : Fragment(), View.OnClickListener {
+class PlayerFragment : Fragment() {
     private var _binding: FragmentPlayerBinding? = null
     private val binding get() = _binding!!
 
@@ -75,41 +75,6 @@ class PlayerFragment : Fragment(), View.OnClickListener {
     @Inject
     lateinit var player: ExoPlayer
 
-    // AudioDeviceInfo를 이용한 블루투스 오디오 기기 탐지 (Android 6.0+)
-    private fun isBluetoothAudioDeviceConnected(audioManager: AudioManager): Boolean {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            val devices = audioManager.getDevices(AudioManager.GET_DEVICES_OUTPUTS)
-            for (device in devices) {
-                when (device.type) {
-                    AudioDeviceInfo.TYPE_BLUETOOTH_A2DP,
-                    AudioDeviceInfo.TYPE_BLUETOOTH_SCO,
-                        -> {
-                        Log.d("Bluetooth", "Bluetooth output device connected: type=${device.type}")
-                        return true
-                    }
-                }
-            }
-        }
-        return false
-    }
-
-    // AudioDeviceInfo를 이용한 유선 오디오 기기 탐지 (Android 6.0+)
-    private fun isWiredAudioDeviceConnected(audioManager: AudioManager): Boolean {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            val devices = audioManager.getDevices(AudioManager.GET_DEVICES_OUTPUTS)
-            for (device in devices) {
-                when (device.type) {
-                    AudioDeviceInfo.TYPE_WIRED_HEADPHONES,
-                    AudioDeviceInfo.TYPE_WIRED_HEADSET,
-                        -> {
-                        Log.d("Bluetooth", "Wired output device connected: type=${device.type}")
-                        return true
-                    }
-                }
-            }
-        }
-        return false
-    }
     private var currentMusic: MusicModel? = null // 현재 재생 중인 음원
 
     private lateinit var playerMotionManager: PlayerMotionManager
@@ -133,10 +98,44 @@ class PlayerFragment : Fragment(), View.OnClickListener {
         scheduleBluetoothUpdate()
     }
 
+    // AudioDeviceInfo를 이용한 블루투스 오디오 기기 탐지
+    private fun isBluetoothAudioDeviceConnected(audioManager: AudioManager): Boolean {
+        val devices = audioManager.getDevices(AudioManager.GET_DEVICES_OUTPUTS)
+        for (device in devices) {
+            when (device.type) {
+                AudioDeviceInfo.TYPE_BLUETOOTH_A2DP,
+                AudioDeviceInfo.TYPE_BLUETOOTH_SCO,
+                    -> {
+                    Log.d("Bluetooth", "Bluetooth output device connected: type=${device.type}")
+                    return true
+                }
+            }
+        }
+
+        return false
+    }
+
+    // AudioDeviceInfo를 이용한 유선 오디오 기기 탐지
+    private fun isWiredAudioDeviceConnected(audioManager: AudioManager): Boolean {
+        val devices = audioManager.getDevices(AudioManager.GET_DEVICES_OUTPUTS)
+        for (device in devices) {
+            when (device.type) {
+                AudioDeviceInfo.TYPE_WIRED_HEADPHONES,
+                AudioDeviceInfo.TYPE_WIRED_HEADSET,
+                    -> {
+                    Log.d("Bluetooth", "Wired output device connected: type=${device.type}")
+                    return true
+                }
+            }
+        }
+
+        return false
+    }
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
-        savedInstanceState: Bundle?
+        savedInstanceState: Bundle?,
     ): View {
         _binding = FragmentPlayerBinding.inflate(inflater, container, false)
 
@@ -154,10 +153,6 @@ class PlayerFragment : Fragment(), View.OnClickListener {
         initViewModel()
         initPlayControlButtons()
         initSeekBar()
-
-//        val musicList = requireActivity().intent.getStringExtra("musicList") as Playlist?
-        val currentPosition = requireActivity().intent.getIntExtra("currentPosition", player.currentMediaItemIndex ?: 0)
-
         initPlayerBottomSheetManager()
 
         playerMotionManager = PlayerMotionManager(
@@ -220,9 +215,6 @@ class PlayerFragment : Fragment(), View.OnClickListener {
                     Log.d("Bluetooth", "Manual toggle: switched to airplay icon")
                 }
             }
-
-            // 실제 블루투스 상태도 다시 확인
-            binding.root.postDelayed({ updateBluetoothIcon() }, 100)
         }
 
         // 초기 블루투스 상태 체크 및 아이콘 설정
@@ -306,7 +298,7 @@ class PlayerFragment : Fragment(), View.OnClickListener {
         try {
             val bluetoothAdapter: BluetoothAdapter? = bluetoothManager.adapter
 
-            // Check classic profile connections
+            // 블루투스 profile connections
             val a2dpConnected =
                 bluetoothAdapter?.getProfileConnectionState(BluetoothProfile.A2DP) == BluetoothAdapter.STATE_CONNECTED
             val headsetConnected =
@@ -320,7 +312,7 @@ class PlayerFragment : Fragment(), View.OnClickListener {
                 return true
             }
 
-            // As fallback, also check GATT connections
+            // GATT connections 검사
             val bluetoothDevices = bluetoothAdapter?.bondedDevices ?: emptySet()
             bluetoothDevices.forEach { device ->
                 val connectionState =
@@ -359,7 +351,6 @@ class PlayerFragment : Fragment(), View.OnClickListener {
                 }
 
                 override fun onSlide(bottomSheet: View, slideOffset: Float) {
-                    //                    binding.constraintLayout.progress = slideOffset
                 }
             }
         )
@@ -551,7 +542,6 @@ class PlayerFragment : Fragment(), View.OnClickListener {
     }
 
     private fun initPlayView() {
-//        player = ExoPlayer.Builder(requireContext()).build()
         binding.vPlayer.player = player
 
         syncPlayerUi()
@@ -656,18 +646,11 @@ class PlayerFragment : Fragment(), View.OnClickListener {
 
         val view = binding.root
         view.removeCallbacks(updateSeekRunnable)
-        // 재생 중일때 (대 중이 아니거나, 재생이 끝나지 않은 경우)
-        if (state != Player.STATE_IDLE && state != Player.STATE_ENDED) {
-            view.postDelayed(updateSeekRunnable, 1000) // 1초에 한번씩 실행
-        }
     }
 
     private fun updateSeekUi(duration: Long, position: Long) {
         binding.sbPlayer.max = (duration / 1000).toInt() // 총 길이를 설정. 1000으로 나눠 작게
         binding.sbPlayer.progress = (position / 1000).toInt() // 동일하게 1000으로 나눠 작게
-
-//        binding.sbPlayer.max = (duration / 1000).toInt()
-//        binding.sbPlayer.progress = (position / 1000).toInt()
 
         binding.tvCurrentPlayTime.text = String.format(
             Locale.KOREA,
@@ -737,7 +720,7 @@ class PlayerFragment : Fragment(), View.OnClickListener {
             return drawable.bitmap
         }
 
-        val bitmap = Bitmap.createBitmap(drawable.intrinsicWidth, drawable.intrinsicHeight, Bitmap.Config.ARGB_8888)
+        val bitmap = createBitmap(drawable.intrinsicWidth, drawable.intrinsicHeight)
         val canvas = Canvas(bitmap)
         drawable.setBounds(0, 0, canvas.width, canvas.height)
         drawable.draw(canvas)
@@ -752,7 +735,6 @@ class PlayerFragment : Fragment(), View.OnClickListener {
     override fun onStop() {
         super.onStop()
 
-        // player.pause() 및 이벤트 제거 → 백그라운드에서도 재생 유지
         stopSeekUpdates()
         binding.root.removeCallbacks(updateBluetoothRunnable)
         stopVolumeObserver()    // 하드웨어 볼륨 변경 감지 중지
@@ -796,14 +778,12 @@ class PlayerFragment : Fragment(), View.OnClickListener {
         super.onDestroy()
 
         _binding = null
-        // player.release() 제거 → 싱글톤 플레이어 상태 유지
     }
 
     private fun scheduleBluetoothUpdate() {
         if (_binding == null) return
 
         binding.root.removeCallbacks(updateBluetoothRunnable)
-        binding.root.postDelayed(updateBluetoothRunnable, 5000) // 5초마다 업데이트
     }
 
     // 시스템 볼륨 → UI 동기화
@@ -869,8 +849,5 @@ class PlayerFragment : Fragment(), View.OnClickListener {
                     putString(EXTRA_MUSIC_FILE_KEY, musicKey)
                 }
             }
-    }
-
-    override fun onClick(view: View?) {
     }
 }

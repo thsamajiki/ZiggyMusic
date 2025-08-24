@@ -26,14 +26,13 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
-class MyPlaylistFragment : Fragment(), View.OnClickListener,
+class MyPlaylistFragment : Fragment(),
     OnRecyclerItemClickListener<MusicModel> {
 
     private var _binding: FragmentMyPlaylistBinding? = null
     private val binding get() = _binding!!
 
     private val viewModel by viewModels<MyPlaylistViewModel>()
-    private val playerModel: PlayerModel = PlayerModel.getInstance()
 
     private lateinit var myPlayListAdapter: MyPlaylistAdapter
 
@@ -112,8 +111,5 @@ class MyPlaylistFragment : Fragment(), View.OnClickListener,
         _binding = null
         EventBus.getInstance().unregister(this)
         super.onDestroyView()
-    }
-
-    override fun onClick(view: View?) {
     }
 }

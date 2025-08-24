@@ -3,6 +3,7 @@ package com.hero.ziggymusic.database.music.repository
 import androidx.lifecycle.LiveData
 import com.hero.ziggymusic.database.local.MusicLocalDataSource
 import com.hero.ziggymusic.database.music.entity.MusicModel
+import com.hero.ziggymusic.domain.music.repository.MusicRepository
 import javax.inject.Inject
 
 class MusicRepositoryImpl @Inject constructor(
