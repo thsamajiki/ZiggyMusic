@@ -17,7 +17,7 @@
         app:layoutDescription="@xml/player_motion_scene">
 
         <androidx.appcompat.widget.Toolbar
-            android:id="@+id/now_playing_title_toolbar"
+            android:id="@+id/nowPlayingTitleToolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
             app:contentInsetStart="0dp"
@@ -28,7 +28,7 @@
                 android:layout_height="match_parent">
 
                 <TextView
-                    android:id="@+id/tv_now_playing_title"
+                    android:id="@+id/tvNowPlayingTitle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/now_playing_title"
@@ -47,52 +47,52 @@
         </androidx.appcompat.widget.Toolbar>
 
         <View
-            android:id="@+id/v_supporter_album_background"
+            android:id="@+id/vSupporterAlbumBackground"
             android:layout_width="1dp"
             android:layout_height="1dp"
             android:layout_marginTop="30dp"
-            app:layout_constraintEnd_toEndOf="@+id/v_player"
-            app:layout_constraintStart_toStartOf="@+id/v_player"
-            app:layout_constraintTop_toTopOf="@+id/v_player" />
+            app:layout_constraintEnd_toEndOf="@+id/vPlayer"
+            app:layout_constraintStart_toStartOf="@+id/vPlayer"
+            app:layout_constraintTop_toTopOf="@+id/vPlayer" />
 
         <View
-            android:id="@+id/v_supporter_album_art"
+            android:id="@+id/vSupporterAlbumArt"
             android:layout_width="1dp"
             android:layout_height="1dp"
-            app:layout_constraintBottom_toTopOf="@+id/v_player"
+            app:layout_constraintBottom_toTopOf="@+id/vPlayer"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
         <View
-            android:id="@+id/v_album_background1"
+            android:id="@+id/vAlbumBackground1"
             android:layout_width="0dp"
             android:layout_height="0dp"
             android:background="@color/black"
-            app:layout_constraintBottom_toTopOf="@+id/v_supporter_album_art"
-            app:layout_constraintEnd_toStartOf="@+id/v_supporter_album_art"
+            app:layout_constraintBottom_toTopOf="@+id/vSupporterAlbumArt"
+            app:layout_constraintEnd_toStartOf="@+id/vSupporterAlbumArt"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/now_playing_title_toolbar" />
+            app:layout_constraintTop_toBottomOf="@+id/nowPlayingTitleToolbar" />
 
         <View
-            android:id="@+id/v_album_background2"
+            android:id="@+id/vAlbumBackground2"
             android:layout_width="0dp"
             android:layout_height="0dp"
             android:background="@color/black"
-            app:layout_constraintBottom_toTopOf="@+id/v_player"
+            app:layout_constraintBottom_toTopOf="@+id/vPlayer"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toEndOf="@+id/v_album_background1"
-            app:layout_constraintTop_toBottomOf="@+id/v_album_background1" />
+            app:layout_constraintStart_toEndOf="@+id/vAlbumBackground1"
+            app:layout_constraintTop_toBottomOf="@+id/vAlbumBackground1" />
 
         <androidx.appcompat.widget.AppCompatImageView
-            android:id="@+id/iv_album_art"
+            android:id="@+id/ivAlbumArt"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             app:imageURI="@{music.albumUri}"
-            app:layout_constraintBottom_toBottomOf="@+id/v_supporter_album_art"
+            app:layout_constraintBottom_toBottomOf="@+id/vSupporterAlbumArt"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="@+id/v_supporter_album_art" />
+            app:layout_constraintTop_toTopOf="@+id/vSupporterAlbumArt" />
 
         <TextView
             android:id="@+id/tvSongTitle"
@@ -110,7 +110,7 @@
             android:textStyle="bold"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/now_playing_title_toolbar" />
+            app:layout_constraintTop_toBottomOf="@+id/nowPlayingTitleToolbar" />
 
         <TextView
             android:id="@+id/tvSongArtist"
@@ -123,7 +123,7 @@
             android:text="@{music.artist}"
             android:textColor="@color/white"
             android:textSize="@dimen/title_text_size"
-            app:layout_constraintTop_toBottomOf="@+id/iv_album_art" />
+            app:layout_constraintTop_toBottomOf="@+id/ivAlbumArt" />
 
         <TextView
             android:id="@+id/tvSongAlbum"
@@ -160,7 +160,7 @@
             app:layout_constraintTop_toBottomOf="@id/tvSongAlbum" />
 
         <androidx.media3.ui.PlayerView
-            android:id="@+id/v_player"
+            android:id="@+id/vPlayer"
             android:layout_width="0dp"
             android:layout_height="100dp"
             android:alpha="0"
@@ -178,7 +178,7 @@
             android:gravity="center_horizontal"
             android:paddingStart="50dp"
             android:paddingEnd="50dp"
-            app:layout_constraintBottom_toTopOf="@id/v_player"
+            app:layout_constraintBottom_toTopOf="@id/vPlayer"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent">
 
@@ -210,11 +210,11 @@
             android:progressBackgroundTint="@color/teal_200"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="@id/v_player"
+            app:layout_constraintTop_toTopOf="@id/vPlayer"
             tools:progress="40" />
 
         <TextView
-            android:id="@+id/tv_current_play_time"
+            android:id="@+id/tvCurrentPlayTime"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
@@ -226,7 +226,7 @@
             tools:text="00:00" />
 
         <TextView
-            android:id="@+id/tv_total_time"
+            android:id="@+id/tvTotalTime"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
@@ -238,7 +238,7 @@
             tools:text="03:00" />
 
         <com.skydoves.elasticviews.ElasticImageView
-            android:id="@+id/iv_play_pause"
+            android:id="@+id/ivPlayPause"
             android:layout_width="50dp"
             android:layout_height="50dp"
             android:src="@drawable/ic_play_button"
@@ -246,10 +246,10 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="@id/v_player" />
+            app:layout_constraintTop_toTopOf="@id/vPlayer" />
 
         <com.skydoves.elasticviews.ElasticImageView
-            android:id="@+id/iv_next"
+            android:id="@+id/ivNext"
             android:layout_width="40dp"
             android:layout_height="40dp"
             android:src="@drawable/ic_next_button"
@@ -257,20 +257,20 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0.2"
-            app:layout_constraintStart_toEndOf="@id/iv_play_pause"
-            app:layout_constraintTop_toTopOf="@id/v_player" />
+            app:layout_constraintStart_toEndOf="@id/ivPlayPause"
+            app:layout_constraintTop_toTopOf="@id/vPlayer" />
 
         <com.skydoves.elasticviews.ElasticImageView
-            android:id="@+id/iv_previous"
+            android:id="@+id/ivPrevious"
             android:layout_width="40dp"
             android:layout_height="40dp"
             android:src="@drawable/ic_prev_button"
             app:imageView_duration="200"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toStartOf="@id/iv_play_pause"
+            app:layout_constraintEnd_toStartOf="@id/ivPlayPause"
             app:layout_constraintHorizontal_bias="0.8"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="@id/v_player" />
+            app:layout_constraintTop_toTopOf="@id/vPlayer" />
 
         <com.skydoves.elasticviews.ElasticImageView
             android:id="@+id/ivRepeatMode"
@@ -281,7 +281,7 @@
             app:imageView_duration="200"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="@id/v_player" />
+            app:layout_constraintTop_toTopOf="@id/vPlayer" />
 
         <com.skydoves.elasticviews.ElasticImageView
             android:id="@+id/ivShuffleMode"
@@ -292,7 +292,7 @@
             app:imageView_duration="200"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="@id/v_player" />
+            app:layout_constraintTop_toTopOf="@id/vPlayer" />
 
     </androidx.constraintlayout.motion.widget.MotionLayout>
 </layout>
