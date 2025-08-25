@@ -115,7 +115,7 @@
                     app:layout_constraintTop_toTopOf="parent" />
 
                 <SeekBar
-                    android:id="@+id/bassSeekbar"
+                    android:id="@+id/sbBass"
                     android:layout_width="match_parent"
                     android:layout_height="40dp"
                     android:layout_gravity="center_vertical"
@@ -136,10 +136,10 @@
                     android:text="3D Virtualizer: "
                     android:textColor="@color/white"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/bassSeekbar" />
+                    app:layout_constraintTop_toBottomOf="@id/sbBass" />
 
                 <SeekBar
-                    android:id="@+id/virtualizerSeekbar"
+                    android:id="@+id/sbVirtualizer"
                     android:layout_width="match_parent"
                     android:layout_height="40dp"
                     android:layout_gravity="center_vertical"

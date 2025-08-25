@@ -255,11 +255,11 @@ class SettingFragment : Fragment() {
             }
         }
 
-        binding.bassSeekbar.progressDrawable.setTint(mainColor)
-        binding.bassSeekbar.thumb.setTint(mainColor)
-        binding.bassSeekbar.progress = bassProgress
+        binding.sbBass.progressDrawable.setTint(mainColor)
+        binding.sbBass.thumb.setTint(mainColor)
+        binding.sbBass.progress = bassProgress
 
-        binding.bassSeekbar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+        binding.sbBass.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar, progress: Int, fromUser: Boolean) {
                 if (bassBoost != null) {
                     if (bassBoost!!.strengthSupported) {
@@ -284,11 +284,11 @@ class SettingFragment : Fragment() {
             }
         }
 
-        binding.virtualizerSeekbar.progressDrawable.setTint(mainColor)
-        binding.virtualizerSeekbar.thumb.setTint(mainColor)
-        binding.virtualizerSeekbar.progress = virtualizerProgress
+        binding.sbVirtualizer.progressDrawable.setTint(mainColor)
+        binding.sbVirtualizer.thumb.setTint(mainColor)
+        binding.sbVirtualizer.progress = virtualizerProgress
 
-        binding.virtualizerSeekbar.setOnSeekBarChangeListener(object :
+        binding.sbVirtualizer.setOnSeekBarChangeListener(object :
             SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar, progress: Int, fromUser: Boolean) {
                 if (virtualizer != null) {
@@ -311,10 +311,10 @@ class SettingFragment : Fragment() {
         val settings = requireActivity().getSharedPreferences("SettingFragment", 0)
 
         val virtualizerProgress = settings.getInt("VIRTUALIZER", 0)
-        binding.virtualizerSeekbar.progress = virtualizerProgress
+        binding.sbVirtualizer.progress = virtualizerProgress
 
         val bassProgress = settings!!.getInt("BASS", 0)
-        binding.bassSeekbar.progress = bassProgress
+        binding.sbBass.progress = bassProgress
     }
 
     override fun onPause() {
@@ -324,8 +324,8 @@ class SettingFragment : Fragment() {
 
         val settings = requireActivity().getSharedPreferences("SettingFragment", 0).edit()
 
-        settings.putInt("BASS", binding.bassSeekbar.progress)
-        settings.putInt("VIRTUALIZER", binding.virtualizerSeekbar.progress)
+        settings.putInt("BASS", binding.sbBass.progress)
+        settings.putInt("VIRTUALIZER", binding.sbVirtualizer.progress)
 
         settings.apply()
     }
