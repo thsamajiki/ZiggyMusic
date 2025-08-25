@@ -2,7 +2,6 @@ package com.hero.ziggymusic.view.main.myplaylist
 
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -10,12 +9,10 @@ import androidx.appcompat.widget.PopupMenu
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.hero.ziggymusic.R
 import com.hero.ziggymusic.database.music.entity.MusicModel
-import com.hero.ziggymusic.database.music.entity.PlayerModel
 import com.hero.ziggymusic.databinding.FragmentMyPlaylistBinding
 import com.hero.ziggymusic.event.EventBus
 import com.hero.ziggymusic.ext.playMusic
@@ -23,7 +20,6 @@ import com.hero.ziggymusic.service.MusicService
 import com.hero.ziggymusic.view.listener.OnRecyclerItemClickListener
 import com.hero.ziggymusic.view.main.myplaylist.viewmodel.MyPlaylistViewModel
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class MyPlaylistFragment : Fragment(),
@@ -74,7 +70,7 @@ class MyPlaylistFragment : Fragment(),
 
     override fun onItemClick(position: Int, view: View, data: MusicModel) {
         when (view.id) {
-            R.id.iv_music_option_menu -> openDeleteFromMyPlayListOptionMenu(data, view)
+            R.id.ivMusicOptionMenu -> openDeleteFromMyPlayListOptionMenu(data, view)
 
             else -> playMusic(data.id)
         }

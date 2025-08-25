@@ -14,7 +14,6 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.hero.ziggymusic.R
 import com.hero.ziggymusic.database.music.entity.MusicModel
-import com.hero.ziggymusic.database.music.entity.PlayerModel
 import com.hero.ziggymusic.databinding.FragmentMusicListBinding
 import com.hero.ziggymusic.event.EventBus
 import com.hero.ziggymusic.ext.playMusic
@@ -68,7 +67,7 @@ class MusicListFragment : Fragment(),
 
     override fun onItemClick(position: Int, view: View, data: MusicModel) {
         when (view.id) {
-            R.id.iv_music_option_menu -> openAddOrDeleteToFromMyPlaylistOptionMenu(data, view)
+            R.id.ivMusicOptionMenu -> openAddOrDeleteToFromMyPlaylistOptionMenu(data, view)
 
             else -> {
                 playMusic(data.id)

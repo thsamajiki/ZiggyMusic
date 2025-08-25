@@ -70,15 +70,15 @@ class MainActivity : AppCompatActivity(),
 
         playerController = PlayerController(
             this,
-            binding.playerContainer,
+            binding.containerPlayer,
             supportFragmentManager,
             onStateChanged = { newState ->
                 when (newState) {
                     BottomSheetBehavior.STATE_EXPANDED -> {
-                        binding.mainBottomNav.isGone = true
+                        binding.bottomNavMain.isGone = true
                     }
                     BottomSheetBehavior.STATE_COLLAPSED -> {
-                        binding.mainBottomNav.isVisible = true
+                        binding.bottomNavMain.isVisible = true
                     }
                 }
             })
@@ -116,13 +116,13 @@ class MainActivity : AppCompatActivity(),
 
         binding.ivBack.setOnClickListener {
             val transaction = supportFragmentManager.beginTransaction()
-            transaction.remove(supportFragmentManager.findFragmentById(R.id.frameLayout)!!).commit()
+            transaction.remove(supportFragmentManager.findFragmentById(R.id.layoutFrame)!!).commit()
             supportFragmentManager.popBackStack()
 
             binding.ivBack.isInvisible = true
             binding.ivSetting.isVisible = true
             binding.ivSetting.isEnabled = true
-            binding.mainViewPager.isVisible = true
+            binding.viewPagerMain.isVisible = true
 
             binding.tvMainTitle.text = title
         }
@@ -130,18 +130,18 @@ class MainActivity : AppCompatActivity(),
         binding.ivSetting.setOnClickListener {
             val intent = SettingFragment.newInstance()
             val transaction = supportFragmentManager.beginTransaction()
-            transaction.add(R.id.frameLayout, intent).commit()
+            transaction.add(R.id.layoutFrame, intent).commit()
             supportFragmentManager.executePendingTransactions()
 
             binding.ivBack.isVisible = true
             binding.ivSetting.isInvisible = true
             binding.ivSetting.isEnabled = false
-            binding.mainViewPager.isInvisible = true
+            binding.viewPagerMain.isInvisible = true
 
             binding.tvMainTitle.text = titleArr[2]
         }
 
-        binding.mainBottomNav.setOnItemSelectedListener(this)
+        binding.bottomNavMain.setOnItemSelectedListener(this)
     }
 
     override fun onStart() {
@@ -153,14 +153,14 @@ class MainActivity : AppCompatActivity(),
 
     private fun setFragmentAdapter() {
         val fragmentAdapter = FragmentAdapter(this)
-        binding.mainViewPager.adapter = fragmentAdapter
+        binding.viewPagerMain.adapter = fragmentAdapter
 
         val titleArr = resources.getStringArray(R.array.title_array)
 
-        binding.mainViewPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
+        binding.viewPagerMain.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
             override fun onPageSelected(position: Int) {
                 super.onPageSelected(position)
-                binding.mainBottomNav.menu[position].isChecked = true
+                binding.bottomNavMain.menu[position].isChecked = true
                 binding.tvMainTitle.text = titleArr[position]
                 title = titleArr[position]
             }
@@ -184,10 +184,10 @@ class MainActivity : AppCompatActivity(),
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             R.id.menu_music_list -> {
-                binding.mainViewPager.currentItem = 0
+                binding.viewPagerMain.currentItem = 0
             }
             R.id.menu_my_play_list -> {
-                binding.mainViewPager.currentItem = 1
+                binding.viewPagerMain.currentItem = 1
             }
         }
         return false
