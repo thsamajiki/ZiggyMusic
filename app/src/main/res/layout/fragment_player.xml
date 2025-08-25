@@ -18,7 +18,7 @@
         app:layoutDescription="@xml/player_motion_scene">
 
         <androidx.appcompat.widget.Toolbar
-            android:id="@+id/nowPlayingTitleToolbar"
+            android:id="@+id/toolbarNowPlayingTitle"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
             app:contentInsetStart="0dp"
@@ -72,7 +72,7 @@
             app:layout_constraintBottom_toTopOf="@+id/vSupporterAlbumArt"
             app:layout_constraintEnd_toStartOf="@+id/vSupporterAlbumArt"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/nowPlayingTitleToolbar" />
+            app:layout_constraintTop_toBottomOf="@+id/toolbarNowPlayingTitle" />
 
         <View
             android:id="@+id/vAlbumBackground2"
@@ -110,7 +110,7 @@
             android:textStyle="bold"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/nowPlayingTitleToolbar" />
+            app:layout_constraintTop_toBottomOf="@+id/toolbarNowPlayingTitle" />
 
         <TextView
             android:id="@+id/tvSongArtist"
