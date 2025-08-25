@@ -13,7 +13,7 @@
         android:orientation="vertical">
 
         <androidx.appcompat.widget.Toolbar
-            android:id="@+id/main_toolbar"
+            android:id="@+id/mainToolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
             android:background="@color/dark_black"
@@ -37,7 +37,7 @@
                     tools:ignore="TouchTargetSizeCheck" />
 
                 <TextView
-                    android:id="@+id/tv_main_title"
+                    android:id="@+id/tvMainTitle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textColor="@color/white"
@@ -70,12 +70,12 @@
             android:layout_marginBottom="125dp">
 
             <androidx.viewpager2.widget.ViewPager2
-                android:id="@+id/main_view_pager"
+                android:id="@+id/mainViewPager"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:background="@drawable/main_background"
-                app:layout_constraintBottom_toTopOf="@id/player_container"
-                app:layout_constraintTop_toBottomOf="@id/main_toolbar" />
+                app:layout_constraintBottom_toTopOf="@id/playerContainer"
+                app:layout_constraintTop_toBottomOf="@id/mainToolbar" />
 
         </FrameLayout>
 
@@ -84,27 +84,27 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_marginBottom="125dp"
-            app:layout_constraintBottom_toTopOf="@id/player_container"
+            app:layout_constraintBottom_toTopOf="@id/playerContainer"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/main_toolbar" />
+            app:layout_constraintTop_toBottomOf="@id/mainToolbar" />
 
     </LinearLayout>
 
     <androidx.fragment.app.FragmentContainerView
-        android:id="@+id/player_container"
+        android:id="@+id/playerContainer"
         style="@style/PlayerBottomSheet"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         app:behavior_peekHeight="125dp"
         app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior"
-        app:layout_constraintBottom_toTopOf="@id/main_bottom_nav"
+        app:layout_constraintBottom_toTopOf="@id/mainBottomNav"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
     <com.google.android.material.bottomnavigation.BottomNavigationView
-        android:id="@+id/main_bottom_nav"
+        android:id="@+id/mainBottomNav"
         android:layout_width="match_parent"
         android:layout_height="56dp"
         android:layout_gravity="bottom"
