@@ -20,7 +20,7 @@ class PlayerMotionManager(
     }
 
     private fun collapse() {
-        motionLayout.setTransition(R.id.expanded_to_collapsed)
+        motionLayout.setTransition(R.id.expandedToCollapsed)
         motionLayout.progress = 0f
         motionLayout.transitionToEnd()
 
@@ -28,7 +28,7 @@ class PlayerMotionManager(
     }
 
     private fun expand() {
-        motionLayout.setTransition(R.id.collapsed_to_expanded)
+        motionLayout.setTransition(R.id.collapsedToExpanded)
         motionLayout.progress = 0f
         motionLayout.transitionToEnd()
 
