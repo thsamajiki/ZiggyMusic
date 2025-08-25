@@ -14,7 +14,7 @@
 
     <ConstraintSet android:id="@+id/collapsed">
         <Constraint
-            android:id="@+id/nowPlayingTitleToolbar"
+            android:id="@+id/toolbarNowPlayingTitle"
             android:visibility="gone" />
 
         <Constraint
@@ -160,7 +160,7 @@
 
     <ConstraintSet android:id="@+id/expanded">
         <Constraint
-            android:id="@+id/nowPlayingTitleToolbar"
+            android:id="@+id/toolbarNowPlayingTitle"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
             motion:contentInsetStart="0dp"
@@ -192,7 +192,7 @@
             motion:layout_constraintBottom_toTopOf="@+id/vSupporterAlbumArt"
             motion:layout_constraintEnd_toStartOf="@+id/vSupporterAlbumArt"
             motion:layout_constraintStart_toStartOf="parent"
-            motion:layout_constraintTop_toBottomOf="@+id/nowPlayingTitleToolbar" />
+            motion:layout_constraintTop_toBottomOf="@+id/toolbarNowPlayingTitle" />
 
         <Constraint
             android:id="@+id/vAlbumBackground2"
@@ -227,7 +227,7 @@
             android:ellipsize="marquee"
             motion:layout_constraintEnd_toEndOf="parent"
             motion:layout_constraintStart_toStartOf="parent"
-            motion:layout_constraintTop_toBottomOf="@+id/nowPlayingTitleToolbar">
+            motion:layout_constraintTop_toBottomOf="@+id/toolbarNowPlayingTitle">
 
             <CustomAttribute
                 motion:attributeName="textSize"
