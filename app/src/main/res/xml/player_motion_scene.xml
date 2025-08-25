@@ -3,38 +3,38 @@
     xmlns:motion="http://schemas.android.com/apk/res-auto">
 
     <Transition
-        android:id="@+id/collapsed_to_expanded"
+        android:id="@+id/collapsedToExpanded"
         motion:constraintSetEnd="@id/expanded"
         motion:constraintSetStart="@id/collapsed" />
 
     <Transition
-        android:id="@+id/expanded_to_collapsed"
+        android:id="@+id/expandedToCollapsed"
         motion:constraintSetEnd="@id/collapsed"
         motion:constraintSetStart="@id/expanded" />
 
     <ConstraintSet android:id="@+id/collapsed">
         <Constraint
-            android:id="@+id/now_playing_title_toolbar"
+            android:id="@+id/nowPlayingTitleToolbar"
             android:visibility="gone" />
 
         <Constraint
-            android:id="@+id/v_supporter_album_background"
+            android:id="@+id/vSupporterAlbumBackground"
             android:visibility="gone" />
 
         <Constraint
-            android:id="@+id/v_supporter_album_art"
+            android:id="@+id/vSupporterAlbumArt"
             android:visibility="gone" />
 
         <Constraint
-            android:id="@+id/v_album_background1"
+            android:id="@+id/vAlbumBackground1"
             android:visibility="gone" />
 
         <Constraint
-            android:id="@+id/v_album_background2"
+            android:id="@+id/vAlbumBackground2"
             android:visibility="gone" />
 
         <Constraint
-            android:id="@+id/iv_album_art"
+            android:id="@+id/ivAlbumArt"
             android:layout_width="60dp"
             android:layout_height="60dp"
             android:layout_marginStart="5dp"
@@ -47,10 +47,10 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="5dp"
-            motion:layout_constraintTop_toTopOf="@id/iv_album_art"
-            motion:layout_constraintEnd_toStartOf="@id/iv_play_pause"
+            motion:layout_constraintTop_toTopOf="@id/ivAlbumArt"
+            motion:layout_constraintEnd_toStartOf="@id/ivPlayPause"
             motion:layout_constraintHorizontal_bias="0"
-            motion:layout_constraintStart_toEndOf="@id/iv_album_art"
+            motion:layout_constraintStart_toEndOf="@id/ivAlbumArt"
             motion:layout_constraintBottom_toTopOf="@id/tvSongArtist"
             motion:layout_constrainedWidth="true">
 
@@ -65,11 +65,11 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="5dp"
-            motion:layout_constraintStart_toEndOf="@id/iv_album_art"
+            motion:layout_constraintStart_toEndOf="@id/ivAlbumArt"
             motion:layout_constraintTop_toBottomOf="@id/tvSongTitle"
             motion:layout_constraintHorizontal_bias="0"
-            motion:layout_constraintEnd_toStartOf="@id/iv_play_pause"
-            motion:layout_constraintBottom_toBottomOf="@id/iv_album_art"
+            motion:layout_constraintEnd_toStartOf="@id/ivPlayPause"
+            motion:layout_constraintBottom_toBottomOf="@id/ivAlbumArt"
             motion:layout_constrainedWidth="true">
 
             <CustomAttribute
@@ -91,7 +91,7 @@
             android:visibility="gone" />
 
         <Constraint
-            android:id="@+id/v_player"
+            android:id="@+id/vPlayer"
             android:visibility="gone" />
 
         <Constraint
@@ -109,41 +109,41 @@
             motion:layout_constraintTop_toTopOf="parent" />
 
         <Constraint
-            android:id="@+id/tv_current_play_time"
+            android:id="@+id/tvCurrentPlayTime"
             android:visibility="gone" />
 
         <Constraint
-            android:id="@+id/tv_total_time"
+            android:id="@+id/tvTotalTime"
             android:visibility="gone" />
 
         <Constraint
-            android:id="@+id/iv_play_pause"
+            android:id="@+id/ivPlayPause"
             android:layout_width="50dp"
             android:layout_height="50dp"
             android:layout_marginEnd="10dp"
-            motion:layout_constraintBottom_toBottomOf="@id/iv_album_art"
-            motion:layout_constraintEnd_toStartOf="@id/iv_next"
-            motion:layout_constraintTop_toTopOf="@id/iv_album_art" />
+            motion:layout_constraintBottom_toBottomOf="@id/ivAlbumArt"
+            motion:layout_constraintEnd_toStartOf="@id/ivNext"
+            motion:layout_constraintTop_toTopOf="@id/ivAlbumArt" />
 
         <Constraint
-            android:id="@+id/iv_next"
+            android:id="@+id/ivNext"
             android:layout_width="40dp"
             android:layout_height="40dp"
             android:layout_marginEnd="10dp"
-            motion:layout_constraintBottom_toBottomOf="@id/iv_album_art"
+            motion:layout_constraintBottom_toBottomOf="@id/ivAlbumArt"
             motion:layout_constraintEnd_toEndOf="parent"
-            motion:layout_constraintTop_toTopOf="@id/iv_album_art" />
+            motion:layout_constraintTop_toTopOf="@id/ivAlbumArt" />
 
         <Constraint
-            android:id="@+id/iv_previous"
+            android:id="@+id/ivPrevious"
             android:layout_width="40dp"
             android:layout_height="40dp"
             android:src="@drawable/ic_prev_button"
             motion:layout_constraintBottom_toBottomOf="parent"
-            motion:layout_constraintEnd_toStartOf="@id/iv_play_pause"
+            motion:layout_constraintEnd_toStartOf="@id/ivPlayPause"
             motion:layout_constraintHorizontal_bias="0.8"
             motion:layout_constraintStart_toStartOf="parent"
-            motion:layout_constraintTop_toTopOf="@id/v_player" />
+            motion:layout_constraintTop_toTopOf="@id/vPlayer" />
 
         <Constraint
             android:id="@+id/iv_playlist"
@@ -153,65 +153,65 @@
             android:src="@drawable/ic_back_playlist"
             motion:layout_constraintBottom_toBottomOf="parent"
             motion:layout_constraintStart_toStartOf="parent"
-            motion:layout_constraintTop_toTopOf="@id/v_player" />
+            motion:layout_constraintTop_toTopOf="@id/vPlayer" />
 
 
     </ConstraintSet>
 
     <ConstraintSet android:id="@+id/expanded">
         <Constraint
-            android:id="@+id/now_playing_title_toolbar"
+            android:id="@+id/nowPlayingTitleToolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
             motion:contentInsetStart="0dp"
             motion:layout_constraintTop_toTopOf="parent" />
 
         <Constraint
-            android:id="@+id/v_supporter_album_background"
+            android:id="@+id/vSupporterAlbumBackground"
             android:layout_width="1dp"
             android:layout_height="1dp"
             android:layout_marginTop="30dp"
-            motion:layout_constraintEnd_toEndOf="@+id/v_player"
-            motion:layout_constraintStart_toStartOf="@+id/v_player"
-            motion:layout_constraintTop_toTopOf="@+id/v_player" />
+            motion:layout_constraintEnd_toEndOf="@+id/vPlayer"
+            motion:layout_constraintStart_toStartOf="@+id/vPlayer"
+            motion:layout_constraintTop_toTopOf="@+id/vPlayer" />
 
         <Constraint
-            android:id="@+id/v_supporter_album_art"
+            android:id="@+id/vSupporterAlbumArt"
             android:layout_width="1dp"
             android:layout_height="1dp"
-            motion:layout_constraintBottom_toTopOf="@+id/v_player"
+            motion:layout_constraintBottom_toTopOf="@+id/vPlayer"
             motion:layout_constraintEnd_toEndOf="parent"
             motion:layout_constraintStart_toStartOf="parent"
             motion:layout_constraintTop_toTopOf="parent" />
 
         <Constraint
-            android:id="@+id/v_album_background1"
+            android:id="@+id/vAlbumBackground1"
             android:layout_width="0dp"
             android:layout_height="0dp"
             android:background="@color/background2"
-            motion:layout_constraintBottom_toTopOf="@+id/v_supporter_album_art"
-            motion:layout_constraintEnd_toStartOf="@+id/v_supporter_album_art"
+            motion:layout_constraintBottom_toTopOf="@+id/vSupporterAlbumArt"
+            motion:layout_constraintEnd_toStartOf="@+id/vSupporterAlbumArt"
             motion:layout_constraintStart_toStartOf="parent"
-            motion:layout_constraintTop_toBottomOf="@+id/now_playing_title_toolbar" />
+            motion:layout_constraintTop_toBottomOf="@+id/nowPlayingTitleToolbar" />
 
         <Constraint
-            android:id="@+id/v_album_background2"
+            android:id="@+id/vAlbumBackground2"
             android:layout_width="0dp"
             android:layout_height="0dp"
             android:background="@color/background2"
-            motion:layout_constraintBottom_toTopOf="@+id/v_player"
+            motion:layout_constraintBottom_toTopOf="@+id/vPlayer"
             motion:layout_constraintEnd_toEndOf="parent"
-            motion:layout_constraintStart_toEndOf="@+id/v_album_background1"
-            motion:layout_constraintTop_toBottomOf="@+id/v_album_background1" />
+            motion:layout_constraintStart_toEndOf="@+id/vAlbumBackground1"
+            motion:layout_constraintTop_toBottomOf="@+id/vAlbumBackground1" />
 
         <Constraint
-            android:id="@+id/iv_album_art"
+            android:id="@+id/ivAlbumArt"
             android:layout_width="300dp"
             android:layout_height="300dp"
-            motion:layout_constraintBottom_toBottomOf="@+id/v_supporter_album_art"
+            motion:layout_constraintBottom_toBottomOf="@+id/vSupporterAlbumArt"
             motion:layout_constraintEnd_toEndOf="parent"
             motion:layout_constraintStart_toStartOf="parent"
-            motion:layout_constraintTop_toTopOf="@id/v_supporter_album_art" />
+            motion:layout_constraintTop_toTopOf="@id/vSupporterAlbumArt" />
 
         <Constraint
             android:id="@+id/tvSongTitle"
@@ -227,7 +227,7 @@
             android:ellipsize="marquee"
             motion:layout_constraintEnd_toEndOf="parent"
             motion:layout_constraintStart_toStartOf="parent"
-            motion:layout_constraintTop_toBottomOf="@+id/now_playing_title_toolbar">
+            motion:layout_constraintTop_toBottomOf="@+id/nowPlayingTitleToolbar">
 
             <CustomAttribute
                 motion:attributeName="textSize"
@@ -247,7 +247,7 @@
             android:ellipsize="marquee"
             motion:layout_constraintEnd_toEndOf="parent"
             motion:layout_constraintStart_toStartOf="parent"
-            motion:layout_constraintTop_toBottomOf="@+id/iv_album_art">
+            motion:layout_constraintTop_toBottomOf="@+id/ivAlbumArt">
 
             <CustomAttribute
                 motion:attributeName="textSize"
@@ -292,7 +292,7 @@
             motion:layout_constraintTop_toBottomOf="@id/tvSongAlbum" />
 
         <Constraint
-            android:id="@+id/v_player"
+            android:id="@+id/vPlayer"
             android:layout_width="0dp"
             android:layout_height="100dp"
             android:alpha="0"
@@ -310,7 +310,7 @@
             android:minHeight="4dp"
             android:paddingStart="50dp"
             android:paddingEnd="50dp"
-            motion:layout_constraintBottom_toTopOf="@id/v_player"
+            motion:layout_constraintBottom_toTopOf="@id/vPlayer"
             motion:layout_constraintEnd_toEndOf="parent"
             motion:layout_constraintStart_toStartOf="parent" />
 
@@ -324,10 +324,10 @@
             android:thumbTint="@color/teal_200"
             motion:layout_constraintEnd_toEndOf="parent"
             motion:layout_constraintStart_toStartOf="parent"
-            motion:layout_constraintTop_toTopOf="@id/v_player" />
+            motion:layout_constraintTop_toTopOf="@id/vPlayer" />
 
         <Constraint
-            android:id="@+id/tv_current_play_time"
+            android:id="@+id/tvCurrentPlayTime"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
@@ -339,7 +339,7 @@
             motion:layout_constraintTop_toBottomOf="@id/layoutVolume" />
 
         <Constraint
-            android:id="@+id/tv_total_time"
+            android:id="@+id/tvTotalTime"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
@@ -351,36 +351,36 @@
             motion:layout_constraintTop_toBottomOf="@id/layoutVolume" />
 
         <Constraint
-            android:id="@+id/iv_play_pause"
+            android:id="@+id/ivPlayPause"
             android:layout_width="50dp"
             android:layout_height="50dp"
             android:src="@drawable/ic_play_button"
             motion:layout_constraintBottom_toBottomOf="parent"
             motion:layout_constraintEnd_toEndOf="parent"
             motion:layout_constraintStart_toStartOf="parent"
-            motion:layout_constraintTop_toTopOf="@id/v_player" />
+            motion:layout_constraintTop_toTopOf="@id/vPlayer" />
 
         <Constraint
-            android:id="@+id/iv_next"
+            android:id="@+id/ivNext"
             android:layout_width="40dp"
             android:layout_height="40dp"
             android:src="@drawable/ic_next_button"
             motion:layout_constraintBottom_toBottomOf="parent"
             motion:layout_constraintEnd_toEndOf="parent"
             motion:layout_constraintHorizontal_bias="0.2"
-            motion:layout_constraintStart_toEndOf="@id/iv_play_pause"
-            motion:layout_constraintTop_toTopOf="@id/v_player" />
+            motion:layout_constraintStart_toEndOf="@id/ivPlayPause"
+            motion:layout_constraintTop_toTopOf="@id/vPlayer" />
 
         <Constraint
-            android:id="@+id/iv_previous"
+            android:id="@+id/ivPrevious"
             android:layout_width="40dp"
             android:layout_height="40dp"
             android:src="@drawable/ic_prev_button"
             motion:layout_constraintBottom_toBottomOf="parent"
-            motion:layout_constraintEnd_toStartOf="@id/iv_play_pause"
+            motion:layout_constraintEnd_toStartOf="@id/ivPlayPause"
             motion:layout_constraintHorizontal_bias="0.8"
             motion:layout_constraintStart_toStartOf="parent"
-            motion:layout_constraintTop_toTopOf="@id/v_player" />
+            motion:layout_constraintTop_toTopOf="@id/vPlayer" />
 
         <Constraint
             android:id="@+id/ivRepeatMode"
@@ -390,7 +390,7 @@
             android:src="@drawable/ic_repeat_all"
             motion:layout_constraintBottom_toBottomOf="parent"
             motion:layout_constraintEnd_toEndOf="parent"
-            motion:layout_constraintTop_toTopOf="@id/v_player" />
+            motion:layout_constraintTop_toTopOf="@id/vPlayer" />
 
         <Constraint
             android:id="@+id/ivShuffleMode"
@@ -401,7 +401,7 @@
             motion:imageView_duration="200"
             motion:layout_constraintBottom_toBottomOf="parent"
             motion:layout_constraintStart_toStartOf="parent"
-            motion:layout_constraintTop_toTopOf="@id/v_player" />
+            motion:layout_constraintTop_toTopOf="@id/vPlayer" />
 
     </ConstraintSet>
 </MotionScene>
