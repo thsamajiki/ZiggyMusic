@@ -4,6 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <data>
+
         <variable
             name="music"
             type="com.hero.ziggymusic.database.music.entity.MusicModel" />
@@ -39,7 +40,6 @@
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />
-
 
 
             </androidx.constraintlayout.widget.ConstraintLayout>
@@ -98,8 +98,8 @@
             android:id="@+id/tvSongTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="30dp"
             android:layout_marginHorizontal="30dp"
+            android:layout_marginTop="30dp"
             android:ellipsize="marquee"
             android:lines="1"
             android:marqueeRepeatLimit="marquee_forever"
@@ -117,9 +117,9 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="25dp"
+            android:ellipsize="marquee"
             android:gravity="center"
             android:lines="1"
-            android:ellipsize="marquee"
             android:text="@{music.artist}"
             android:textColor="@color/white"
             android:textSize="@dimen/title_text_size"
@@ -130,11 +130,11 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="25dp"
+            android:ellipsize="marquee"
             android:gravity="center"
             android:text="@{music.album}"
             android:textColor="@color/white"
             android:textSize="@dimen/title_text_size"
-            android:ellipsize="marquee"
             app:layout_constraintTop_toBottomOf="@+id/tvSongArtist" />
 
         <com.airbnb.lottie.LottieAnimationView
@@ -142,12 +142,12 @@
             android:layout_width="40dp"
             android:layout_height="40dp"
             android:layout_marginStart="20dp"
-            app:lottie_rawRes="@raw/audio_visualizer"
-            app:lottie_autoPlay="true"
-            app:lottie_loop="true"
             app:layout_constraintBottom_toTopOf="@id/layoutVolume"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/tvSongAlbum" />
+            app:layout_constraintTop_toBottomOf="@id/tvSongAlbum"
+            app:lottie_autoPlay="true"
+            app:lottie_loop="true"
+            app:lottie_rawRes="@raw/audio_visualizer" />
 
         <com.skydoves.elasticviews.ElasticImageView
             android:id="@+id/bluetooth"
@@ -173,9 +173,9 @@
             android:id="@+id/layoutVolume"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
             android:layout_marginBottom="30dp"
             android:gravity="center_horizontal"
+            android:orientation="horizontal"
             android:paddingStart="50dp"
             android:paddingEnd="50dp"
             app:layout_constraintBottom_toTopOf="@id/vPlayer"
@@ -205,9 +205,9 @@
             android:layout_height="wrap_content"
             android:paddingStart="15dp"
             android:paddingEnd="15dp"
+            android:progressBackgroundTint="@color/teal_200"
             android:progressTint="@color/teal_200"
             android:thumbTint="@color/teal_200"
-            android:progressBackgroundTint="@color/teal_200"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="@id/vPlayer"
@@ -218,8 +218,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
-            android:textSize="@dimen/small_text_size"
             android:textColor="@color/white"
+            android:textSize="@dimen/small_text_size"
             android:textStyle="bold"
             app:layout_constraintStart_toStartOf="@id/layoutVolume"
             app:layout_constraintTop_toBottomOf="@id/layoutVolume"
@@ -230,8 +230,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
-            android:textSize="@dimen/small_text_size"
             android:textColor="@color/white"
+            android:textSize="@dimen/small_text_size"
             android:textStyle="bold"
             app:layout_constraintEnd_toEndOf="@id/layoutVolume"
             app:layout_constraintTop_toBottomOf="@id/layoutVolume"
