@@ -13,14 +13,14 @@
     </data>
 
     <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/ll_fragment_my_playlist"
+        android:id="@+id/layoutFragmentMyPlaylist"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
         tools:context=".view.main.myplaylist.MyPlaylistFragment">
 
         <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/rv_my_play_list"
+            android:id="@+id/rvMyPlayList"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
