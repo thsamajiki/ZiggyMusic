@@ -9,7 +9,4 @@ plugins {
     alias(libs.plugins.kotlin.kapt) apply false
     alias(libs.plugins.devtools.ksp) apply false
 }
-
-tasks.register("clean", Delete::class) {
-    delete(rootProject.buildDir)
-}
+true // Needed to make the Suppress annotation work for the plugins block
