@@ -59,7 +59,7 @@ dependencies {
     implementation(libs.material)
 
     implementation(libs.gson)
-    implementation(libs.lifecycle.viewmodel.compose.android) // Needed MediaSessionCompat.Token
+    implementation(libs.lifecycle.viewmodel.compose.android)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.testjunit)
