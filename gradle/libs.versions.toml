@@ -3,7 +3,7 @@ kotlin = "1.9.20"
 agp = "8.0.2"
 kotlinStdlib = "1.9.22"
 ksp = "1.9.22-1.0.16"
-comAndroid = "8.1.1"
+comAndroid = "8.8.2"
 
 material = "1.11.0"
 appcompat = "1.6.1"

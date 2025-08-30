@@ -1,6 +1,3 @@
-@file:Suppress("UnstableApiUsage")
-
-@Suppress("DSL_SCOPE_VIOLATION")
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -12,12 +9,12 @@ plugins {
 
 android {
     namespace = "com.hero.ziggymusic"
-    compileSdk = 34
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.hero.ziggymusic"
         minSdk = 26
-        targetSdk = 34
+        targetSdk = 36
         versionCode = 1
         versionName = "1.0"
 
