@@ -325,7 +325,7 @@ class MainActivity : AppCompatActivity(),
                 shouldShowRequestPermissionRationale(Manifest.permission.POST_NOTIFICATIONS)
     }
 
-    // 오디오 권한 다이얼로그
+    // 오디오 권한 Dialog
     private fun showAudioPermissionDialog() {
         AlertDialog.Builder(this)
             .setTitle("오디오 권한 필요")
