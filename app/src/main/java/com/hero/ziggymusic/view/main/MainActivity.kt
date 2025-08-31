@@ -256,13 +256,16 @@ class MainActivity : AppCompatActivity(),
     private fun requestPermissions() {
         val needs = mutableListOf<String>()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            if (checkSelfPermission(Manifest.permission.READ_MEDIA_AUDIO) != PackageManager.PERMISSION_GRANTED)
+            if (checkSelfPermission(Manifest.permission.READ_MEDIA_AUDIO) != PackageManager.PERMISSION_GRANTED) {
                 needs += Manifest.permission.READ_MEDIA_AUDIO
-            if (checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED)
+            }
+            if (checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
                 needs += Manifest.permission.POST_NOTIFICATIONS
+            }
         } else {
-            if (checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED)
+            if (checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
                 needs += Manifest.permission.READ_EXTERNAL_STORAGE
+            }
         }
         if (needs.isEmpty()) {
             setFragmentAdapter()
