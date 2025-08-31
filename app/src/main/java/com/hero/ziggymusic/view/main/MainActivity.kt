@@ -352,7 +352,9 @@ class MainActivity : AppCompatActivity(),
             .setMessage("백그라운드 재생 상태를 알림으로 표시하려면 알림 권한이 있으면 좋습니다. 허용하지 않아도 재생은 됩니다.")
             .setPositiveButton("요청") { d, _ ->
                 d.dismiss()
-                permissionLauncher.launch(arrayOf(Manifest.permission.POST_NOTIFICATIONS))
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    permissionLauncher.launch(arrayOf(Manifest.permission.POST_NOTIFICATIONS))
+                }
             }
             .setNegativeButton("나중에", null)
             .show()
