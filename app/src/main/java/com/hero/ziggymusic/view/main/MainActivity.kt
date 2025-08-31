@@ -313,7 +313,7 @@ class MainActivity : AppCompatActivity(),
 
     // Rationale 필요 여부 판단
     private fun shouldShowAudioRationale(): Boolean {
-        return if (Build.VERSION.SDK_INT >= 33) {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             shouldShowRequestPermissionRationale(Manifest.permission.READ_MEDIA_AUDIO)
         } else {
             shouldShowRequestPermissionRationale(Manifest.permission.READ_EXTERNAL_STORAGE)
@@ -321,7 +321,7 @@ class MainActivity : AppCompatActivity(),
     }
 
     private fun shouldShowNotificationRationale(): Boolean {
-        return Build.VERSION.SDK_INT >= 33 &&
+        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
                 shouldShowRequestPermissionRationale(Manifest.permission.POST_NOTIFICATIONS)
     }
 
