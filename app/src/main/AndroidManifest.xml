@@ -13,6 +13,7 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
 
     <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
 
     <application
         android:name=".ZiggyMusicApp"
@@ -31,7 +32,7 @@
             android:name=".service.MusicService"
             android:enabled="true"
             android:exported="false"
-            android:foregroundServiceType="specialUse">
+            android:foregroundServiceType="mediaPlayback">
             <intent-filter>
                 <action android:name="com.hero.ziggymusic.PLAY_NEW_MUSIC" />
                 <action android:name="com.hero.ziggymusic.PLAY" />
