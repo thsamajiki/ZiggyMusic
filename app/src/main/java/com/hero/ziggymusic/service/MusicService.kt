@@ -158,14 +158,16 @@ class MusicService : MediaLibraryService() {
 
     // 알림 채널을 생성
     private fun createNotificationChannel() {
-        val serviceChannel = NotificationChannel(
-            CHANNEL_ID,
-            "musicPlayerChannel",
-            NotificationManager.IMPORTANCE_LOW
-        )
-
         val manager = getSystemService(NotificationManager::class.java)
-        manager.createNotificationChannel(serviceChannel)
+
+        if (manager.getNotificationChannel(CHANNEL_ID) == null) {
+            val serviceChannel = NotificationChannel(
+                CHANNEL_ID,
+                "musicPlayerChannel",
+                NotificationManager.IMPORTANCE_LOW
+            )
+            manager.createNotificationChannel(serviceChannel)
+        }
     }
 
     // 알림을 생성

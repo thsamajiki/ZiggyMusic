@@ -1,19 +1,19 @@
 package com.hero.ziggymusic.view.main
 
 import android.Manifest
+import android.app.AlertDialog
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.provider.Settings
 import android.util.Log
 import android.view.MenuItem
-import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.annotation.OptIn
-import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
 import androidx.core.view.isGone
 import androidx.core.view.isInvisible
 import androidx.core.view.isVisible
@@ -44,10 +44,6 @@ class MainActivity : AppCompatActivity(),
     NavigationBarView.OnItemSelectedListener {
 
     private lateinit var binding: ActivityMainBinding
-    private val permissionUnder33 = Manifest.permission.READ_EXTERNAL_STORAGE
-    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
-    private val permissionOver33 = Manifest.permission.READ_MEDIA_AUDIO
-    private val requestReadCode = 99
 
     private var title: String = ""
 
@@ -83,17 +79,7 @@ class MainActivity : AppCompatActivity(),
                 }
             })
 
-        if (!isPermitted()) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                ActivityCompat.requestPermissions(this, arrayOf(permissionOver33), requestReadCode)
-            } else {
-                ActivityCompat.requestPermissions(this, arrayOf(permissionUnder33), requestReadCode)
-            }
-        } else {
-            // 2가지 동작이 권한이 있을 때에만 호출되도록
-            setFragmentAdapter()
-            playerController.startPlayer()
-        }
+        requestPermissions()
 
         if (player.audioSessionId != 0) {
             SoundEQSettings.init(player.audioSessionId)
@@ -267,28 +253,142 @@ class MainActivity : AppCompatActivity(),
         }
     }
 
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<out String>,
-        grantResults: IntArray,
-    ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == requestReadCode) {
-            if (grantResults[0] != PackageManager.PERMISSION_GRANTED) {
-                Toast.makeText(this, "권한 요청을 승인해야만 앱을 실행할 수 있습니다.", Toast.LENGTH_SHORT).show()
-                EventBus.getInstance().post(Event("PERMISSION_DENIED"))
+    private fun requestPermissions() {
+        val needs = mutableListOf<String>()
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (checkSelfPermission(Manifest.permission.READ_MEDIA_AUDIO) != PackageManager.PERMISSION_GRANTED) {
+                needs += Manifest.permission.READ_MEDIA_AUDIO
+            }
+            if (checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                needs += Manifest.permission.POST_NOTIFICATIONS
+            }
+        } else {
+            if (checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+                needs += Manifest.permission.READ_EXTERNAL_STORAGE
+            }
+        }
+        if (needs.isEmpty()) {
+            setFragmentAdapter()
+            playerController.startPlayer()
+        } else {
+            permissionLauncher.launch(needs.toTypedArray())
+        }
+    }
+
+    private val permissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions()
+    ) { result ->
+        val audioGranted = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU)
+            result[Manifest.permission.READ_MEDIA_AUDIO] == true
+        else
+            result[Manifest.permission.READ_EXTERNAL_STORAGE] == true
+
+        val notifGranted = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU)
+            result[Manifest.permission.POST_NOTIFICATIONS] == true
+        else
+            true
+
+        if (!audioGranted) {
+            // 오디오 권한 미허용
+            if (shouldShowAudioRationale()) {
+                showAudioPermissionDialog()
             } else {
-                setFragmentAdapter()
-                playerController.startPlayer()
+                // 다시 묻지 않음(영구 거부) 또는 최초 즉시 거부(일부 OEM)
+                showPermissionDeniedPermanentlyDialog(forNotification = false)
+            }
+            return@registerForActivityResult
+        }
+
+        // 오디오 권한 허용됨 -> 핵심 기능 시작
+        setFragmentAdapter()
+        playerController.startPlayer()
+
+        // 알림 권한 선택적 처리
+        if (!notifGranted) {
+            if (shouldShowNotificationRationale()) {
+                showNotificationPermissionDialog()
+            } else {
+                // 사용자가 알림을 영구 거부한 경우(또는 최초 거부) 안내
+                showPermissionDeniedPermanentlyDialog(forNotification = true)
             }
         }
     }
 
-    private fun isPermitted(): Boolean {
-        return ContextCompat.checkSelfPermission(
-            this,
-            permissionUnder33
-        ) == PackageManager.PERMISSION_GRANTED
+    // Rationale 필요 여부 판단
+    private fun shouldShowAudioRationale(): Boolean {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            shouldShowRequestPermissionRationale(Manifest.permission.READ_MEDIA_AUDIO)
+        } else {
+            shouldShowRequestPermissionRationale(Manifest.permission.READ_EXTERNAL_STORAGE)
+        }
+    }
+
+    private fun shouldShowNotificationRationale(): Boolean {
+        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+                shouldShowRequestPermissionRationale(Manifest.permission.POST_NOTIFICATIONS)
+    }
+
+    // 오디오 권한 Dialog
+    private fun showAudioPermissionDialog() {
+        AlertDialog.Builder(this)
+            .setTitle("오디오 권한 필요")
+            .setMessage("기기 내부 음악 파일을 재생하려면 오디오(미디어) 읽기 권한이 필요합니다.")
+            .setPositiveButton("다시 요청") { d, _ ->
+                d.dismiss()
+                val perms = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU)
+                    arrayOf(Manifest.permission.READ_MEDIA_AUDIO)
+                else
+                    arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE)
+                permissionLauncher.launch(perms)
+            }
+            .setNegativeButton("취소", null)
+            .show()
+    }
+
+    // 알림 권한 Dialog
+    private fun showNotificationPermissionDialog() {
+        AlertDialog.Builder(this)
+            .setTitle("알림 권한 안내")
+            .setMessage("백그라운드 재생 상태를 알림으로 표시하려면 알림 권한이 있으면 좋습니다. 허용하지 않아도 재생은 됩니다.")
+            .setPositiveButton("요청") { d, _ ->
+                d.dismiss()
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    permissionLauncher.launch(arrayOf(Manifest.permission.POST_NOTIFICATIONS))
+                }
+            }
+            .setNegativeButton("나중에", null)
+            .show()
+    }
+
+    // 영구 거부(설정 이동) 안내
+    private fun showPermissionDeniedPermanentlyDialog(forNotification: Boolean) {
+        val (title, msg) = if (forNotification) {
+            "알림 권한 비활성화" to "설정에서 알림을 허용하면 백그라운드 재생 상태를 쉽게 확인할 수 있습니다. 지금 이동하시겠습니까?"
+        } else {
+            "오디오 권한 거부됨" to "음악을 재생할 수 없습니다. 설정에서 권한을 허용한 후 다시 시도하세요."
+        }
+
+        AlertDialog.Builder(this)
+            .setTitle(title)
+            .setMessage(msg)
+            .setPositiveButton("설정 열기") { d, _ ->
+                d.dismiss()
+                openAppSettings()
+            }
+            .setNegativeButton("닫기", null)
+            .show()
+    }
+
+    // 앱 세부 설정 화면 이동
+    private fun openAppSettings() {
+        val intent = Intent(
+            Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+            Uri.parse("package:$packageName")
+        ).apply {
+            addCategory(Intent.CATEGORY_DEFAULT)
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        }
+        startActivity(intent)
     }
 
     override fun onDestroy() {
