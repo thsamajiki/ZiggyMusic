@@ -303,7 +303,7 @@ class MainActivity : AppCompatActivity(),
         // 알림 권한 선택적 처리
         if (!notifGranted) {
             if (shouldShowNotificationRationale()) {
-                showNotificationPermissionRationale()
+                showNotificationPermissionDialog()
             } else {
                 // 사용자가 알림을 영구 거부한 경우(또는 최초 거부) 안내
                 showPermissionDeniedPermanentlyDialog(forNotification = true)
@@ -342,8 +342,8 @@ class MainActivity : AppCompatActivity(),
             .show()
     }
 
-    // 알림 권한 Rationale (선택적)
-    private fun showNotificationPermissionRationale() {
+    // 알림 권한 Dialog
+    private fun showNotificationPermissionDialog() {
         AlertDialog.Builder(this)
             .setTitle("알림 권한 안내")
             .setMessage("백그라운드 재생 상태를 알림으로 표시하려면 알림 권한이 있으면 좋습니다. 허용하지 않아도 재생은 됩니다.")
