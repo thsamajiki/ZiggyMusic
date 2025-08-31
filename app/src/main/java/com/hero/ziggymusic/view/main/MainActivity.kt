@@ -288,7 +288,7 @@ class MainActivity : AppCompatActivity(),
         if (!audioGranted) {
             // 오디오 권한 미허용
             if (shouldShowAudioRationale()) {
-                showAudioPermissionRationale()
+                showAudioPermissionDialog()
             } else {
                 // 다시 묻지 않음(영구 거부) 또는 최초 즉시 거부(일부 OEM)
                 showPermissionDeniedPermanentlyDialog(forNotification = false)
@@ -325,8 +325,8 @@ class MainActivity : AppCompatActivity(),
                 shouldShowRequestPermissionRationale(Manifest.permission.POST_NOTIFICATIONS)
     }
 
-    // 오디오 권한 Rationale 다이얼로그
-    private fun showAudioPermissionRationale() {
+    // 오디오 권한 다이얼로그
+    private fun showAudioPermissionDialog() {
         AlertDialog.Builder(this)
             .setTitle("오디오 권한 필요")
             .setMessage("기기 내부 음악 파일을 재생하려면 오디오(미디어) 읽기 권한이 필요합니다.")
