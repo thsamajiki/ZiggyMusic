@@ -255,7 +255,7 @@ class MainActivity : AppCompatActivity(),
 
     private fun requestPermissions() {
         val needs = mutableListOf<String>()
-        if (Build.VERSION.SDK_INT >= 33) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (checkSelfPermission(Manifest.permission.READ_MEDIA_AUDIO) != PackageManager.PERMISSION_GRANTED)
                 needs += Manifest.permission.READ_MEDIA_AUDIO
             if (checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED)
@@ -275,12 +275,12 @@ class MainActivity : AppCompatActivity(),
     private val permissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
     ) { result ->
-        val audioGranted = if (Build.VERSION.SDK_INT >= 33)
+        val audioGranted = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU)
             result[Manifest.permission.READ_MEDIA_AUDIO] == true
         else
             result[Manifest.permission.READ_EXTERNAL_STORAGE] == true
 
-        val notifGranted = if (Build.VERSION.SDK_INT >= 33)
+        val notifGranted = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU)
             result[Manifest.permission.POST_NOTIFICATIONS] == true
         else
             true
@@ -332,7 +332,7 @@ class MainActivity : AppCompatActivity(),
             .setMessage("기기 내부 음악 파일을 재생하려면 오디오(미디어) 읽기 권한이 필요합니다.")
             .setPositiveButton("다시 요청") { d, _ ->
                 d.dismiss()
-                val perms = if (Build.VERSION.SDK_INT >= 33)
+                val perms = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU)
                     arrayOf(Manifest.permission.READ_MEDIA_AUDIO)
                 else
                     arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE)
