@@ -1,7 +1,5 @@
 [versions]
 kotlin = "2.1.10"
-agp = "8.0.2"
-kotlinStdlib = "1.9.22"
 ksp = "2.1.10-1.0.31"
 comAndroid = "8.8.2"
 
@@ -39,7 +37,6 @@ lottie = "6.4.0"
 # Android
 android-application = { id = "com.android.application", version.ref = "comAndroid" }
 android-library = { id = "com.android.library", version.ref = "comAndroid" }
-agp = { id = "com.android.tools.build:gradle", version.ref = "agp" }
 
 # Kotlin
 kotlin = { id = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
@@ -112,7 +109,6 @@ junit = { module = "junit:junit", version.ref = "junit" }
 
 # ksp
 ksp = { module = "com.google.devtools.ksp:symbol-processing-api", version.ref = "ksp" }
-kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "kotlinStdlib" }
 
 
 [bundles]
