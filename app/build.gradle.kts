@@ -92,8 +92,6 @@ dependencies {
     ksp(libs.room.compiler)
     testImplementation(libs.room.testing)
 
-    implementation(libs.ksp)
-
     // Media3
     implementation(libs.bundles.media3)
 
