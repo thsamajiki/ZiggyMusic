@@ -117,8 +117,7 @@ lifecycle = [
     "lifecycle-viewmodel-savedState"
 ]
 hilt = [
-    "hilt-android",
-    "hilt-compiler"
+    "hilt-android"
 ]
 media3 = [
     "media3-exoplayer",
