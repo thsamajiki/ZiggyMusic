@@ -15,7 +15,7 @@ hilt = "2.57.1"
 
 lifecycle = "2.9.3"
 media3 = "1.8.0"
-room = "2.6.1"
+room = "2.7.2"
 
 glide = "4.16.0"
 
