@@ -126,5 +126,5 @@ media3 = [
     "media3-session"
 ]
 glide = [
-    "glide", "glide-compiler"
+    "glide"
 ]
