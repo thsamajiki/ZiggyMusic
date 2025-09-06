@@ -104,9 +104,6 @@ espresso-core = { module = "androidx.test.espresso:espresso-core", version.ref =
 # Unit Test
 junit = { module = "junit:junit", version.ref = "junit" }
 
-# ksp
-ksp = { module = "com.google.devtools.ksp:symbol-processing-api", version.ref = "ksp" }
-
 
 [bundles]
 lifecycle = [
