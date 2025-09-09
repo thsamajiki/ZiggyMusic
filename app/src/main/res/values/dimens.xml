@@ -1,9 +1,44 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Baseline phone (1.0x 기준 스케일) -->
 <resources>
+    <!-- Spacing (기준) -->
+    <dimen name="space_xxs">2dp</dimen>
+    <dimen name="space_xs">5dp</dimen>
+    <dimen name="space_sm">8dp</dimen>
+    <dimen name="space_md">12dp</dimen>
+    <dimen name="space_lg">16dp</dimen>
+    <dimen name="space_xl">20dp</dimen>
+    <dimen name="space_xxl">24dp</dimen>
+    <dimen name="space_xxxl">30dp</dimen>
+    <dimen name="space_xxxxl">40dp</dimen>
+
+    <!-- Components -->
+    <dimen name="icon_sm">16dp</dimen>
+    <dimen name="icon_md">24dp</dimen>
+    <dimen name="icon_lg">32dp</dimen>
+    <dimen name="btn_height">48dp</dimen>
+    <dimen name="toolbar_height">56dp</dimen>
+    <dimen name="album_art_size">90dp</dimen>
+    <dimen name="card_padding">10dp</dimen>
+    <dimen name="card_radius">8dp</dimen>
+    <dimen name="list_item_height">100dp</dimen>
+    <dimen name="spinner_height">36dp</dimen>
+    <dimen name="seekbar_container_height">200dp</dimen>
+    <dimen name="seekbar_padding">50dp</dimen>
+    <dimen name="empty_height_sm">25dp</dimen>
+
+    <!-- Player & Navigation -->
+    <dimen name="player_peek_height">125dp</dimen>
+    <dimen name="bottom_nav_height">56dp</dimen>
+
+    <!-- System -->
+    <dimen name="status_bar_height">24dp</dimen>
+
+    <!-- Typography -->
+    <dimen name="sub_text_size">10sp</dimen>
     <dimen name="small_text_size">12sp</dimen>
     <dimen name="body_text_size">14sp</dimen>
-    <dimen name="head_text_size">20sp</dimen>
     <dimen name="title_text_size">17sp</dimen>
-    <dimen name="sub_text_size">10sp</dimen>
+    <dimen name="head_text_size">20sp</dimen>
     <dimen name="big_text_size">30sp</dimen>
 </resources>
