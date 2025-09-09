@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- sw720dp · 7in+ tablet · Baseline 대비 ~1.50x -->
+<resources>
+    <!-- Spacing -->
+    <dimen name="space_xxs">3dp</dimen>
+    <dimen name="space_xs">9dp</dimen>
+    <dimen name="space_sm">16dp</dimen>
+    <dimen name="space_md">20dp</dimen>
+    <dimen name="space_lg">24dp</dimen>
+    <dimen name="space_xl">28dp</dimen>
+    <dimen name="space_xxl">34dp</dimen>
+    <dimen name="space_xxxl">42dp</dimen>
+    <dimen name="space_xxxxl">56dp</dimen>
+
+    <!-- Components -->
+    <dimen name="icon_sm">20dp</dimen>
+    <dimen name="icon_md">30dp</dimen>
+    <dimen name="icon_lg">38dp</dimen>
+    <dimen name="btn_height">58dp</dimen>
+    <dimen name="toolbar_height">70dp</dimen>
+    <dimen name="album_art_size">114dp</dimen>
+    <dimen name="card_padding">26dp</dimen>
+    <dimen name="card_radius">12dp</dimen>
+    <dimen name="list_item_height">120dp</dimen>
+    <dimen name="spinner_height">52dp</dimen>
+    <dimen name="seekbar_container_height">280dp</dimen>
+    <dimen name="seekbar_padding">70dp</dimen>
+    <dimen name="empty_height_sm">36dp</dimen>
+
+    <!-- Player & Navigation -->
+    <dimen name="player_peek_height">175dp</dimen>
+    <dimen name="bottom_nav_height">72dp</dimen>
+
+    <!-- System -->
+    <dimen name="status_bar_height">28dp</dimen>
+
+    <!-- Typography -->
+    <dimen name="sub_text_size">12sp</dimen>
+    <dimen name="small_text_size">15sp</dimen>
+    <dimen name="body_text_size">17sp</dimen>
+    <dimen name="title_text_size">21sp</dimen>
+    <dimen name="head_text_size">25sp</dimen>
+    <dimen name="big_text_size">38sp</dimen>
+</resources>
