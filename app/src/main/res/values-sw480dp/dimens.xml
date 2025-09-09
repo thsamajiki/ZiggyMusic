@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- sw480dp · Large phone+/Foldable portrait · Baseline 대비 ~1.20x -->
+<resources>
+    <!-- Spacing -->
+    <dimen name="space_xxs">3dp</dimen>
+    <dimen name="space_xs">7dp</dimen>
+    <dimen name="space_sm">12dp</dimen>
+    <dimen name="space_md">15dp</dimen>
+    <dimen name="space_lg">20dp</dimen>
+    <dimen name="space_xl">24dp</dimen>
+    <dimen name="space_xxl">30dp</dimen>
+    <dimen name="space_xxxl">38dp</dimen>
+    <dimen name="space_xxxxl">50dp</dimen>
+
+    <!-- Components -->
+    <dimen name="icon_sm">18dp</dimen>
+    <dimen name="icon_md">26dp</dimen>
+    <dimen name="icon_lg">34dp</dimen>
+    <dimen name="btn_height">52dp</dimen>
+    <dimen name="toolbar_height">62dp</dimen>
+    <dimen name="album_art_size">102dp</dimen>
+    <dimen name="card_padding">18dp</dimen>
+    <dimen name="card_radius">10dp</dimen>
+    <dimen name="list_item_height">108dp</dimen>
+    <dimen name="spinner_height">44dp</dimen>
+    <dimen name="seekbar_container_height">240dp</dimen>
+    <dimen name="seekbar_padding">60dp</dimen>
+    <dimen name="empty_height_sm">32dp</dimen>
+
+    <!-- Player & Navigation -->
+    <dimen name="player_peek_height">145dp</dimen>
+    <dimen name="bottom_nav_height">64dp</dimen>
+
+    <!-- System -->
+    <dimen name="status_bar_height">26dp</dimen>
+
+    <!-- Typography -->
+    <dimen name="sub_text_size">11sp</dimen>
+    <dimen name="small_text_size">13sp</dimen>
+    <dimen name="body_text_size">15sp</dimen>
+    <dimen name="title_text_size">19sp</dimen>
+    <dimen name="head_text_size">23sp</dimen>
+    <dimen name="big_text_size">34sp</dimen>
+</resources>
