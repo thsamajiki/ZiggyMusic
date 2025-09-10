@@ -76,7 +76,7 @@ class SettingFragment : Fragment() {
 
         val spinnerAdapter: ArrayAdapter<String?> =
 //            ArrayAdapter(requireContext(), android.R.layout.simple_spinner_dropdown_item, presets)
-            ArrayAdapter(requireContext(), R.layout.spinner_item, presets)
+            ArrayAdapter(requireContext(), R.layout.item_spinner, presets)
         binding.spinnerPreset.adapter = spinnerAdapter
 
         binding.spinnerPreset.setSelection(settings.getInt("PRESET", 1))
@@ -212,7 +212,7 @@ class SettingFragment : Fragment() {
 //                "Plate"
 //            )
 //        )
-        ArrayAdapter(requireContext(), R.layout.spinner_item, arrayOf(
+        ArrayAdapter(requireContext(), R.layout.item_spinner, arrayOf(
             "None",
             "Small Room",
             "Medium Room",
