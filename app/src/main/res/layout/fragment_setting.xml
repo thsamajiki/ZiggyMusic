@@ -20,14 +20,15 @@
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="15dp">
+                android:layout_marginTop="@dimen/space_lg">
 
                 <TextView
                     android:id="@+id/tvPreset"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="30dp"
+                    android:layout_marginStart="@dimen/space_xxxl"
                     android:text="Preset:"
+                    android:textSize="@dimen/small_text_size"
                     android:textColor="@color/white"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
@@ -37,8 +38,8 @@
                     android:id="@+id/spinnerPreset"
                     style="@style/Widget.My.Spinner"
                     android:layout_width="0dp"
-                    android:layout_height="36dp"
-                    android:layout_marginStart="20dp"
+                    android:layout_height="@dimen/spinner_height"
+                    android:layout_marginStart="@dimen/space_xl"
                     android:dropDownWidth="wrap_content"
                     android:dropDownSelector="@color/white"
                     android:padding="0dp"
@@ -54,28 +55,29 @@
             <LinearLayout
                 android:id="@+id/seekbarContainer"
                 android:layout_width="match_parent"
-                android:layout_height="200dp"
-                android:layout_marginTop="10dp"
+                android:layout_height="@dimen/seekbar_container_height"
+                android:layout_marginTop="@dimen/space_md"
                 android:orientation="horizontal" />
 
             <LinearLayout
                 android:id="@+id/tvSeekbar"
                 android:layout_width="match_parent"
-                android:layout_height="25dp"
-                android:layout_marginVertical="5dp"
+                android:layout_height="@dimen/empty_height_sm"
+                android:layout_marginVertical="@dimen/space_xs"
                 android:orientation="horizontal" />
 
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="10dp">
+                android:layout_marginTop="@dimen/space_md">
 
                 <TextView
                     android:id="@+id/tvReverb"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="30dp"
+                    android:layout_marginStart="@dimen/space_xxxl"
                     android:text="Reverb:"
+                    android:textSize="@dimen/small_text_size"
                     android:textColor="@color/white"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
@@ -86,7 +88,7 @@
                     style="@style/Widget.My.Spinner"
                     android:layout_width="0dp"
                     android:layout_height="36dp"
-                    android:layout_marginStart="20dp"
+                    android:layout_marginStart="@dimen/space_xl"
                     android:dropDownWidth="wrap_content"
                     android:dropDownSelector="@color/white"
                     android:padding="0dp"
@@ -102,14 +104,15 @@
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="20dp">
+                android:layout_marginTop="@dimen/space_xl">
 
                 <TextView
                     android:id="@+id/tvBass"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="30dp"
+                    android:layout_marginStart="@dimen/space_xxxl"
                     android:text="Bass: "
+                    android:textSize="@dimen/small_text_size"
                     android:textColor="@color/white"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />
@@ -119,11 +122,11 @@
                     android:layout_width="match_parent"
                     android:layout_height="40dp"
                     android:layout_gravity="center_vertical"
-                    android:layout_marginVertical="10dp"
+                    android:layout_marginVertical="@dimen/space_md"
                     android:max="100"
                     android:maxHeight="1dp"
-                    android:paddingStart="50dp"
-                    android:paddingEnd="50dp"
+                    android:paddingStart="@dimen/seekbar_padding"
+                    android:paddingEnd="@dimen/seekbar_padding"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@id/tvBass" />
 
@@ -131,9 +134,10 @@
                     android:id="@+id/tvVirtualizer"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="30dp"
-                    android:layout_marginTop="20dp"
+                    android:layout_marginStart="@dimen/space_xxxl"
+                    android:layout_marginTop="@dimen/space_xl"
                     android:text="3D Virtualizer: "
+                    android:textSize="@dimen/small_text_size"
                     android:textColor="@color/white"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@id/sbBass" />
@@ -143,11 +147,11 @@
                     android:layout_width="match_parent"
                     android:layout_height="40dp"
                     android:layout_gravity="center_vertical"
-                    android:layout_marginVertical="10dp"
+                    android:layout_marginVertical="@dimen/space_md"
                     android:max="100"
                     android:maxHeight="1dp"
-                    android:paddingStart="50dp"
-                    android:paddingEnd="50dp"
+                    android:paddingStart="@dimen/seekbar_padding"
+                    android:paddingEnd="@dimen/seekbar_padding"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@id/tvVirtualizer" />
 
