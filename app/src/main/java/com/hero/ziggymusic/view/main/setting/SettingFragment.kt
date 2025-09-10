@@ -182,7 +182,7 @@ class SettingFragment : Fragment() {
                 val textView = TextView(requireContext())
                 textView.text = title
                 textView.maxLines = 1
-                textView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14f)
+                textView.setTextSize(TypedValue.COMPLEX_UNIT_PX, resources.getDimension(R.dimen.small_text_size))
                 textView.setTextColor(ContextCompat.getColor(requireContext(), R.color.white))
 
                 val params: TableRow.LayoutParams =
