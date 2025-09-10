@@ -10,4 +10,4 @@
     android:singleLine="true"
     android:textAlignment="inherit"
     android:textColor="@color/white"
-    android:textSize="@dimen/body_text_size" />
+    android:textSize="@dimen/small_text_size" />
