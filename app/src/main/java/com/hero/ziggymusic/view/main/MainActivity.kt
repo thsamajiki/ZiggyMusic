@@ -40,6 +40,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import androidx.core.view.get
+import androidx.core.view.ViewCompat
 
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity(),
@@ -65,6 +66,7 @@ class MainActivity : AppCompatActivity(),
         setContentView(binding.root)
 
         initStatusBarColor()
+        initBottomNavigationView()
 
         initViewModel()
         EventBus.getInstance().register(this)
@@ -268,6 +270,17 @@ class MainActivity : AppCompatActivity(),
                 insets
             }
         }
+    }
+
+    private fun initBottomNavigationView() {
+        ViewCompat.setOnApplyWindowInsetsListener(binding.bottomNavMain) { v, insets ->
+            v.post {
+                val loc = IntArray(2)
+                v.getLocationOnScreen(loc)
+            }
+            insets
+        }
+        ViewCompat.requestApplyInsets(binding.bottomNavMain)
     }
 
     private fun requestPermissions() {
