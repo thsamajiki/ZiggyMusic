@@ -41,6 +41,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 import androidx.core.view.get
 import androidx.core.view.ViewCompat
+import androidx.core.view.WindowCompat
 
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity(),
@@ -60,6 +61,8 @@ class MainActivity : AppCompatActivity(),
     @OptIn(UnstableApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        WindowCompat.setDecorFitsSystemWindows(window, true)
 
         binding = ActivityMainBinding.inflate(layoutInflater)
 
