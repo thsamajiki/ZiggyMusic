@@ -206,9 +206,9 @@
             android:progressBackgroundTint="@color/teal_200"
             android:progressTint="@color/teal_200"
             android:thumbTint="@color/teal_200"
+            app:layout_constraintBottom_toTopOf="@id/vPlayer"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintBottom_toTopOf="@id/vPlayer"
             app:layout_constraintTop_toTopOf="@id/vPlayer"
             tools:progress="40" />
 
