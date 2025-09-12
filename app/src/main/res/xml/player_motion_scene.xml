@@ -102,6 +102,7 @@
             android:id="@+id/sbPlayer"
             android:layout_width="0dp"
             android:layout_height="@dimen/seekbar_player_height"
+            android:progressBackgroundTint="@color/teal_200"
             motion:layout_constraintEnd_toEndOf="parent"
             motion:layout_constraintStart_toStartOf="parent"
             motion:layout_constraintTop_toTopOf="parent" />
