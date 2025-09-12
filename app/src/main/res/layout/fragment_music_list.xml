@@ -37,7 +37,7 @@
             android:layout_height="wrap_content"
             android:text="@{viewModel.emptyStateMessage}"
             android:textColor="@color/white"
-            android:textSize="@dimen/body_text_size"
+            android:textSize="@dimen/small_text_size"
             android:textStyle="bold"
             android:visibility="@{viewModel.allMusics.size() == 0 ? View.VISIBLE : View.INVISIBLE}"
             app:layout_constraintBottom_toBottomOf="parent"
