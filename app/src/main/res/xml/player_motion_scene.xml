@@ -141,17 +141,7 @@
             motion:layout_constraintEnd_toStartOf="@id/ivPlayPause"
             motion:layout_constraintHorizontal_bias="0.8"
             motion:layout_constraintStart_toStartOf="parent"
-            motion:layout_constraintTop_toTopOf="@id/vPlayer" />
-
-        <Constraint
-            android:id="@+id/iv_playlist"
-            android:layout_width="30dp"
-            android:layout_height="30dp"
-            android:layout_marginStart="24dp"
-            android:src="@drawable/ic_back_playlist"
-            motion:layout_constraintBottom_toBottomOf="parent"
-            motion:layout_constraintStart_toStartOf="parent"
-            motion:layout_constraintTop_toTopOf="@id/vPlayer" />
+            motion:layout_constraintTop_toTopOf="@id/vPlayer" />]
 
     </ConstraintSet>
 
