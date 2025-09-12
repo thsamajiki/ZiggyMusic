@@ -28,7 +28,7 @@
                     android:id="@+id/ivBack"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="@dimen/space_lg"
+                    android:layout_marginStart="@dimen/space_xl"
                     android:src="@drawable/ic_left_arrow"
                     android:visibility="invisible"
                     app:layout_constraintBottom_toBottomOf="parent"
@@ -51,9 +51,9 @@
 
                 <ImageView
                     android:id="@+id/ivSetting"
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:layout_marginEnd="@dimen/space_lg"
+                    android:layout_width="@dimen/icon_md"
+                    android:layout_height="@dimen/icon_md"
+                    android:layout_marginEnd="@dimen/space_xl"
                     android:src="@drawable/ic_setting"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toEndOf="parent"
