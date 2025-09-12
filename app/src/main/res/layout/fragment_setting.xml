@@ -20,7 +20,7 @@
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/space_lg">
+                android:layout_marginTop="@dimen/space_15">
 
                 <TextView
                     android:id="@+id/tvPreset"
@@ -56,7 +56,7 @@
                 android:id="@+id/seekbarContainer"
                 android:layout_width="match_parent"
                 android:layout_height="@dimen/seekbar_container_height"
-                android:layout_marginTop="@dimen/space_md"
+                android:layout_marginTop="@dimen/space_10"
                 android:orientation="horizontal" />
 
             <LinearLayout
@@ -69,7 +69,7 @@
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/space_md">
+                android:layout_marginTop="@dimen/space_10">
 
                 <TextView
                     android:id="@+id/tvReverb"
