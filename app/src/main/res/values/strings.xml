@@ -14,7 +14,7 @@
     <string name="current_playing_time">0:00</string>
     <string name="total_playing_time">3:10</string>
 
-    <string name="current_song_title">노래 제목</string>
+    <string name="current_song_title">제목</string>
     <string name="current_song_artist">아티스트</string>
     <string name="current_song_album">앨범명</string>
 
@@ -22,4 +22,8 @@
     <string name="delete_music_from_my_playlist">플레이리스트에서 제거</string>
 
     <string name="no_music_found">음원이 없습니다.</string>
+    <string name="preset">Preset:</string>
+    <string name="reverb">Reverb:</string>
+    <string name="bass">Bass:</string>
+    <string name="_3d_virtualizer">3D Virtualizer:</string>
 </resources>

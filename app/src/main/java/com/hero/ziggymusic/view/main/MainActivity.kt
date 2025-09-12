@@ -10,10 +10,12 @@ import android.os.Bundle
 import android.provider.Settings
 import android.util.Log
 import android.view.MenuItem
+import android.view.WindowInsets
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.annotation.OptIn
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.core.view.isGone
 import androidx.core.view.isInvisible
 import androidx.core.view.isVisible
@@ -38,6 +40,8 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import androidx.core.view.get
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowCompat
 
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity(),
@@ -57,9 +61,15 @@ class MainActivity : AppCompatActivity(),
     @OptIn(UnstableApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        WindowCompat.setDecorFitsSystemWindows(window, true)
+
         binding = ActivityMainBinding.inflate(layoutInflater)
 
         setContentView(binding.root)
+
+        initStatusBarColor()
+        initBottomNavigationView()
 
         initViewModel()
         EventBus.getInstance().register(this)
@@ -251,6 +261,29 @@ class MainActivity : AppCompatActivity(),
                 musicServiceStart()
             }
         }
+    }
+
+    private fun initStatusBarColor() {
+        // statusBar 컬러를 toolBar 컬러와 동일하게 맞추기 위함
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) { // Android 11+
+            window.decorView.setOnApplyWindowInsetsListener { view, insets ->
+                val statusBarInsets = insets.getInsets(WindowInsets.Type.statusBars())
+                view.setBackgroundColor(ContextCompat.getColor(this, R.color.dark_black))
+
+                insets
+            }
+        }
+    }
+
+    private fun initBottomNavigationView() {
+        ViewCompat.setOnApplyWindowInsetsListener(binding.bottomNavMain) { v, insets ->
+            v.post {
+                val loc = IntArray(2)
+                v.getLocationOnScreen(loc)
+            }
+            insets
+        }
+        ViewCompat.requestApplyInsets(binding.bottomNavMain)
     }
 
     private fun requestPermissions() {

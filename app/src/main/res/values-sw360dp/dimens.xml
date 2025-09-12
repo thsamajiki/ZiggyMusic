@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Baseline phone (1.0x 기준 스케일) -->
+<!-- sw360dp · Baseline phone (1.0x 기준 스케일) -->
 <resources>
-    <!-- Spacing (기준) -->
+    <!-- Spacing -->
     <dimen name="space_xxs">2dp</dimen>
     <dimen name="space_xs">5dp</dimen>
     <dimen name="space_sm">8dp</dimen>
@@ -32,8 +32,6 @@
     <dimen name="card_elevation">3dp</dimen>
     <dimen name="list_item_height">100dp</dimen>
     <dimen name="spinner_height">36dp</dimen>
-    <dimen name="seekbar_container_height">200dp</dimen>
-    <dimen name="seekbar_padding">50dp</dimen>
     <dimen name="empty_height_sm">25dp</dimen>
     <dimen name="bottom_nav_height">56dp</dimen>
 
@@ -46,6 +44,8 @@
     <dimen name="album_art_size_expanded">300dp</dimen>
     <dimen name="album_art_size_collapsed">60dp</dimen>
     <dimen name="player_peek_height">125dp</dimen>
+    <dimen name="seekbar_container_height">200dp</dimen>
+    <dimen name="seekbar_padding">50dp</dimen>
     <dimen name="icon_play_pause">50dp</dimen>
     <dimen name="icon_prev_next">40dp</dimen>
     <dimen name="icon_shuffle_mode">40dp</dimen>

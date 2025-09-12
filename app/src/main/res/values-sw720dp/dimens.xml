@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- sw720dp · 7in+ tablet · Baseline 대비 ~1.50x -->
+<resources>
+    <!-- Spacing -->
+    <dimen name="space_xxs">3dp</dimen>
+    <dimen name="space_xs">9dp</dimen>
+    <dimen name="space_sm">16dp</dimen>
+    <dimen name="space_md">20dp</dimen>
+    <dimen name="space_lg">24dp</dimen>
+    <dimen name="space_xl">28dp</dimen>
+    <dimen name="space_xxl">34dp</dimen>
+    <dimen name="space_xxxl">42dp</dimen>
+    <dimen name="space_xxxxl">56dp</dimen>
+
+    <!-- Spacing: numeric exceptions -->
+    <dimen name="space_4">6dp</dimen>
+    <dimen name="space_10">15dp</dimen>
+    <dimen name="space_13">20dp</dimen>
+    <dimen name="space_14">21dp</dimen>
+    <dimen name="space_15">23dp</dimen>
+    <dimen name="space_18">27dp</dimen>
+    <dimen name="space_25">38dp</dimen>
+
+    <!-- Components -->
+    <dimen name="icon_sm">20dp</dimen>
+    <dimen name="icon_md">30dp</dimen>
+    <dimen name="icon_lg">38dp</dimen>
+    <dimen name="btn_height">58dp</dimen>
+    <dimen name="toolbar_height">70dp</dimen>
+    <dimen name="card_padding">26dp</dimen>
+    <dimen name="card_corner_radius">12dp</dimen>
+    <dimen name="card_elevation">5dp</dimen>
+    <dimen name="list_item_height">120dp</dimen>
+    <dimen name="spinner_height">52dp</dimen>
+    <dimen name="empty_height_sm">36dp</dimen>
+    <dimen name="bottom_nav_height">72dp</dimen>
+
+    <!-- Components: exceptions -->
+    <dimen name="icon_27">35dp</dimen>
+
+    <!-- Player & Navigation -->
+    <dimen name="view_supporter">1dp</dimen>
+    <dimen name="album_art_size">114dp</dimen>
+    <dimen name="album_art_size_expanded">380dp</dimen>
+    <dimen name="album_art_size_collapsed">76dp</dimen>
+    <dimen name="player_peek_height">175dp</dimen>
+    <dimen name="seekbar_container_height">280dp</dimen>
+    <dimen name="seekbar_padding">70dp</dimen>
+    <dimen name="icon_play_pause">59dp</dimen>
+    <dimen name="icon_prev_next">48dp</dimen>
+    <dimen name="icon_shuffle_mode">48dp</dimen>
+    <dimen name="icon_repeat_mode">48dp</dimen>
+    <dimen name="animation_visualizer">60dp</dimen>
+    <dimen name="bluetooth">60dp</dimen>
+    <dimen name="player_view_height">120dp</dimen>
+    <dimen name="seekbar_player_height">2dp</dimen>
+    <dimen name="seekbar_volume">350dp</dimen>
+    <dimen name="layout_volume_padding">70dp</dimen>
+
+    <!-- Notification -->
+    <dimen name="noti_height">75dp</dimen>
+    <dimen name="noti_extended_height">195dp</dimen>
+    <dimen name="noti_album_art_size">53dp</dimen>
+    <dimen name="noti_extended_album_art_size">75dp</dimen>
+    <dimen name="noti_btn">45dp</dimen>
+    <dimen name="noti_extended_btn">75dp</dimen>
+    <dimen name="noti_extended_close">30dp</dimen>
+
+    <!-- System -->
+    <dimen name="status_bar_height">28dp</dimen>
+
+    <!-- Typography -->
+    <dimen name="sub_text_size">12sp</dimen>
+    <dimen name="small_text_size">15sp</dimen>
+    <dimen name="body_text_size">17sp</dimen>
+    <dimen name="title_text_size">21sp</dimen>
+    <dimen name="head_text_size">25sp</dimen>
+    <dimen name="big_text_size">38sp</dimen>
+</resources>
