@@ -221,7 +221,7 @@
             android:marqueeRepeatLimit="marquee_forever"
             android:text="@string/current_song_title"
             android:textColor="@color/white"
-            android:textSize="@dimen/head_text_size"
+            android:textSize="@dimen/title_text_size"
             android:textStyle="bold"
             motion:layout_constraintEnd_toEndOf="parent"
             motion:layout_constraintStart_toStartOf="parent"
