@@ -51,8 +51,8 @@
                 android:text="@{music.title}"
                 android:textColor="@color/white"
                 android:textSize="@dimen/body_text_size"
-                app:layout_constraintEnd_toStartOf="@+id/ivMusicOptionMenu"
-                app:layout_constraintStart_toEndOf="@+id/ivAlbum"
+                app:layout_constraintEnd_toStartOf="@id/ivMusicOptionMenu"
+                app:layout_constraintStart_toEndOf="@id/ivAlbum"
                 app:layout_constraintTop_toTopOf="parent" />
 
             <ImageView
@@ -78,9 +78,9 @@
                 android:text="@{music.artist}"
                 android:textColor="@color/white"
                 android:textSize="@dimen/small_text_size"
-                app:layout_constraintEnd_toStartOf="@+id/ivMusicOptionMenu"
-                app:layout_constraintStart_toEndOf="@+id/ivAlbum"
-                app:layout_constraintTop_toBottomOf="@+id/tvSongTitle" />
+                app:layout_constraintEnd_toStartOf="@id/ivMusicOptionMenu"
+                app:layout_constraintStart_toEndOf="@id/ivAlbum"
+                app:layout_constraintTop_toBottomOf="@id/tvSongTitle" />
 
             <TextView
                 android:id="@+id/tvDuration"

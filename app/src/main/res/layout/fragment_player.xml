@@ -51,15 +51,15 @@
             android:layout_width="@dimen/view_supporter"
             android:layout_height="@dimen/view_supporter"
             android:layout_marginTop="@dimen/space_xxxl"
-            app:layout_constraintEnd_toEndOf="@+id/vPlayer"
-            app:layout_constraintStart_toStartOf="@+id/vPlayer"
-            app:layout_constraintTop_toTopOf="@+id/vPlayer" />
+            app:layout_constraintEnd_toEndOf="@id/vPlayer"
+            app:layout_constraintStart_toStartOf="@id/vPlayer"
+            app:layout_constraintTop_toTopOf="@id/vPlayer" />
 
         <View
             android:id="@+id/vSupporterAlbumArt"
             android:layout_width="@dimen/view_supporter"
             android:layout_height="@dimen/view_supporter"
-            app:layout_constraintBottom_toTopOf="@+id/vPlayer"
+            app:layout_constraintBottom_toTopOf="@id/vPlayer"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
@@ -69,30 +69,30 @@
             android:layout_width="0dp"
             android:layout_height="0dp"
             android:background="@color/black"
-            app:layout_constraintBottom_toTopOf="@+id/vSupporterAlbumArt"
-            app:layout_constraintEnd_toStartOf="@+id/vSupporterAlbumArt"
+            app:layout_constraintBottom_toTopOf="@id/vSupporterAlbumArt"
+            app:layout_constraintEnd_toStartOf="@id/vSupporterAlbumArt"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/toolbarNowPlayingTitle" />
+            app:layout_constraintTop_toBottomOf="@id/toolbarNowPlayingTitle" />
 
         <View
             android:id="@+id/vAlbumBackground2"
             android:layout_width="0dp"
             android:layout_height="0dp"
             android:background="@color/black"
-            app:layout_constraintBottom_toTopOf="@+id/vPlayer"
+            app:layout_constraintBottom_toTopOf="@id/vPlayer"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toEndOf="@+id/vAlbumBackground1"
-            app:layout_constraintTop_toBottomOf="@+id/vAlbumBackground1" />
+            app:layout_constraintStart_toEndOf="@id/vAlbumBackground1"
+            app:layout_constraintTop_toBottomOf="@id/vAlbumBackground1" />
 
         <androidx.appcompat.widget.AppCompatImageView
             android:id="@+id/ivAlbumArt"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             app:imageURI="@{music.albumUri}"
-            app:layout_constraintBottom_toBottomOf="@+id/vSupporterAlbumArt"
+            app:layout_constraintBottom_toBottomOf="@id/vSupporterAlbumArt"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="@+id/vSupporterAlbumArt" />
+            app:layout_constraintTop_toTopOf="@id/vSupporterAlbumArt" />
 
         <TextView
             android:id="@+id/tvSongTitle"
@@ -110,7 +110,7 @@
             android:textStyle="bold"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/toolbarNowPlayingTitle" />
+            app:layout_constraintTop_toBottomOf="@id/toolbarNowPlayingTitle" />
 
         <TextView
             android:id="@+id/tvSongArtist"
@@ -123,7 +123,7 @@
             android:text="@{music.artist}"
             android:textColor="@color/white"
             android:textSize="@dimen/title_text_size"
-            app:layout_constraintTop_toBottomOf="@+id/ivAlbumArt" />
+            app:layout_constraintTop_toBottomOf="@id/ivAlbumArt" />
 
         <TextView
             android:id="@+id/tvSongAlbum"

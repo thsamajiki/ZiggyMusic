@@ -169,15 +169,15 @@
             android:layout_width="@dimen/view_supporter"
             android:layout_height="@dimen/view_supporter"
             android:layout_marginTop="@dimen/space_xxxl"
-            motion:layout_constraintEnd_toEndOf="@+id/vPlayer"
-            motion:layout_constraintStart_toStartOf="@+id/vPlayer"
-            motion:layout_constraintTop_toTopOf="@+id/vPlayer" />
+            motion:layout_constraintEnd_toEndOf="@id/vPlayer"
+            motion:layout_constraintStart_toStartOf="@id/vPlayer"
+            motion:layout_constraintTop_toTopOf="@id/vPlayer" />
 
         <Constraint
             android:id="@+id/vSupporterAlbumArt"
             android:layout_width="@dimen/view_supporter"
             android:layout_height="@dimen/view_supporter"
-            motion:layout_constraintBottom_toTopOf="@+id/vPlayer"
+            motion:layout_constraintBottom_toTopOf="@id/vPlayer"
             motion:layout_constraintEnd_toEndOf="parent"
             motion:layout_constraintStart_toStartOf="parent"
             motion:layout_constraintTop_toTopOf="parent" />
@@ -187,26 +187,26 @@
             android:layout_width="0dp"
             android:layout_height="0dp"
             android:background="@color/background2"
-            motion:layout_constraintBottom_toTopOf="@+id/vSupporterAlbumArt"
-            motion:layout_constraintEnd_toStartOf="@+id/vSupporterAlbumArt"
+            motion:layout_constraintBottom_toTopOf="@id/vSupporterAlbumArt"
+            motion:layout_constraintEnd_toStartOf="@id/vSupporterAlbumArt"
             motion:layout_constraintStart_toStartOf="parent"
-            motion:layout_constraintTop_toBottomOf="@+id/toolbarNowPlayingTitle" />
+            motion:layout_constraintTop_toBottomOf="@id/toolbarNowPlayingTitle" />
 
         <Constraint
             android:id="@+id/vAlbumBackground2"
             android:layout_width="0dp"
             android:layout_height="0dp"
             android:background="@color/background2"
-            motion:layout_constraintBottom_toTopOf="@+id/vPlayer"
+            motion:layout_constraintBottom_toTopOf="@id/vPlayer"
             motion:layout_constraintEnd_toEndOf="parent"
-            motion:layout_constraintStart_toEndOf="@+id/vAlbumBackground1"
-            motion:layout_constraintTop_toBottomOf="@+id/vAlbumBackground1" />
+            motion:layout_constraintStart_toEndOf="@id/vAlbumBackground1"
+            motion:layout_constraintTop_toBottomOf="@id/vAlbumBackground1" />
 
         <Constraint
             android:id="@+id/ivAlbumArt"
             android:layout_width="@dimen/album_art_size_expanded"
             android:layout_height="@dimen/album_art_size_expanded"
-            motion:layout_constraintBottom_toBottomOf="@+id/vSupporterAlbumArt"
+            motion:layout_constraintBottom_toBottomOf="@id/vSupporterAlbumArt"
             motion:layout_constraintEnd_toEndOf="parent"
             motion:layout_constraintStart_toStartOf="parent"
             motion:layout_constraintTop_toTopOf="@id/vSupporterAlbumArt" />
@@ -225,7 +225,7 @@
             android:textStyle="bold"
             motion:layout_constraintEnd_toEndOf="parent"
             motion:layout_constraintStart_toStartOf="parent"
-            motion:layout_constraintTop_toBottomOf="@+id/toolbarNowPlayingTitle">
+            motion:layout_constraintTop_toBottomOf="@id/toolbarNowPlayingTitle">
 
             <CustomAttribute
                 motion:attributeName="textSize"
@@ -245,7 +245,7 @@
             android:textSize="@dimen/title_text_size"
             motion:layout_constraintEnd_toEndOf="parent"
             motion:layout_constraintStart_toStartOf="parent"
-            motion:layout_constraintTop_toBottomOf="@+id/ivAlbumArt">
+            motion:layout_constraintTop_toBottomOf="@id/ivAlbumArt">
 
             <CustomAttribute
                 motion:attributeName="textSize"
