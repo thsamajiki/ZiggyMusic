@@ -263,20 +263,22 @@
             android:text="@string/current_song_album"
             android:textColor="@color/white"
             android:textSize="@dimen/title_text_size"
-            motion:layout_constraintEnd_toEndOf="parent"
-            motion:layout_constraintStart_toStartOf="parent"
-            motion:layout_constraintTop_toBottomOf="@+id/tvSongArtist" />
+            motion:layout_constraintEnd_toStartOf="@id/bluetooth"
+            motion:layout_constraintHorizontal_chainStyle="packed"
+            motion:layout_constraintStart_toEndOf="@id/animationViewVisualizer"
+            motion:layout_constraintTop_toBottomOf="@id/tvSongArtist" />
 
         <Constraint
             android:id="@+id/animationViewVisualizer"
             android:layout_width="@dimen/animation_visualizer"
             android:layout_height="@dimen/animation_visualizer"
             android:layout_marginEnd="@dimen/space_xl"
-            motion:lottie_autoPlay="true"
-            motion:lottie_loop="true"
-            motion:layout_constraintBottom_toTopOf="@id/layoutVolume"
+            motion:layout_constraintBottom_toBottomOf="@id/tvSongAlbum"
+            motion:layout_constraintEnd_toStartOf="@id/tvSongAlbum"
             motion:layout_constraintStart_toStartOf="parent"
-            motion:layout_constraintTop_toBottomOf="@id/tvSongAlbum" />
+            motion:layout_constraintTop_toTopOf="@id/tvSongAlbum"
+            motion:lottie_autoPlay="true"
+            motion:lottie_loop="true" />
 
         <Constraint
             android:id="@+id/bluetooth"
@@ -284,9 +286,10 @@
             android:layout_height="@dimen/bluetooth"
             android:layout_marginStart="@dimen/space_xl"
             android:src="@drawable/ic_airplay"
-            motion:layout_constraintBottom_toTopOf="@id/layoutVolume"
+            motion:layout_constraintBottom_toBottomOf="@id/tvSongAlbum"
             motion:layout_constraintEnd_toEndOf="parent"
-            motion:layout_constraintTop_toBottomOf="@id/tvSongAlbum" />
+            motion:layout_constraintStart_toEndOf="@id/tvSongAlbum"
+            motion:layout_constraintTop_toTopOf="@id/tvSongAlbum" />
 
         <Constraint
             android:id="@+id/vPlayer"
