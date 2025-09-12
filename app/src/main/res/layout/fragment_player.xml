@@ -48,17 +48,17 @@
 
         <View
             android:id="@+id/vSupporterAlbumBackground"
-            android:layout_width="1dp"
-            android:layout_height="1dp"
-            android:layout_marginTop="30dp"
+            android:layout_width="@dimen/view_supporter"
+            android:layout_height="@dimen/view_supporter"
+            android:layout_marginTop="@dimen/space_xxxl"
             app:layout_constraintEnd_toEndOf="@+id/vPlayer"
             app:layout_constraintStart_toStartOf="@+id/vPlayer"
             app:layout_constraintTop_toTopOf="@+id/vPlayer" />
 
         <View
             android:id="@+id/vSupporterAlbumArt"
-            android:layout_width="1dp"
-            android:layout_height="1dp"
+            android:layout_width="@dimen/view_supporter"
+            android:layout_height="@dimen/view_supporter"
             app:layout_constraintBottom_toTopOf="@+id/vPlayer"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
@@ -98,8 +98,8 @@
             android:id="@+id/tvSongTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginHorizontal="30dp"
-            android:layout_marginTop="30dp"
+            android:layout_marginHorizontal="@dimen/space_xxxl"
+            android:layout_marginTop="@dimen/space_xxxl"
             android:ellipsize="marquee"
             android:lines="1"
             android:marqueeRepeatLimit="marquee_forever"
@@ -116,7 +116,7 @@
             android:id="@+id/tvSongArtist"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="25dp"
+            android:layout_marginTop="@dimen/space_xxl"
             android:ellipsize="marquee"
             android:gravity="center"
             android:lines="1"
@@ -129,7 +129,7 @@
             android:id="@+id/tvSongAlbum"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="25dp"
+            android:layout_marginTop="@dimen/space_25"
             android:ellipsize="marquee"
             android:gravity="center"
             android:text="@{music.album}"
@@ -139,9 +139,9 @@
 
         <com.airbnb.lottie.LottieAnimationView
             android:id="@+id/animationViewVisualizer"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:layout_marginStart="20dp"
+            android:layout_width="@dimen/animation_visualizer"
+            android:layout_height="@dimen/animation_visualizer"
+            android:layout_marginEnd="@dimen/space_xl"
             app:layout_constraintBottom_toTopOf="@id/layoutVolume"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/tvSongAlbum"
@@ -151,9 +151,9 @@
 
         <com.skydoves.elasticviews.ElasticImageView
             android:id="@+id/bluetooth"
-            android:layout_width="30dp"
-            android:layout_height="30dp"
-            android:layout_marginEnd="20dp"
+            android:layout_width="@dimen/bluetooth"
+            android:layout_height="@dimen/bluetooth"
+            android:layout_marginStart="@dimen/space_xl"
             android:src="@drawable/ic_airplay"
             app:layout_constraintBottom_toTopOf="@id/layoutVolume"
             app:layout_constraintEnd_toEndOf="parent"
@@ -162,7 +162,7 @@
         <androidx.media3.ui.PlayerView
             android:id="@+id/vPlayer"
             android:layout_width="0dp"
-            android:layout_height="100dp"
+            android:layout_height="@dimen/player_view_height"
             android:alpha="0"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
@@ -173,11 +173,11 @@
             android:id="@+id/layoutVolume"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="30dp"
+            android:layout_marginBottom="@dimen/space_xxxl"
             android:gravity="center_horizontal"
             android:orientation="horizontal"
-            android:paddingStart="50dp"
-            android:paddingEnd="50dp"
+            android:paddingStart="@dimen/layout_volume_padding"
+            android:paddingEnd="@dimen/layout_volume_padding"
             app:layout_constraintBottom_toTopOf="@id/vPlayer"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent">
@@ -191,7 +191,7 @@
 
             <SeekBar
                 android:id="@+id/sbVolume"
-                android:layout_width="250dp"
+                android:layout_width="@dimen/seekbar_volume"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_vertical"
                 android:max="100"
@@ -217,7 +217,7 @@
             android:id="@+id/tvCurrentPlayTime"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
+            android:layout_marginTop="@dimen/space_4"
             android:textColor="@color/white"
             android:textSize="@dimen/small_text_size"
             android:textStyle="bold"
@@ -229,7 +229,7 @@
             android:id="@+id/tvTotalTime"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
+            android:layout_marginTop="@dimen/space_4"
             android:textColor="@color/white"
             android:textSize="@dimen/small_text_size"
             android:textStyle="bold"
@@ -239,8 +239,8 @@
 
         <com.skydoves.elasticviews.ElasticImageView
             android:id="@+id/ivPlayPause"
-            android:layout_width="50dp"
-            android:layout_height="50dp"
+            android:layout_width="@dimen/icon_play_pause"
+            android:layout_height="@dimen/icon_play_pause"
             android:src="@drawable/ic_play_button"
             app:imageView_duration="200"
             app:layout_constraintBottom_toBottomOf="parent"
@@ -250,8 +250,8 @@
 
         <com.skydoves.elasticviews.ElasticImageView
             android:id="@+id/ivNext"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
+            android:layout_width="@dimen/icon_prev_next"
+            android:layout_height="@dimen/icon_prev_next"
             android:src="@drawable/ic_next_button"
             app:imageView_duration="200"
             app:layout_constraintBottom_toBottomOf="parent"
@@ -262,8 +262,8 @@
 
         <com.skydoves.elasticviews.ElasticImageView
             android:id="@+id/ivPrevious"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
+            android:layout_width="@dimen/icon_prev_next"
+            android:layout_height="@dimen/icon_prev_next"
             android:src="@drawable/ic_prev_button"
             app:imageView_duration="200"
             app:layout_constraintBottom_toBottomOf="parent"
@@ -274,9 +274,9 @@
 
         <com.skydoves.elasticviews.ElasticImageView
             android:id="@+id/ivRepeatMode"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:layout_marginEnd="20dp"
+            android:layout_width="@dimen/icon_repeat_mode"
+            android:layout_height="@dimen/icon_repeat_mode"
+            android:layout_marginEnd="@dimen/space_xl"
             android:src="@drawable/ic_repeat_all"
             app:imageView_duration="200"
             app:layout_constraintBottom_toBottomOf="parent"
@@ -285,9 +285,9 @@
 
         <com.skydoves.elasticviews.ElasticImageView
             android:id="@+id/ivShuffleMode"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:layout_marginStart="20dp"
+            android:layout_width="@dimen/icon_shuffle_mode"
+            android:layout_height="@dimen/icon_shuffle_mode"
+            android:layout_marginStart="@dimen/space_xl"
             android:src="@drawable/ic_shuffle_off"
             app:imageView_duration="200"
             app:layout_constraintBottom_toBottomOf="parent"
