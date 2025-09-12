@@ -135,16 +135,20 @@
             android:text="@{music.album}"
             android:textColor="@color/white"
             android:textSize="@dimen/title_text_size"
-            app:layout_constraintTop_toBottomOf="@+id/tvSongArtist" />
+            app:layout_constraintEnd_toStartOf="@id/bluetooth"
+            app:layout_constraintHorizontal_chainStyle="packed"
+            app:layout_constraintStart_toEndOf="@id/animationViewVisualizer"
+            app:layout_constraintTop_toBottomOf="@id/tvSongArtist" />
 
         <com.airbnb.lottie.LottieAnimationView
             android:id="@+id/animationViewVisualizer"
             android:layout_width="@dimen/animation_visualizer"
             android:layout_height="@dimen/animation_visualizer"
             android:layout_marginEnd="@dimen/space_xl"
-            app:layout_constraintBottom_toTopOf="@id/layoutVolume"
+            app:layout_constraintBottom_toBottomOf="@id/tvSongAlbum"
+            app:layout_constraintEnd_toStartOf="@id/tvSongAlbum"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/tvSongAlbum"
+            app:layout_constraintTop_toTopOf="@id/tvSongAlbum"
             app:lottie_autoPlay="true"
             app:lottie_loop="true"
             app:lottie_rawRes="@raw/audio_visualizer" />
@@ -155,9 +159,10 @@
             android:layout_height="@dimen/bluetooth"
             android:layout_marginStart="@dimen/space_xl"
             android:src="@drawable/ic_airplay"
-            app:layout_constraintBottom_toTopOf="@id/layoutVolume"
+            app:layout_constraintBottom_toBottomOf="@id/tvSongAlbum"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/tvSongAlbum" />
+            app:layout_constraintStart_toEndOf="@id/tvSongAlbum"
+            app:layout_constraintTop_toTopOf="@id/tvSongAlbum" />
 
         <androidx.media3.ui.PlayerView
             android:id="@+id/vPlayer"
