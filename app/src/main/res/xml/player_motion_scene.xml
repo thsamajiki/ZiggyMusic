@@ -35,10 +35,10 @@
 
         <Constraint
             android:id="@+id/ivAlbumArt"
-            android:layout_width="60dp"
-            android:layout_height="60dp"
-            android:layout_marginStart="5dp"
-            android:layout_marginTop="5dp"
+            android:layout_width="@dimen/album_art_size_collapsed"
+            android:layout_height="@dimen/album_art_size_collapsed"
+            android:layout_marginStart="@dimen/space_xs"
+            android:layout_marginTop="@dimen/space_xs"
             motion:layout_constraintStart_toStartOf="parent"
             motion:layout_constraintTop_toTopOf="parent" />
 
@@ -46,13 +46,13 @@
             android:id="@+id/tvSongTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="5dp"
-            motion:layout_constraintTop_toTopOf="@id/ivAlbumArt"
+            android:layout_marginStart="@dimen/space_xs"
+            motion:layout_constrainedWidth="true"
+            motion:layout_constraintBottom_toTopOf="@id/tvSongArtist"
             motion:layout_constraintEnd_toStartOf="@id/ivPlayPause"
             motion:layout_constraintHorizontal_bias="0"
             motion:layout_constraintStart_toEndOf="@id/ivAlbumArt"
-            motion:layout_constraintBottom_toTopOf="@id/tvSongArtist"
-            motion:layout_constrainedWidth="true">
+            motion:layout_constraintTop_toTopOf="@id/ivAlbumArt">
 
             <CustomAttribute
                 motion:attributeName="textSize"
@@ -64,13 +64,13 @@
             android:id="@+id/tvSongArtist"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="5dp"
-            motion:layout_constraintStart_toEndOf="@id/ivAlbumArt"
-            motion:layout_constraintTop_toBottomOf="@id/tvSongTitle"
-            motion:layout_constraintHorizontal_bias="0"
-            motion:layout_constraintEnd_toStartOf="@id/ivPlayPause"
+            android:layout_marginStart="@dimen/space_xs"
+            motion:layout_constrainedWidth="true"
             motion:layout_constraintBottom_toBottomOf="@id/ivAlbumArt"
-            motion:layout_constrainedWidth="true">
+            motion:layout_constraintEnd_toStartOf="@id/ivPlayPause"
+            motion:layout_constraintHorizontal_bias="0"
+            motion:layout_constraintStart_toEndOf="@id/ivAlbumArt"
+            motion:layout_constraintTop_toBottomOf="@id/tvSongTitle">
 
             <CustomAttribute
                 motion:attributeName="textSize"
@@ -101,9 +101,7 @@
         <Constraint
             android:id="@+id/sbPlayer"
             android:layout_width="0dp"
-            android:layout_height="2dp"
-            android:paddingStart="0dp"
-            android:paddingEnd="0dp"
+            android:layout_height="@dimen/seekbar_player_height"
             motion:layout_constraintEnd_toEndOf="parent"
             motion:layout_constraintStart_toStartOf="parent"
             motion:layout_constraintTop_toTopOf="parent" />
@@ -118,8 +116,8 @@
 
         <Constraint
             android:id="@+id/ivPlayPause"
-            android:layout_width="50dp"
-            android:layout_height="50dp"
+            android:layout_width="@dimen/icon_play_pause"
+            android:layout_height="@dimen/icon_play_pause"
             android:layout_marginEnd="10dp"
             motion:layout_constraintBottom_toBottomOf="@id/ivAlbumArt"
             motion:layout_constraintEnd_toStartOf="@id/ivNext"
@@ -127,8 +125,8 @@
 
         <Constraint
             android:id="@+id/ivNext"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
+            android:layout_width="@dimen/icon_prev_next"
+            android:layout_height="@dimen/icon_prev_next"
             android:layout_marginEnd="10dp"
             motion:layout_constraintBottom_toBottomOf="@id/ivAlbumArt"
             motion:layout_constraintEnd_toEndOf="parent"
@@ -136,8 +134,8 @@
 
         <Constraint
             android:id="@+id/ivPrevious"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
+            android:layout_width="@dimen/icon_prev_next"
+            android:layout_height="@dimen/icon_prev_next"
             android:src="@drawable/ic_prev_button"
             motion:layout_constraintBottom_toBottomOf="parent"
             motion:layout_constraintEnd_toStartOf="@id/ivPlayPause"
@@ -155,7 +153,6 @@
             motion:layout_constraintStart_toStartOf="parent"
             motion:layout_constraintTop_toTopOf="@id/vPlayer" />
 
-
     </ConstraintSet>
 
     <ConstraintSet android:id="@+id/expanded">
@@ -163,22 +160,23 @@
             android:id="@+id/toolbarNowPlayingTitle"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
+            android:layout_marginTop="@dimen/status_bar_height"
             motion:contentInsetStart="0dp"
             motion:layout_constraintTop_toTopOf="parent" />
 
         <Constraint
             android:id="@+id/vSupporterAlbumBackground"
-            android:layout_width="1dp"
-            android:layout_height="1dp"
-            android:layout_marginTop="30dp"
+            android:layout_width="@dimen/view_supporter"
+            android:layout_height="@dimen/view_supporter"
+            android:layout_marginTop="@dimen/space_xxxl"
             motion:layout_constraintEnd_toEndOf="@+id/vPlayer"
             motion:layout_constraintStart_toStartOf="@+id/vPlayer"
             motion:layout_constraintTop_toTopOf="@+id/vPlayer" />
 
         <Constraint
             android:id="@+id/vSupporterAlbumArt"
-            android:layout_width="1dp"
-            android:layout_height="1dp"
+            android:layout_width="@dimen/view_supporter"
+            android:layout_height="@dimen/view_supporter"
             motion:layout_constraintBottom_toTopOf="@+id/vPlayer"
             motion:layout_constraintEnd_toEndOf="parent"
             motion:layout_constraintStart_toStartOf="parent"
@@ -206,8 +204,8 @@
 
         <Constraint
             android:id="@+id/ivAlbumArt"
-            android:layout_width="300dp"
-            android:layout_height="300dp"
+            android:layout_width="@dimen/album_art_size_expanded"
+            android:layout_height="@dimen/album_art_size_expanded"
             motion:layout_constraintBottom_toBottomOf="@+id/vSupporterAlbumArt"
             motion:layout_constraintEnd_toEndOf="parent"
             motion:layout_constraintStart_toStartOf="parent"
@@ -217,14 +215,14 @@
             android:id="@+id/tvSongTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="30dp"
+            android:layout_marginTop="@dimen/space_xxxl"
+            android:ellipsize="marquee"
             android:gravity="center"
+            android:marqueeRepeatLimit="marquee_forever"
             android:text="@string/current_song_title"
             android:textColor="@color/white"
             android:textSize="@dimen/head_text_size"
             android:textStyle="bold"
-            android:marqueeRepeatLimit="marquee_forever"
-            android:ellipsize="marquee"
             motion:layout_constraintEnd_toEndOf="parent"
             motion:layout_constraintStart_toStartOf="parent"
             motion:layout_constraintTop_toBottomOf="@+id/toolbarNowPlayingTitle">
@@ -239,12 +237,12 @@
             android:id="@+id/tvSongArtist"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="25dp"
+            android:layout_marginTop="@dimen/space_25"
+            android:ellipsize="marquee"
             android:gravity="center"
             android:text="@string/current_song_artist"
             android:textColor="@color/white"
             android:textSize="@dimen/title_text_size"
-            android:ellipsize="marquee"
             motion:layout_constraintEnd_toEndOf="parent"
             motion:layout_constraintStart_toStartOf="parent"
             motion:layout_constraintTop_toBottomOf="@+id/ivAlbumArt">
@@ -259,22 +257,21 @@
             android:id="@+id/tvSongAlbum"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="25dp"
+            android:layout_marginTop="@dimen/space_25"
+            android:ellipsize="marquee"
             android:gravity="center"
             android:text="@string/current_song_album"
             android:textColor="@color/white"
             android:textSize="@dimen/title_text_size"
-            android:ellipsize="marquee"
             motion:layout_constraintEnd_toEndOf="parent"
             motion:layout_constraintStart_toStartOf="parent"
             motion:layout_constraintTop_toBottomOf="@+id/tvSongArtist" />
 
         <Constraint
             android:id="@+id/animationViewVisualizer"
-            android:layout_width="30dp"
-            android:layout_height="30dp"
-            android:layout_marginStart="20dp"
-            motion:lottie_rawRes="@raw/audio_visualizer"
+            android:layout_width="@dimen/animation_visualizer"
+            android:layout_height="@dimen/animation_visualizer"
+            android:layout_marginEnd="@dimen/space_xl"
             motion:lottie_autoPlay="true"
             motion:lottie_loop="true"
             motion:layout_constraintBottom_toTopOf="@id/layoutVolume"
@@ -283,9 +280,9 @@
 
         <Constraint
             android:id="@+id/bluetooth"
-            android:layout_width="30dp"
-            android:layout_height="30dp"
-            android:layout_marginEnd="20dp"
+            android:layout_width="@dimen/bluetooth"
+            android:layout_height="@dimen/bluetooth"
+            android:layout_marginStart="@dimen/space_xl"
             android:src="@drawable/ic_airplay"
             motion:layout_constraintBottom_toTopOf="@id/layoutVolume"
             motion:layout_constraintEnd_toEndOf="parent"
@@ -294,7 +291,7 @@
         <Constraint
             android:id="@+id/vPlayer"
             android:layout_width="0dp"
-            android:layout_height="100dp"
+            android:layout_height="@dimen/player_view_height"
             android:alpha="0"
             motion:layout_constraintBottom_toBottomOf="parent"
             motion:layout_constraintEnd_toEndOf="parent"
@@ -305,11 +302,9 @@
             android:id="@+id/layoutVolume"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="30dp"
-            android:maxHeight="4dp"
-            android:minHeight="4dp"
-            android:paddingStart="50dp"
-            android:paddingEnd="50dp"
+            android:layout_marginBottom="@dimen/space_xxxl"
+            android:paddingStart="@dimen/layout_volume_padding"
+            android:paddingEnd="@dimen/layout_volume_padding"
             motion:layout_constraintBottom_toTopOf="@id/vPlayer"
             motion:layout_constraintEnd_toEndOf="parent"
             motion:layout_constraintStart_toStartOf="parent" />
@@ -330,10 +325,10 @@
             android:id="@+id/tvCurrentPlayTime"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:layout_marginStart="4dp"
-            android:textSize="@dimen/small_text_size"
+            android:layout_marginStart="@dimen/space_4"
+            android:layout_marginTop="@dimen/space_4"
             android:textColor="@color/purple_200"
+            android:textSize="@dimen/small_text_size"
             android:textStyle="bold"
             motion:layout_constraintStart_toStartOf="@id/layoutVolume"
             motion:layout_constraintTop_toBottomOf="@id/layoutVolume" />
@@ -342,18 +337,18 @@
             android:id="@+id/tvTotalTime"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:layout_marginEnd="4dp"
-            android:textSize="@dimen/small_text_size"
+            android:layout_marginTop="@dimen/space_4"
+            android:layout_marginEnd="@dimen/space_4"
             android:textColor="@color/purple_200"
+            android:textSize="@dimen/small_text_size"
             android:textStyle="bold"
             motion:layout_constraintEnd_toEndOf="@id/layoutVolume"
             motion:layout_constraintTop_toBottomOf="@id/layoutVolume" />
 
         <Constraint
             android:id="@+id/ivPlayPause"
-            android:layout_width="50dp"
-            android:layout_height="50dp"
+            android:layout_width="@dimen/icon_play_pause"
+            android:layout_height="@dimen/icon_play_pause"
             android:src="@drawable/ic_play_button"
             motion:layout_constraintBottom_toBottomOf="parent"
             motion:layout_constraintEnd_toEndOf="parent"
@@ -362,8 +357,8 @@
 
         <Constraint
             android:id="@+id/ivNext"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
+            android:layout_width="@dimen/icon_prev_next"
+            android:layout_height="@dimen/icon_prev_next"
             android:src="@drawable/ic_next_button"
             motion:layout_constraintBottom_toBottomOf="parent"
             motion:layout_constraintEnd_toEndOf="parent"
@@ -373,8 +368,8 @@
 
         <Constraint
             android:id="@+id/ivPrevious"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
+            android:layout_width="@dimen/icon_prev_next"
+            android:layout_height="@dimen/icon_prev_next"
             android:src="@drawable/ic_prev_button"
             motion:layout_constraintBottom_toBottomOf="parent"
             motion:layout_constraintEnd_toStartOf="@id/ivPlayPause"
@@ -384,9 +379,9 @@
 
         <Constraint
             android:id="@+id/ivRepeatMode"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:layout_marginEnd="20dp"
+            android:layout_width="@dimen/icon_repeat_mode"
+            android:layout_height="@dimen/icon_repeat_mode"
+            android:layout_marginEnd="@dimen/space_xl"
             android:src="@drawable/ic_repeat_all"
             motion:layout_constraintBottom_toBottomOf="parent"
             motion:layout_constraintEnd_toEndOf="parent"
@@ -394,9 +389,9 @@
 
         <Constraint
             android:id="@+id/ivShuffleMode"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:layout_marginStart="20dp"
+            android:layout_width="@dimen/icon_shuffle_mode"
+            android:layout_height="@dimen/icon_shuffle_mode"
+            android:layout_marginStart="@dimen/space_xl"
             android:src="@drawable/ic_shuffle_off"
             motion:imageView_duration="200"
             motion:layout_constraintBottom_toBottomOf="parent"
