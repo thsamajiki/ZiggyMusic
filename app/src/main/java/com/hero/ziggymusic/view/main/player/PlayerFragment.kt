@@ -62,6 +62,7 @@ import javax.inject.Inject
 import kotlin.math.max
 import kotlin.random.Random
 import androidx.core.graphics.createBitmap
+import kotlin.compareTo
 
 @AndroidEntryPoint
 class PlayerFragment : Fragment() {
@@ -584,8 +585,18 @@ class PlayerFragment : Fragment() {
                     player.currentMediaItemIndex == player.mediaItemCount - 1 &&
                     state == Player.STATE_ENDED
                 ) {
+                    // 자동 재생 방지
+                    player.playWhenReady = false
+
+                    // 첫 트랙으로 이동
                     player.seekTo(0, 0)
-                    updatePlayerView(playerModel.currentMusic)
+
+                    // PlayerModel 및 UI 동기화
+                    if (player.mediaItemCount > 0) {
+                        val firstId = player.getMediaItemAt(0).mediaId
+                        playerModel.changedMusic(firstId)
+                        updatePlayerView(playerModel.currentMusic)
+                    }
                     player.pause()
                 }
             }
