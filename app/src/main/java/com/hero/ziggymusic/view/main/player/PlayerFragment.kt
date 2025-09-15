@@ -365,7 +365,7 @@ class PlayerFragment : Fragment() {
                 binding.ivShuffleMode.setImageResource(R.drawable.ic_shuffle_off)
             } else { // 셔플 모드가 Off일 때
                 player.shuffleModeEnabled = true
-                player.setShuffleOrder(ShuffleOrder.DefaultShuffleOrder(playerViewModel.musicList.value.orEmpty().size, Random.nextLong()))
+                player.shuffleOrder = ShuffleOrder.DefaultShuffleOrder(playerViewModel.musicList.value.orEmpty().size, Random.nextLong())
                 binding.ivShuffleMode.setImageResource(R.drawable.ic_shuffle_on)
             }
         }
