@@ -448,8 +448,6 @@ class PlayerFragment : Fragment() {
                 it.id == musicId
             }
 
-        Log.d("changeMusic", "findIndex: $findIndex")
-
         if (findIndex != -1) {
             player.seekTo(findIndex, 0)
             player.play()
@@ -523,12 +521,10 @@ class PlayerFragment : Fragment() {
         }
 
         binding.ivNext.setOnClickListener {
-            Log.d("PlayerFragment", "Next 버튼 클릭됨")
             sendServiceAction(SKIP_NEXT)
         }
 
         binding.ivPrevious.setOnClickListener {
-            Log.d("PlayerFragment", "Prev 버튼 클릭됨")
             sendServiceAction(SKIP_PREV)
         }
     }
@@ -567,7 +563,6 @@ class PlayerFragment : Fragment() {
                 val newMusicKey: String = mediaItem?.mediaId ?: return
                 playerModel.changedMusic(newMusicKey)
 
-                Log.d("onMediaItemTransition", "playerModel.currentMusic: ${playerModel.currentMusic}")
                 updatePlayerView(playerModel.currentMusic)
 
                 // 트랙 전환 시 제목/아티스트/아트 동기화
