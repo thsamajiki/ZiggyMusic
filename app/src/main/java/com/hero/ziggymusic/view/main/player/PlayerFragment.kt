@@ -99,40 +99,6 @@ class PlayerFragment : Fragment() {
         scheduleBluetoothUpdate()
     }
 
-    // AudioDeviceInfo를 이용한 블루투스 오디오 기기 탐지
-    private fun isBluetoothAudioDeviceConnected(audioManager: AudioManager): Boolean {
-        val devices = audioManager.getDevices(AudioManager.GET_DEVICES_OUTPUTS)
-        for (device in devices) {
-            when (device.type) {
-                AudioDeviceInfo.TYPE_BLUETOOTH_A2DP,
-                AudioDeviceInfo.TYPE_BLUETOOTH_SCO,
-                    -> {
-                    Log.d("Bluetooth", "Bluetooth output device connected: type=${device.type}")
-                    return true
-                }
-            }
-        }
-
-        return false
-    }
-
-    // AudioDeviceInfo를 이용한 유선 오디오 기기 탐지
-    private fun isWiredAudioDeviceConnected(audioManager: AudioManager): Boolean {
-        val devices = audioManager.getDevices(AudioManager.GET_DEVICES_OUTPUTS)
-        for (device in devices) {
-            when (device.type) {
-                AudioDeviceInfo.TYPE_WIRED_HEADPHONES,
-                AudioDeviceInfo.TYPE_WIRED_HEADSET,
-                    -> {
-                    Log.d("Bluetooth", "Wired output device connected: type=${device.type}")
-                    return true
-                }
-            }
-        }
-
-        return false
-    }
-
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -196,140 +162,6 @@ class PlayerFragment : Fragment() {
         setupBluetoothMonitoring()
     }
 
-    private fun setupBluetoothMonitoring() {
-        // 블루투스 아이콘 클릭 리스너 - 테스트용 토글 기능
-        binding.bluetooth.setOnClickListener {
-            // 테스트용: 클릭할 때마다 아이콘 토글
-            val currentDrawable = binding.bluetooth.drawable
-            val airplayDrawable = ContextCompat.getDrawable(requireContext(), R.drawable.ic_airplay)
-            val airpodsDrawable = ContextCompat.getDrawable(requireContext(), R.drawable.ic_airpods)
-
-            if (airplayDrawable != null && airpodsDrawable != null && currentDrawable != null) {
-                val currentBitmap = drawableToBitmap(currentDrawable)
-                val airplayBitmap = drawableToBitmap(airplayDrawable)
-
-                if (areBitmapsEqual(currentBitmap, airplayBitmap)) {
-                    binding.bluetooth.setImageResource(R.drawable.ic_airpods)
-                    Log.d("Bluetooth", "Manual toggle: switched to airpods icon")
-                } else {
-                    binding.bluetooth.setImageResource(R.drawable.ic_airplay)
-                    Log.d("Bluetooth", "Manual toggle: switched to airplay icon")
-                }
-            }
-        }
-
-        // 초기 블루투스 상태 체크 및 아이콘 설정
-        updateBluetoothIcon()
-
-        // 주기적으로 블루투스 상태 업데이트
-        scheduleBluetoothUpdate()
-    }
-
-    private fun updateBluetoothIcon() {
-        if (_binding == null) return
-        Log.d("Bluetooth", "Updating bluetooth icon...")
-
-        try {
-            // AudioManager.getDevices()를 활용하여 블루투스 및 유선 오디오 기기 체크 (Android 6.0 이상)
-            val hasBluetoothDevice = isBluetoothAudioDeviceConnected(audioManager)
-            val hasWiredDevice = isWiredAudioDeviceConnected(audioManager)
-
-            Log.d(
-                "Bluetooth",
-                "Audio device detect - Bluetooth: $hasBluetoothDevice, Wired: $hasWiredDevice"
-            )
-
-            // 블루투스 오디오 기기가 연결되어 있고 유선 기기는 없을 때
-            if (hasBluetoothDevice && !hasWiredDevice) {
-                binding.bluetooth.setImageResource(R.drawable.ic_airpods)
-                Log.d("Bluetooth", "Bluetooth audio is active - showing airpods icon")
-                return
-            }
-
-            // 블루투스 권한 체크 후 추가 확인
-            if (ActivityCompat.checkSelfPermission(
-                    requireContext(),
-                    Manifest.permission.BLUETOOTH_CONNECT
-                ) == PackageManager.PERMISSION_GRANTED
-            ) {
-                val bluetoothManager = ContextCompat.getSystemService(
-                    requireContext(),
-                    BluetoothManager::class.java
-                )
-
-                bluetoothManager?.let { manager ->
-                    val bluetoothAdapter = manager.adapter
-
-                    if (bluetoothAdapter?.isEnabled == true) {
-                        // 연결된 블루투스 기기가 있는지 확인
-                        val isBluetoothConnected = checkBluetoothConnection(manager)
-
-                        if (isBluetoothConnected) {
-                            binding.bluetooth.setImageResource(R.drawable.ic_airpods)
-                            Log.d(
-                                "Bluetooth",
-                                "Bluetooth device connected via profile - showing airpods icon"
-                            )
-                            return
-                        }
-                    }
-                }
-            }
-
-            // 기본값: 블루투스가 연결되지 않음
-            binding.bluetooth.setImageResource(R.drawable.ic_airplay)
-            Log.d("Bluetooth", "No bluetooth connection detected - showing airplay icon")
-
-        } catch (e: Exception) {
-            Log.e("Bluetooth", "Error updating bluetooth icon", e)
-            binding.bluetooth.setImageResource(R.drawable.ic_airplay)
-        }
-    }
-
-    @SuppressLint("MissingPermission")
-    private fun checkBluetoothConnection(bluetoothManager: BluetoothManager): Boolean {
-        if (ActivityCompat.checkSelfPermission(
-                requireContext(),
-                Manifest.permission.BLUETOOTH_CONNECT
-            ) != PackageManager.PERMISSION_GRANTED
-        ) {
-            return false
-        }
-
-        try {
-            val bluetoothAdapter: BluetoothAdapter? = bluetoothManager.adapter
-
-            // 블루투스 profile connections
-            val a2dpConnected =
-                bluetoothAdapter?.getProfileConnectionState(BluetoothProfile.A2DP) == BluetoothAdapter.STATE_CONNECTED
-            val headsetConnected =
-                bluetoothAdapter?.getProfileConnectionState(BluetoothProfile.HEADSET) == BluetoothAdapter.STATE_CONNECTED
-
-            if (a2dpConnected || headsetConnected) {
-                Log.d(
-                    "Bluetooth",
-                    "Audio Profile connected: A2DP=$a2dpConnected, HEADSET=$headsetConnected"
-                )
-                return true
-            }
-
-            // GATT connections 검사
-            val bluetoothDevices = bluetoothAdapter?.bondedDevices ?: emptySet()
-            bluetoothDevices.forEach { device ->
-                val connectionState =
-                    bluetoothManager.getConnectionState(device, BluetoothGatt.GATT)
-                if (connectionState == BluetoothGatt.STATE_CONNECTED) {
-                    Log.d("Bluetooth", "Connected GATT device found: ${device.name}")
-                    return true
-                }
-            }
-        } catch (e: Exception) {
-            Log.e("Bluetooth", "Error checking bluetooth connection", e)
-        }
-
-        return false
-    }
-
     private fun initPlayerBottomSheetManager() {
         playerBottomSheetManager = PlayerBottomSheetManager(
             viewLifecycleOwner.lifecycle,
@@ -355,63 +187,6 @@ class PlayerFragment : Fragment() {
                 }
             }
         )
-    }
-
-    @OptIn(UnstableApi::class)
-    private fun toggleShuffleModeIcon() {
-        binding.ivShuffleMode.setOnClickListener {
-            if (player.shuffleModeEnabled) { // 셔플 모드가 On일 때
-                player.shuffleModeEnabled = false
-                binding.ivShuffleMode.setImageResource(R.drawable.ic_shuffle_off)
-            } else { // 셔플 모드가 Off일 때
-                player.shuffleModeEnabled = true
-                player.shuffleOrder = ShuffleOrder.DefaultShuffleOrder(playerViewModel.musicList.value.orEmpty().size, Random.nextLong())
-                binding.ivShuffleMode.setImageResource(R.drawable.ic_shuffle_on)
-            }
-        }
-    }
-
-    private fun toggleRepeatModeIcon() {
-        binding.ivRepeatMode.setOnClickListener {
-            if (player.repeatMode == Player.REPEAT_MODE_OFF) { // 반복 재생 모드 해제 상태일 때
-                player.repeatMode = Player.REPEAT_MODE_ALL
-                binding.ivRepeatMode.setImageResource(R.drawable.ic_repeat_all_on)
-            } else if (player.repeatMode == Player.REPEAT_MODE_ALL) { // 전 곡 반복 재생 모드일 때
-                player.repeatMode = Player.REPEAT_MODE_ONE
-                binding.ivRepeatMode.setImageResource(R.drawable.ic_repeat_one_on)
-            } else { // 한 곡 반복 재생 모드일 때
-                player.repeatMode = Player.REPEAT_MODE_OFF
-                binding.ivRepeatMode.setImageResource(R.drawable.ic_repeat_all)
-            }
-        }
-    }
-
-    private fun toggleVolumeIcon() {
-        binding.ivVolume.setOnClickListener {
-            val volumeDrawable = binding.ivVolume.drawable
-            val volumeBitmap = drawableToBitmap(volumeDrawable)
-
-            val muteDrawable = ContextCompat.getDrawable(requireContext(), R.drawable.ic_mute)
-
-            if (muteDrawable != null) {
-                val muteBitmap = drawableToBitmap(muteDrawable)
-
-                if (areBitmapsEqual(volumeBitmap, muteBitmap)) {
-                    binding.ivVolume.setImageResource(R.drawable.ic_volume)
-                    currentVolume = previousVolume
-                    audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, currentVolume, 0)
-                    binding.sbVolume.progress = currentVolume
-
-                } else {
-                    binding.ivVolume.setImageResource(R.drawable.ic_mute)
-                    val muteValue = AudioManager.ADJUST_MUTE
-                    previousVolume = currentVolume
-                    currentVolume = 0
-                    audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, muteValue, 0)
-                    binding.sbVolume.progress = 0
-                }
-            }
-        }
     }
 
     private fun initViewModel() {
@@ -736,6 +511,231 @@ class PlayerFragment : Fragment() {
 
     private fun areBitmapsEqual(bitmap1: Bitmap, bitmap2: Bitmap): Boolean {
         return bitmap1.sameAs(bitmap2)
+    }
+
+    @OptIn(UnstableApi::class)
+    private fun toggleShuffleModeIcon() {
+        binding.ivShuffleMode.setOnClickListener {
+            if (player.shuffleModeEnabled) { // 셔플 모드가 On일 때
+                player.shuffleModeEnabled = false
+                binding.ivShuffleMode.setImageResource(R.drawable.ic_shuffle_off)
+            } else { // 셔플 모드가 Off일 때
+                player.shuffleModeEnabled = true
+                player.shuffleOrder = ShuffleOrder.DefaultShuffleOrder(playerViewModel.musicList.value.orEmpty().size, Random.nextLong())
+                binding.ivShuffleMode.setImageResource(R.drawable.ic_shuffle_on)
+            }
+        }
+    }
+
+    private fun toggleRepeatModeIcon() {
+        binding.ivRepeatMode.setOnClickListener {
+            if (player.repeatMode == Player.REPEAT_MODE_OFF) { // 반복 재생 모드 해제 상태일 때
+                player.repeatMode = Player.REPEAT_MODE_ALL
+                binding.ivRepeatMode.setImageResource(R.drawable.ic_repeat_all_on)
+            } else if (player.repeatMode == Player.REPEAT_MODE_ALL) { // 전 곡 반복 재생 모드일 때
+                player.repeatMode = Player.REPEAT_MODE_ONE
+                binding.ivRepeatMode.setImageResource(R.drawable.ic_repeat_one_on)
+            } else { // 한 곡 반복 재생 모드일 때
+                player.repeatMode = Player.REPEAT_MODE_OFF
+                binding.ivRepeatMode.setImageResource(R.drawable.ic_repeat_all)
+            }
+        }
+    }
+
+    private fun toggleVolumeIcon() {
+        binding.ivVolume.setOnClickListener {
+            val volumeDrawable = binding.ivVolume.drawable
+            val volumeBitmap = drawableToBitmap(volumeDrawable)
+
+            val muteDrawable = ContextCompat.getDrawable(requireContext(), R.drawable.ic_mute)
+
+            if (muteDrawable != null) {
+                val muteBitmap = drawableToBitmap(muteDrawable)
+
+                if (areBitmapsEqual(volumeBitmap, muteBitmap)) {
+                    binding.ivVolume.setImageResource(R.drawable.ic_volume)
+                    currentVolume = previousVolume
+                    audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, currentVolume, 0)
+                    binding.sbVolume.progress = currentVolume
+
+                } else {
+                    binding.ivVolume.setImageResource(R.drawable.ic_mute)
+                    val muteValue = AudioManager.ADJUST_MUTE
+                    previousVolume = currentVolume
+                    currentVolume = 0
+                    audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, muteValue, 0)
+                    binding.sbVolume.progress = 0
+                }
+            }
+        }
+    }
+
+    private fun setupBluetoothMonitoring() {
+        // 블루투스 아이콘 클릭 리스너 - 테스트용 토글 기능
+        binding.bluetooth.setOnClickListener {
+            // 테스트용: 클릭할 때마다 아이콘 토글
+            val currentDrawable = binding.bluetooth.drawable
+            val airplayDrawable = ContextCompat.getDrawable(requireContext(), R.drawable.ic_airplay)
+            val airpodsDrawable = ContextCompat.getDrawable(requireContext(), R.drawable.ic_airpods)
+
+            if (airplayDrawable != null && airpodsDrawable != null && currentDrawable != null) {
+                val currentBitmap = drawableToBitmap(currentDrawable)
+                val airplayBitmap = drawableToBitmap(airplayDrawable)
+
+                if (areBitmapsEqual(currentBitmap, airplayBitmap)) {
+                    binding.bluetooth.setImageResource(R.drawable.ic_airpods)
+                    Log.d("Bluetooth", "Manual toggle: switched to airpods icon")
+                } else {
+                    binding.bluetooth.setImageResource(R.drawable.ic_airplay)
+                    Log.d("Bluetooth", "Manual toggle: switched to airplay icon")
+                }
+            }
+        }
+
+        // 초기 블루투스 상태 체크 및 아이콘 설정
+        updateBluetoothIcon()
+
+        // 주기적으로 블루투스 상태 업데이트
+        scheduleBluetoothUpdate()
+    }
+
+    private fun updateBluetoothIcon() {
+        if (_binding == null) return
+        Log.d("Bluetooth", "Updating bluetooth icon...")
+
+        try {
+            // AudioManager.getDevices()를 활용하여 블루투스 및 유선 오디오 기기 체크 (Android 6.0 이상)
+            val hasBluetoothDevice = isBluetoothAudioDeviceConnected(audioManager)
+            val hasWiredDevice = isWiredAudioDeviceConnected(audioManager)
+
+            Log.d(
+                "Bluetooth",
+                "Audio device detect - Bluetooth: $hasBluetoothDevice, Wired: $hasWiredDevice"
+            )
+
+            // 블루투스 오디오 기기가 연결되어 있고 유선 기기는 없을 때
+            if (hasBluetoothDevice && !hasWiredDevice) {
+                binding.bluetooth.setImageResource(R.drawable.ic_airpods)
+                Log.d("Bluetooth", "Bluetooth audio is active - showing airpods icon")
+                return
+            }
+
+            // 블루투스 권한 체크 후 추가 확인
+            if (ActivityCompat.checkSelfPermission(
+                    requireContext(),
+                    Manifest.permission.BLUETOOTH_CONNECT
+                ) == PackageManager.PERMISSION_GRANTED
+            ) {
+                val bluetoothManager = ContextCompat.getSystemService(
+                    requireContext(),
+                    BluetoothManager::class.java
+                )
+
+                bluetoothManager?.let { manager ->
+                    val bluetoothAdapter = manager.adapter
+
+                    if (bluetoothAdapter?.isEnabled == true) {
+                        // 연결된 블루투스 기기가 있는지 확인
+                        val isBluetoothConnected = checkBluetoothConnection(manager)
+
+                        if (isBluetoothConnected) {
+                            binding.bluetooth.setImageResource(R.drawable.ic_airpods)
+                            Log.d(
+                                "Bluetooth",
+                                "Bluetooth device connected via profile - showing airpods icon"
+                            )
+                            return
+                        }
+                    }
+                }
+            }
+
+            // 기본값: 블루투스가 연결되지 않음
+            binding.bluetooth.setImageResource(R.drawable.ic_airplay)
+            Log.d("Bluetooth", "No bluetooth connection detected - showing airplay icon")
+
+        } catch (e: Exception) {
+            Log.e("Bluetooth", "Error updating bluetooth icon", e)
+            binding.bluetooth.setImageResource(R.drawable.ic_airplay)
+        }
+    }
+
+    @SuppressLint("MissingPermission")
+    private fun checkBluetoothConnection(bluetoothManager: BluetoothManager): Boolean {
+        if (ActivityCompat.checkSelfPermission(
+                requireContext(),
+                Manifest.permission.BLUETOOTH_CONNECT
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            return false
+        }
+
+        try {
+            val bluetoothAdapter: BluetoothAdapter? = bluetoothManager.adapter
+
+            // 블루투스 profile connections
+            val a2dpConnected =
+                bluetoothAdapter?.getProfileConnectionState(BluetoothProfile.A2DP) == BluetoothAdapter.STATE_CONNECTED
+            val headsetConnected =
+                bluetoothAdapter?.getProfileConnectionState(BluetoothProfile.HEADSET) == BluetoothAdapter.STATE_CONNECTED
+
+            if (a2dpConnected || headsetConnected) {
+                Log.d(
+                    "Bluetooth",
+                    "Audio Profile connected: A2DP=$a2dpConnected, HEADSET=$headsetConnected"
+                )
+                return true
+            }
+
+            // GATT connections 검사
+            val bluetoothDevices = bluetoothAdapter?.bondedDevices ?: emptySet()
+            bluetoothDevices.forEach { device ->
+                val connectionState =
+                    bluetoothManager.getConnectionState(device, BluetoothGatt.GATT)
+                if (connectionState == BluetoothGatt.STATE_CONNECTED) {
+                    Log.d("Bluetooth", "Connected GATT device found: ${device.name}")
+                    return true
+                }
+            }
+        } catch (e: Exception) {
+            Log.e("Bluetooth", "Error checking bluetooth connection", e)
+        }
+
+        return false
+    }
+
+    // AudioDeviceInfo를 이용한 블루투스 오디오 기기 탐지
+    private fun isBluetoothAudioDeviceConnected(audioManager: AudioManager): Boolean {
+        val devices = audioManager.getDevices(AudioManager.GET_DEVICES_OUTPUTS)
+        for (device in devices) {
+            when (device.type) {
+                AudioDeviceInfo.TYPE_BLUETOOTH_A2DP,
+                AudioDeviceInfo.TYPE_BLUETOOTH_SCO,
+                    -> {
+                    Log.d("Bluetooth", "Bluetooth output device connected: type=${device.type}")
+                    return true
+                }
+            }
+        }
+
+        return false
+    }
+
+    // AudioDeviceInfo를 이용한 유선 오디오 기기 탐지
+    private fun isWiredAudioDeviceConnected(audioManager: AudioManager): Boolean {
+        val devices = audioManager.getDevices(AudioManager.GET_DEVICES_OUTPUTS)
+        for (device in devices) {
+            when (device.type) {
+                AudioDeviceInfo.TYPE_WIRED_HEADPHONES,
+                AudioDeviceInfo.TYPE_WIRED_HEADSET,
+                    -> {
+                    Log.d("Bluetooth", "Wired output device connected: type=${device.type}")
+                    return true
+                }
+            }
+        }
+
+        return false
     }
 
     override fun onStop() {
