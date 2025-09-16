@@ -111,10 +111,7 @@ class PlayerFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        audioManager = requireContext().getSystemService(Context.AUDIO_SERVICE) as AudioManager
-        currentVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
-        previousVolume = currentVolume
-
+        initAudioManager()
         initPlayView()
         initViewModel()
         initPlayControlButtons()
@@ -130,6 +127,12 @@ class PlayerFragment : Fragment() {
         }
 
         initListeners()
+    }
+
+    private fun initAudioManager() {
+        audioManager = requireContext().getSystemService(Context.AUDIO_SERVICE) as AudioManager
+        currentVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
+        previousVolume = currentVolume
     }
 
     private fun initListeners() {
