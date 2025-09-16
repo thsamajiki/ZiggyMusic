@@ -62,7 +62,6 @@ import javax.inject.Inject
 import kotlin.math.max
 import kotlin.random.Random
 import androidx.core.graphics.createBitmap
-import kotlin.compareTo
 
 @AndroidEntryPoint
 class PlayerFragment : Fragment() {
@@ -120,16 +119,8 @@ class PlayerFragment : Fragment() {
         initViewModel()
         initPlayControlButtons()
         initSeekBar()
-        initPlayerBottomSheetManager()
+        initPlayerManager()
 
-        playerMotionManager = PlayerMotionManager(
-            binding.constraintLayout,
-            playerBottomSheetManager
-        )
-
-
-
-        // 현재 재생 중인 곡 정보를 즉시 UI에 반영
         player.currentMediaItem?.mediaId?.let { mediaId ->
             val music = playerViewModel.musicList.value?.find { it.id == mediaId }
             if (music != null) {
@@ -157,7 +148,7 @@ class PlayerFragment : Fragment() {
         setupBluetoothMonitoring()
     }
 
-    private fun initPlayerBottomSheetManager() {
+    private fun initPlayerManager() {
         playerBottomSheetManager = PlayerBottomSheetManager(
             viewLifecycleOwner.lifecycle,
             binding.constraintLayout,
@@ -181,6 +172,11 @@ class PlayerFragment : Fragment() {
                 override fun onSlide(bottomSheet: View, slideOffset: Float) {
                 }
             }
+        )
+
+        playerMotionManager = PlayerMotionManager(
+            binding.constraintLayout,
+            playerBottomSheetManager
         )
     }
 
