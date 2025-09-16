@@ -118,13 +118,7 @@ class PlayerFragment : Fragment() {
         initSeekBar()
         initPlayerManager()
 
-        player.currentMediaItem?.mediaId?.let { mediaId ->
-            val music = playerViewModel.musicList.value?.find { it.id == mediaId }
-            if (music != null) {
-                playerModel.updateCurrentMusic(music)
-                updatePlayerView(music)
-            }
-        }
+
 
         initListeners()
     }
@@ -214,6 +208,14 @@ class PlayerFragment : Fragment() {
                 if (player.currentMediaItem == null && nowMusic != null) {
                     playMusic(musicList, nowMusic)
                 }
+            }
+        }
+
+        player.currentMediaItem?.mediaId?.let { mediaId ->
+            val music = playerViewModel.musicList.value?.find { it.id == mediaId }
+            if (music != null) {
+                playerModel.updateCurrentMusic(music)
+                updatePlayerView(music)
             }
         }
     }
