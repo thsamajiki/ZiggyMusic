@@ -127,12 +127,7 @@ class PlayerFragment : Fragment() {
             playerBottomSheetManager
         )
 
-        viewLifecycleOwner.lifecycleScope.launch {
-            playerViewModel.state
-                .collect { state ->
-                    playerMotionManager.changeState(state)
-                }
-        }
+
 
         // 현재 재생 중인 곡 정보를 즉시 UI에 반영
         player.currentMediaItem?.mediaId?.let { mediaId ->
@@ -190,6 +185,13 @@ class PlayerFragment : Fragment() {
     }
 
     private fun initViewModel() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            playerViewModel.state
+                .collect { state ->
+                    playerMotionManager.changeState(state)
+                }
+        }
+
         viewLifecycleOwner.lifecycleScope.launch {
             playerViewModel.musicList.observe(viewLifecycleOwner) { musicList ->
                 if (_binding == null) return@observe
