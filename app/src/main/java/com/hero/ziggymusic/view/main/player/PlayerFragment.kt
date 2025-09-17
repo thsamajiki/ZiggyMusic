@@ -139,7 +139,6 @@ class PlayerFragment : Fragment() {
         toggleVolumeIcon()
         toggleRepeatModeIcon()
         toggleShuffleModeIcon()
-        setupBluetoothMonitoring()
     }
 
     private fun initPlayerManager() {
@@ -568,35 +567,6 @@ class PlayerFragment : Fragment() {
                 }
             }
         }
-    }
-
-    private fun setupBluetoothMonitoring() {
-        // 블루투스 아이콘 클릭 리스너 - 테스트용 토글 기능
-        binding.bluetooth.setOnClickListener {
-            // 테스트용: 클릭할 때마다 아이콘 토글
-            val currentDrawable = binding.bluetooth.drawable
-            val airplayDrawable = ContextCompat.getDrawable(requireContext(), R.drawable.ic_airplay)
-            val airpodsDrawable = ContextCompat.getDrawable(requireContext(), R.drawable.ic_airpods)
-
-            if (airplayDrawable != null && airpodsDrawable != null && currentDrawable != null) {
-                val currentBitmap = drawableToBitmap(currentDrawable)
-                val airplayBitmap = drawableToBitmap(airplayDrawable)
-
-                if (areBitmapsEqual(currentBitmap, airplayBitmap)) {
-                    binding.bluetooth.setImageResource(R.drawable.ic_airpods)
-                    Log.d("Bluetooth", "Manual toggle: switched to airpods icon")
-                } else {
-                    binding.bluetooth.setImageResource(R.drawable.ic_airplay)
-                    Log.d("Bluetooth", "Manual toggle: switched to airplay icon")
-                }
-            }
-        }
-
-        // 초기 블루투스 상태 체크 및 아이콘 설정
-        updateBluetoothIcon()
-
-        // 주기적으로 블루투스 상태 업데이트
-        scheduleBluetoothUpdate()
     }
 
     private fun updateBluetoothIcon() {
