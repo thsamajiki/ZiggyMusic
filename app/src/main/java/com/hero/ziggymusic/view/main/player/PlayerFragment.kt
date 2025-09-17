@@ -739,10 +739,11 @@ class PlayerFragment : Fragment() {
     }
 
     override fun onDestroyView() {
-        // Detach player from view to avoid leaking the surface
+        // 리스너 참조로 인한 메모리/수명 누수 방지
         playerListener?.let { player.removeListener(it) }
         playerListener = null
 
+        // Surface 리소스 누수(Fragment의 View가 파괴된 뒤에도 플레이어가 그 Surface를 붙잡고 있어 해제되지 않는 상황)를 방지하기 위해 뷰에서 플레이어를 분리
         _binding?.vPlayer?.player = null
         stopSeekUpdates()
         binding.root.removeCallbacks(updateBluetoothRunnable)
