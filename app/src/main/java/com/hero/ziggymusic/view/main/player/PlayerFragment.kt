@@ -113,13 +113,10 @@ class PlayerFragment : Fragment() {
 
         initAudioManager()
         initPlayView()
-        initViewModel()
         initPlayControlButtons()
         initSeekBar()
         initPlayerManager()
-
-
-
+        initViewModel()
         initListeners()
     }
 
