@@ -751,12 +751,6 @@ class PlayerFragment : Fragment() {
         super.onDestroyView()
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
-
-        _binding = null
-    }
-
     private fun scheduleBluetoothUpdate() {
         if (_binding == null) return
 
