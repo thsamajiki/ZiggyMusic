@@ -69,7 +69,7 @@ class PlayerFragment : Fragment() {
     private val binding get() = _binding!!
 
     private var playerModel: PlayerModel = PlayerModel.getInstance()
-    private val playerViewModel by viewModels<PlayerViewModel>()
+    private val vm by viewModels<PlayerViewModel>()
     private var playerListener: Player.Listener? = null
 
     @Inject
@@ -128,12 +128,12 @@ class PlayerFragment : Fragment() {
 
     private fun initListeners() {
         binding.root.setOnClickListener {
-            val toggleState = when (playerViewModel.state.value) {
+            val toggleState = when (vm.state.value) {
                 PlayerMotionManager.State.COLLAPSED -> PlayerMotionManager.State.EXPANDED
                 PlayerMotionManager.State.EXPANDED -> PlayerMotionManager.State.COLLAPSED
             }
 
-            playerViewModel.changeState(toggleState)
+            vm.changeState(toggleState)
         }
 
         toggleVolumeIcon()
@@ -149,11 +149,11 @@ class PlayerFragment : Fragment() {
                 override fun onStateChanged(bottomSheet: View, newState: Int) {
                     when (newState) {
                         BottomSheetBehavior.STATE_EXPANDED -> {
-                            playerViewModel.changeState(PlayerMotionManager.State.EXPANDED)
+                            vm.changeState(PlayerMotionManager.State.EXPANDED)
                         }
 
                         BottomSheetBehavior.STATE_COLLAPSED -> {
-                            playerViewModel.changeState(PlayerMotionManager.State.COLLAPSED)
+                            vm.changeState(PlayerMotionManager.State.COLLAPSED)
                         }
 
                         BottomSheetBehavior.STATE_HIDDEN -> {
@@ -175,14 +175,14 @@ class PlayerFragment : Fragment() {
 
     private fun initViewModel() {
         viewLifecycleOwner.lifecycleScope.launch {
-            playerViewModel.state
+            vm.state
                 .collect { state ->
                     playerMotionManager.changeState(state)
                 }
         }
 
         viewLifecycleOwner.lifecycleScope.launch {
-            playerViewModel.musicList.observe(viewLifecycleOwner) { musicList ->
+            vm.musicList.observe(viewLifecycleOwner) { musicList ->
                 if (_binding == null) return@observe
 
                 Log.d("initViewModel", "playerModel: $playerModel")
@@ -208,7 +208,7 @@ class PlayerFragment : Fragment() {
         }
 
         player.currentMediaItem?.mediaId?.let { mediaId ->
-            val music = playerViewModel.musicList.value?.find { it.id == mediaId }
+            val music = vm.musicList.value?.find { it.id == mediaId }
             if (music != null) {
                 playerModel.updateCurrentMusic(music)
                 updatePlayerView(music)
@@ -217,7 +217,7 @@ class PlayerFragment : Fragment() {
     }
 
     fun changeMusic(musicId: String) {
-        val findIndex = playerViewModel.musicList.value.orEmpty()
+        val findIndex = vm.musicList.value.orEmpty()
             .indexOfFirst {
                 it.id == musicId
             }
@@ -507,7 +507,7 @@ class PlayerFragment : Fragment() {
                 binding.ivShuffleMode.setImageResource(R.drawable.ic_shuffle_off)
             } else { // 셔플 모드가 Off일 때
                 player.shuffleModeEnabled = true
-                player.shuffleOrder = ShuffleOrder.DefaultShuffleOrder(playerViewModel.musicList.value.orEmpty().size, Random.nextLong())
+                player.shuffleOrder = ShuffleOrder.DefaultShuffleOrder(vm.musicList.value.orEmpty().size, Random.nextLong())
                 binding.ivShuffleMode.setImageResource(R.drawable.ic_shuffle_on)
             }
         }
