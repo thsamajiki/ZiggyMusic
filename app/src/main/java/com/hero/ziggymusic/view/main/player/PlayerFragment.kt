@@ -339,8 +339,8 @@ class PlayerFragment : Fragment() {
 
                 updatePlayerView(playerModel.currentMusic)
 
-                // 트랙 전환 시 제목/아티스트/아트 동기화
-                syncCollapsedPlayerWithNotification()
+                // 트랙 전환 시 제목/아티스트/앨범 아트, 재생/일시정지 아이콘 동기화
+                syncPlayerUi()
             }
 
             // 재생, 재생 완료, 버퍼링 상태 ...
@@ -372,19 +372,6 @@ class PlayerFragment : Fragment() {
         }
 
         player.addListener(playerListener!!)
-    }
-
-    private fun syncCollapsedPlayerWithNotification() {
-        // 현재 트랙을 우선 ExoPlayer에서, 없으면 PlayerModel에서 조회
-        val currentMusic = playerModel.currentMusic
-
-        currentMusic?.let { music ->
-            // 프로젝트의 기존 메서드로 텍스트/아트 일괄 반영
-            updatePlayerView(music)
-        }
-
-        // 재생/일시정지 아이콘 및 비주얼라이저 동기화
-        syncPlayerUi()
     }
 
     private fun syncPlayerUi() {
