@@ -724,15 +724,6 @@ class PlayerFragment : Fragment() {
             scheduleBluetoothUpdate()
         }
 
-        // 현재 재생 중인 곡 정보를 즉시 UI에 반영
-        player.currentMediaItem?.mediaId?.let { mediaId ->
-            val music = playerViewModel.musicList.value?.find { it.id == mediaId }
-            if (music != null) {
-                playerModel.updateCurrentMusic(music)
-                updatePlayerView(music)
-            }
-        }
-
         // 포그라운드 복귀 시 반드시 루프 재시작
         startSeekUpdates()
         startVolumeObserver()   // 하드웨어 볼륨 변경 감지 시작
