@@ -515,15 +515,19 @@ class PlayerFragment : Fragment() {
 
     private fun toggleRepeatModeIcon() {
         binding.ivRepeatMode.setOnClickListener {
-            if (player.repeatMode == Player.REPEAT_MODE_OFF) { // 반복 재생 모드 해제 상태일 때
-                player.repeatMode = Player.REPEAT_MODE_ALL
-                binding.ivRepeatMode.setImageResource(R.drawable.ic_repeat_all_on)
-            } else if (player.repeatMode == Player.REPEAT_MODE_ALL) { // 전 곡 반복 재생 모드일 때
-                player.repeatMode = Player.REPEAT_MODE_ONE
-                binding.ivRepeatMode.setImageResource(R.drawable.ic_repeat_one_on)
-            } else { // 한 곡 반복 재생 모드일 때
-                player.repeatMode = Player.REPEAT_MODE_OFF
-                binding.ivRepeatMode.setImageResource(R.drawable.ic_repeat_all)
+            when (player.repeatMode) {
+                Player.REPEAT_MODE_OFF -> { // 반복 재생 모드 해제 상태일 때
+                    player.repeatMode = Player.REPEAT_MODE_ALL
+                    binding.ivRepeatMode.setImageResource(R.drawable.ic_repeat_all_on)
+                }
+                Player.REPEAT_MODE_ALL -> { // 전 곡 반복 재생 모드일 때
+                    player.repeatMode = Player.REPEAT_MODE_ONE
+                    binding.ivRepeatMode.setImageResource(R.drawable.ic_repeat_one_on)
+                }
+                else -> { // 한 곡 반복 재생 모드일 때
+                    player.repeatMode = Player.REPEAT_MODE_OFF
+                    binding.ivRepeatMode.setImageResource(R.drawable.ic_repeat_all)
+                }
             }
         }
     }
