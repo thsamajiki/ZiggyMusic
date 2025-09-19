@@ -191,7 +191,6 @@ class PlayerFragment : Fragment() {
             vm.musicList.observe(viewLifecycleOwner) { musicList ->
                 if (_binding == null) return@observe
 
-                Log.d("initViewModel", "playerModel: $playerModel")
                 playerModel.replaceMusicList(musicList)
 
                 // 현재 ExoPlayer가 재생 중인 곡의 id를 우선 사용
