@@ -178,6 +178,12 @@ class PlayerFragment : Fragment() {
             vm.state
                 .collect { state ->
                     playerMotionManager.changeState(state)
+
+                    if (state == PlayerMotionManager.State.EXPANDED) {
+                        startSeekUpdates()
+                    } else {
+                        stopSeekUpdates()
+                    }
                 }
         }
 
@@ -413,6 +419,10 @@ class PlayerFragment : Fragment() {
 
         val view = binding.root
         view.removeCallbacks(updateSeekRunnable)
+
+        if (player.isPlaying) {
+            view.postDelayed(updateSeekRunnable, 1000L)
+        }
     }
 
     private fun updateSeekUi(duration: Long, position: Long) {
