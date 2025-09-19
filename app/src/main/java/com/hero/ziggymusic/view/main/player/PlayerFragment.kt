@@ -69,7 +69,7 @@ class PlayerFragment : Fragment() {
     private val binding get() = _binding!!
 
     private var playerModel: PlayerModel = PlayerModel.getInstance()
-    private val playerViewModel by viewModels<PlayerViewModel>()
+    private val vm by viewModels<PlayerViewModel>()
     private var playerListener: Player.Listener? = null
 
     @Inject
@@ -98,40 +98,6 @@ class PlayerFragment : Fragment() {
         scheduleBluetoothUpdate()
     }
 
-    // AudioDeviceInfo를 이용한 블루투스 오디오 기기 탐지
-    private fun isBluetoothAudioDeviceConnected(audioManager: AudioManager): Boolean {
-        val devices = audioManager.getDevices(AudioManager.GET_DEVICES_OUTPUTS)
-        for (device in devices) {
-            when (device.type) {
-                AudioDeviceInfo.TYPE_BLUETOOTH_A2DP,
-                AudioDeviceInfo.TYPE_BLUETOOTH_SCO,
-                    -> {
-                    Log.d("Bluetooth", "Bluetooth output device connected: type=${device.type}")
-                    return true
-                }
-            }
-        }
-
-        return false
-    }
-
-    // AudioDeviceInfo를 이용한 유선 오디오 기기 탐지
-    private fun isWiredAudioDeviceConnected(audioManager: AudioManager): Boolean {
-        val devices = audioManager.getDevices(AudioManager.GET_DEVICES_OUTPUTS)
-        for (device in devices) {
-            when (device.type) {
-                AudioDeviceInfo.TYPE_WIRED_HEADPHONES,
-                AudioDeviceInfo.TYPE_WIRED_HEADSET,
-                    -> {
-                    Log.d("Bluetooth", "Wired output device connected: type=${device.type}")
-                    return true
-                }
-            }
-        }
-
-        return false
-    }
-
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -145,83 +111,462 @@ class PlayerFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        initAudioManager()
+        initPlayView()
+        initPlayControlButtons()
+        initSeekBar()
+        initPlayerManager()
+        initViewModel()
+        initListeners()
+    }
+
+    private fun initAudioManager() {
         audioManager = requireContext().getSystemService(Context.AUDIO_SERVICE) as AudioManager
         currentVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
         previousVolume = currentVolume
-
-        initPlayView()
-        initViewModel()
-        initPlayControlButtons()
-        initSeekBar()
-        initPlayerBottomSheetManager()
-
-        playerMotionManager = PlayerMotionManager(
-            binding.constraintLayout,
-            playerBottomSheetManager
-        )
-
-        viewLifecycleOwner.lifecycleScope.launch {
-            playerViewModel.state
-                .collect { state ->
-                    playerMotionManager.changeState(state)
-                }
-        }
-
-        // 현재 재생 중인 곡 정보를 즉시 UI에 반영
-        player.currentMediaItem?.mediaId?.let { mediaId ->
-            val music = playerViewModel.musicList.value?.find { it.id == mediaId }
-            if (music != null) {
-                playerModel.updateCurrentMusic(music)
-                updatePlayerView(music)
-            }
-        }
-
-        initListeners()
     }
 
     private fun initListeners() {
         binding.root.setOnClickListener {
-            val toggleState = when (playerViewModel.state.value) {
+            val toggleState = when (vm.state.value) {
                 PlayerMotionManager.State.COLLAPSED -> PlayerMotionManager.State.EXPANDED
                 PlayerMotionManager.State.EXPANDED -> PlayerMotionManager.State.COLLAPSED
             }
 
-            playerViewModel.changeState(toggleState)
+            vm.changeState(toggleState)
         }
 
         toggleVolumeIcon()
         toggleRepeatModeIcon()
         toggleShuffleModeIcon()
-        setupBluetoothMonitoring()
     }
 
-    private fun setupBluetoothMonitoring() {
-        // 블루투스 아이콘 클릭 리스너 - 테스트용 토글 기능
-        binding.bluetooth.setOnClickListener {
-            // 테스트용: 클릭할 때마다 아이콘 토글
-            val currentDrawable = binding.bluetooth.drawable
-            val airplayDrawable = ContextCompat.getDrawable(requireContext(), R.drawable.ic_airplay)
-            val airpodsDrawable = ContextCompat.getDrawable(requireContext(), R.drawable.ic_airpods)
+    private fun initPlayerManager() {
+        playerBottomSheetManager = PlayerBottomSheetManager(
+            viewLifecycleOwner.lifecycle,
+            binding.constraintLayout,
+            object : BottomSheetCallback() {
+                override fun onStateChanged(bottomSheet: View, newState: Int) {
+                    when (newState) {
+                        BottomSheetBehavior.STATE_EXPANDED -> {
+                            vm.changeState(PlayerMotionManager.State.EXPANDED)
+                        }
 
-            if (airplayDrawable != null && airpodsDrawable != null && currentDrawable != null) {
-                val currentBitmap = drawableToBitmap(currentDrawable)
-                val airplayBitmap = drawableToBitmap(airplayDrawable)
+                        BottomSheetBehavior.STATE_COLLAPSED -> {
+                            vm.changeState(PlayerMotionManager.State.COLLAPSED)
+                        }
 
-                if (areBitmapsEqual(currentBitmap, airplayBitmap)) {
-                    binding.bluetooth.setImageResource(R.drawable.ic_airpods)
-                    Log.d("Bluetooth", "Manual toggle: switched to airpods icon")
-                } else {
-                    binding.bluetooth.setImageResource(R.drawable.ic_airplay)
-                    Log.d("Bluetooth", "Manual toggle: switched to airplay icon")
+                        BottomSheetBehavior.STATE_HIDDEN -> {
+                            playerBottomSheetManager.collapse()
+                        }
+                    }
+                }
+
+                override fun onSlide(bottomSheet: View, slideOffset: Float) {
+                }
+            }
+        )
+
+        playerMotionManager = PlayerMotionManager(
+            binding.constraintLayout,
+            playerBottomSheetManager
+        )
+    }
+
+    private fun initViewModel() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            vm.state
+                .collect { state ->
+                    playerMotionManager.changeState(state)
+
+                    if (state == PlayerMotionManager.State.EXPANDED) {
+                        startSeekUpdates()
+                    } else {
+                        stopSeekUpdates()
+                    }
+                }
+        }
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            vm.musicList.observe(viewLifecycleOwner) { musicList ->
+                if (_binding == null) return@observe
+
+                playerModel.replaceMusicList(musicList)
+
+                // 현재 ExoPlayer가 재생 중인 곡의 id를 우선 사용
+                val currentMediaId = player.currentMediaItem?.mediaId
+                val nowMusic = musicList.find { it.id == currentMediaId }
+                    ?: musicList.find { it.id == musicKey }
+                    ?: musicList.getOrNull(0)
+
+                // PlayerModel, UI 동기화
+                if (nowMusic != null) {
+                    playerModel.updateCurrentMusic(nowMusic)
+                    updatePlayerView(nowMusic)
+                }
+
+                // 이미 재생 중인 곡이 있으면 playMusic을 다시 호출하지 않음
+                if (player.currentMediaItem == null && nowMusic != null) {
+                    playMusic(musicList, nowMusic)
                 }
             }
         }
 
-        // 초기 블루투스 상태 체크 및 아이콘 설정
-        updateBluetoothIcon()
+        player.currentMediaItem?.mediaId?.let { mediaId ->
+            val music = vm.musicList.value?.find { it.id == mediaId }
+            if (music != null) {
+                playerModel.updateCurrentMusic(music)
+                updatePlayerView(music)
+            }
+        }
+    }
 
-        // 주기적으로 블루투스 상태 업데이트
-        scheduleBluetoothUpdate()
+    fun changeMusic(musicId: String) {
+        val findIndex = vm.musicList.value.orEmpty()
+            .indexOfFirst {
+                it.id == musicId
+            }
+
+        if (findIndex != -1) {
+            player.seekTo(findIndex, 0)
+            player.play()
+        }
+    }
+
+    private fun initSeekBar() {
+        changeVolume()
+
+        binding.sbPlayer.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(
+                seekBar: SeekBar?,
+                progress: Int,
+                fromUser: Boolean,
+            ) {
+            }
+
+            override fun onStartTrackingTouch(seekBar: SeekBar?) {
+            }
+
+            override fun onStopTrackingTouch(seekBar: SeekBar) {
+                player.seekTo(seekBar.progress * 1000L)
+            }
+        })
+    }
+
+    private fun changeVolume() {
+        val maxVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
+
+        previousVolume = currentVolume
+        binding.sbVolume.progress = currentVolume
+
+        binding.sbVolume.max = maxVolume
+
+        binding.sbVolume.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(
+                seekBar: SeekBar?,
+                progress: Int,
+                fromUser: Boolean,
+            ) {
+                if (fromUser) {
+                    currentVolume = progress
+                    audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, progress, 0)
+                }
+            }
+
+            override fun onStartTrackingTouch(seekBar: SeekBar?) {
+            }
+
+            override fun onStopTrackingTouch(seekBar: SeekBar) {
+                if (seekBar.progress == 0) {
+                    binding.ivVolume.setImageResource(R.drawable.ic_mute)
+                } else {
+                    binding.ivVolume.setImageResource(R.drawable.ic_volume)
+                }
+
+                binding.sbVolume.progress = seekBar.progress
+                currentVolume = seekBar.progress
+                audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, currentVolume, 0)
+            }
+        })
+    }
+
+    private fun initPlayControlButtons() {
+        // 재생 or 일시정지 버튼
+        binding.ivPlayPause.setOnClickListener {
+            val action =
+                if (player.isPlaying) PAUSE
+                else PLAY
+            sendServiceAction(action)
+        }
+
+        binding.ivNext.setOnClickListener {
+            sendServiceAction(SKIP_NEXT)
+        }
+
+        binding.ivPrevious.setOnClickListener {
+            sendServiceAction(SKIP_PREV)
+        }
+    }
+
+    private fun sendServiceAction(action: String) {
+        val appCtx = requireContext().applicationContext
+        val intent = Intent(appCtx, MusicService::class.java).apply {
+            this.action = action
+        }
+        // 서비스가 이미 실행 중이면 일반 startService로 전달되고, O+에서 미실행이면 FG로 승격됨
+        startForegroundService(appCtx, intent)
+    }
+
+    private fun initPlayView() {
+        binding.vPlayer.player = player
+
+        syncPlayerUi()
+        startSeekUpdates() // 포그라운드 진입 직후 진행바 시작
+
+        // 화면 회전/재진입 등으로 initPlayView()가 여러 번 호출되면, 기존 리스너 위에 새 리스너가 계속 추가되어 콜백이 중복 실행됨 -> 이를 방지
+        playerListener?.let { player.removeListener(it) }
+
+        playerListener = object : Player.Listener {
+            override fun onIsPlayingChanged(isPlaying: Boolean) {
+                super.onIsPlayingChanged(isPlaying)
+
+                // 재생 아이콘 및 비주얼라이저 동기화
+                syncPlayerUi()
+                if (isPlaying) startSeekUpdates() else stopSeekUpdates()
+            }
+
+            // 미디어 아이템이 바뀔 때
+            override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
+                super.onMediaItemTransition(mediaItem, reason)
+
+                val newMusicKey: String = mediaItem?.mediaId ?: return
+                playerModel.changedMusic(newMusicKey)
+
+                updatePlayerView(playerModel.currentMusic)
+
+                // 트랙 전환 시 제목/아티스트/앨범 아트, 재생/일시정지 아이콘 동기화
+                syncPlayerUi()
+            }
+
+            // 재생, 재생 완료, 버퍼링 상태 ...
+            override fun onPlaybackStateChanged(state: Int) {
+                super.onPlaybackStateChanged(state)
+
+                updateSeek()
+
+                // 재생 반복 해제 모드 & 마지막 트랙 재생이 끝났을 때 -> 첫번째 트랙으로 이동 & 일시정지 상태
+                if (player.repeatMode == Player.REPEAT_MODE_OFF &&
+                    player.currentMediaItemIndex == player.mediaItemCount - 1 &&
+                    state == Player.STATE_ENDED
+                ) {
+                    // 자동 재생 방지
+                    player.playWhenReady = false
+
+                    // 첫 트랙으로 이동
+                    player.seekTo(0, 0)
+
+                    // PlayerModel 및 UI 동기화
+                    if (player.mediaItemCount > 0) {
+                        val firstId = player.getMediaItemAt(0).mediaId
+                        playerModel.changedMusic(firstId)
+                        updatePlayerView(playerModel.currentMusic)
+                    }
+                    player.pause()
+                }
+            }
+        }
+
+        player.addListener(playerListener!!)
+    }
+
+    private fun syncPlayerUi() {
+        if (!isAdded || _binding == null) return // 뷰가 준비되지 않았거나 파괴된 상태면 아무 작업도 하지 않음
+
+        val isPlaying = player.isPlaying
+
+        // 플레이어가 재생 또는 일시정지 될 때 재생/일시정지 버튼 아이콘 전환하고 애니메이션 재생/정지
+        binding.ivPlayPause.setImageResource(
+            if (isPlaying) R.drawable.ic_pause_button else R.drawable.ic_play_button
+        )
+        if (isPlaying) binding.animationViewVisualizer.playAnimation()
+        else binding.animationViewVisualizer.pauseAnimation()
+    }
+
+    private fun startSeekUpdates() {
+        if (_binding == null) return
+
+        binding.root.removeCallbacks(updateSeekRunnable)
+
+        updateSeek() // 즉시 1회 갱신하고, 내부에서 다음 주기를 예약
+    }
+
+    private fun stopSeekUpdates() {
+        if (_binding == null) return
+
+        binding.root.removeCallbacks(updateSeekRunnable)
+    }
+
+    private fun updateSeek() {
+        if (_binding == null) return
+        val player = this.player
+        val duration = if (player.duration >= 0) player.duration else 0 // 전체 음악 길이
+        val position = player.currentPosition
+
+        updateSeekUi(duration, position)
+
+        val state = player.playbackState
+
+        val view = binding.root
+        view.removeCallbacks(updateSeekRunnable)
+
+        if (player.isPlaying) {
+            view.postDelayed(updateSeekRunnable, 1000L)
+        }
+    }
+
+    private fun updateSeekUi(duration: Long, position: Long) {
+        binding.sbPlayer.max = (duration / 1000).toInt() // 총 길이를 설정. 1000으로 나눠 작게
+        binding.sbPlayer.progress = (position / 1000).toInt() // 동일하게 1000으로 나눠 작게
+
+        binding.tvCurrentPlayTime.text = String.format(
+            Locale.KOREA,
+            "%02d:%02d",
+            TimeUnit.MINUTES.convert(position, TimeUnit.MILLISECONDS), // 현재 분
+            (position / 1000) % 60 // 분 단위를 제외한 현재 초
+        )
+
+        binding.tvTotalTime.text = String.format(
+            Locale.KOREA,
+            "%02d:%02d",
+            TimeUnit.MINUTES.convert(duration, TimeUnit.MILLISECONDS), // 전체 분
+            (duration / 1000) % 60 // 분 단위를 제외한 초
+        )
+    }
+
+    private fun updatePlayerView(musicModel: MusicModel?) {
+        if (_binding == null || musicModel == null) return
+
+        binding.tvSongTitle.text = musicModel.title
+        binding.tvSongArtist.text = musicModel.artist
+
+        Glide.with(binding.ivAlbumArt.context)
+            .load(musicModel.getAlbumUri())
+            .override(binding.ivAlbumArt.layoutParams.width, binding.ivAlbumArt.layoutParams.height)
+            .error(R.drawable.ic_no_album_image)
+            .fallback(R.drawable.ic_no_album_image)
+            .transform(RoundedCorners(12))
+            .into(binding.ivAlbumArt)
+
+        binding.tvSongAlbum.text = musicModel.album
+    }
+
+
+    @OptIn(UnstableApi::class)
+    private fun playMusic(musicList: List<MusicModel>, nowPlayMusic: MusicModel?) {
+        if (nowPlayMusic != null) {
+            currentMusic = nowPlayMusic
+            playerModel.updateCurrentMusic(nowPlayMusic)
+        }
+
+        val musicMediaItems = musicList.map { music ->
+            val defaultDataSourceFactory =
+                DefaultDataSource.Factory(requireContext())
+            val musicFileUri = music.getMusicFileUri()
+            val mediaItem = MediaItem.Builder()
+                .setMediaId(music.id)
+                .setUri(musicFileUri)
+                .build()
+
+            val mediaSource = ProgressiveMediaSource.Factory(defaultDataSourceFactory) // 미디어 정보를 가져오는 클래스
+                .createMediaSource(mediaItem)
+            mediaSource
+        }
+
+        val playIndex = musicList.indexOf(nowPlayMusic)
+
+        player.run {
+            setMediaSources(musicMediaItems)
+            prepare()
+            seekTo(max(playIndex, 0), 0) // positionsMs=0 초 부터 시작
+        }
+    }
+
+    private fun drawableToBitmap(drawable: Drawable): Bitmap {
+        if (drawable is BitmapDrawable) {
+            return drawable.bitmap
+        }
+
+        val bitmap = createBitmap(drawable.intrinsicWidth, drawable.intrinsicHeight)
+        val canvas = Canvas(bitmap)
+        drawable.setBounds(0, 0, canvas.width, canvas.height)
+        drawable.draw(canvas)
+
+        return bitmap
+    }
+
+    private fun areBitmapsEqual(bitmap1: Bitmap, bitmap2: Bitmap): Boolean {
+        return bitmap1.sameAs(bitmap2)
+    }
+
+    @OptIn(UnstableApi::class)
+    private fun toggleShuffleModeIcon() {
+        binding.ivShuffleMode.setOnClickListener {
+            if (player.shuffleModeEnabled) { // 셔플 모드가 On일 때
+                player.shuffleModeEnabled = false
+                binding.ivShuffleMode.setImageResource(R.drawable.ic_shuffle_off)
+            } else { // 셔플 모드가 Off일 때
+                player.shuffleModeEnabled = true
+                player.shuffleOrder = ShuffleOrder.DefaultShuffleOrder(vm.musicList.value.orEmpty().size, Random.nextLong())
+                binding.ivShuffleMode.setImageResource(R.drawable.ic_shuffle_on)
+            }
+        }
+    }
+
+    private fun toggleRepeatModeIcon() {
+        binding.ivRepeatMode.setOnClickListener {
+            when (player.repeatMode) {
+                Player.REPEAT_MODE_OFF -> { // 반복 재생 모드 해제 상태일 때
+                    player.repeatMode = Player.REPEAT_MODE_ALL
+                    binding.ivRepeatMode.setImageResource(R.drawable.ic_repeat_all_on)
+                }
+                Player.REPEAT_MODE_ALL -> { // 전 곡 반복 재생 모드일 때
+                    player.repeatMode = Player.REPEAT_MODE_ONE
+                    binding.ivRepeatMode.setImageResource(R.drawable.ic_repeat_one_on)
+                }
+                else -> { // 한 곡 반복 재생 모드일 때
+                    player.repeatMode = Player.REPEAT_MODE_OFF
+                    binding.ivRepeatMode.setImageResource(R.drawable.ic_repeat_all)
+                }
+            }
+        }
+    }
+
+    private fun toggleVolumeIcon() {
+        binding.ivVolume.setOnClickListener {
+            val volumeDrawable = binding.ivVolume.drawable
+            val volumeBitmap = drawableToBitmap(volumeDrawable)
+
+            val muteDrawable = ContextCompat.getDrawable(requireContext(), R.drawable.ic_mute)
+
+            if (muteDrawable != null) {
+                val muteBitmap = drawableToBitmap(muteDrawable)
+
+                if (areBitmapsEqual(volumeBitmap, muteBitmap)) {
+                    binding.ivVolume.setImageResource(R.drawable.ic_volume)
+                    currentVolume = previousVolume
+                    audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, currentVolume, 0)
+                    binding.sbVolume.progress = currentVolume
+
+                } else {
+                    binding.ivVolume.setImageResource(R.drawable.ic_mute)
+                    val muteValue = AudioManager.ADJUST_MUTE
+                    previousVolume = currentVolume
+                    currentVolume = 0
+                    audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, muteValue, 0)
+                    binding.sbVolume.progress = 0
+                }
+            }
+        }
     }
 
     private fun updateBluetoothIcon() {
@@ -329,407 +674,38 @@ class PlayerFragment : Fragment() {
         return false
     }
 
-    private fun initPlayerBottomSheetManager() {
-        playerBottomSheetManager = PlayerBottomSheetManager(
-            viewLifecycleOwner.lifecycle,
-            binding.constraintLayout,
-            object : BottomSheetCallback() {
-                override fun onStateChanged(bottomSheet: View, newState: Int) {
-                    when (newState) {
-                        BottomSheetBehavior.STATE_EXPANDED -> {
-                            playerViewModel.changeState(PlayerMotionManager.State.EXPANDED)
-                        }
-
-                        BottomSheetBehavior.STATE_COLLAPSED -> {
-                            playerViewModel.changeState(PlayerMotionManager.State.COLLAPSED)
-                        }
-
-                        BottomSheetBehavior.STATE_HIDDEN -> {
-                            playerBottomSheetManager.collapse()
-                        }
-                    }
-                }
-
-                override fun onSlide(bottomSheet: View, slideOffset: Float) {
-                }
-            }
-        )
-    }
-
-    @OptIn(UnstableApi::class)
-    private fun toggleShuffleModeIcon() {
-        binding.ivShuffleMode.setOnClickListener {
-            if (player.shuffleModeEnabled) { // 셔플 모드가 On일 때
-                player.shuffleModeEnabled = false
-                binding.ivShuffleMode.setImageResource(R.drawable.ic_shuffle_off)
-            } else { // 셔플 모드가 Off일 때
-                player.shuffleModeEnabled = true
-                player.setShuffleOrder(ShuffleOrder.DefaultShuffleOrder(playerViewModel.musicList.value.orEmpty().size, Random.nextLong()))
-                binding.ivShuffleMode.setImageResource(R.drawable.ic_shuffle_on)
-            }
-        }
-    }
-
-    private fun toggleRepeatModeIcon() {
-        binding.ivRepeatMode.setOnClickListener {
-            if (player.repeatMode == Player.REPEAT_MODE_OFF) { // 반복 재생 모드 해제 상태일 때
-                player.repeatMode = Player.REPEAT_MODE_ALL
-                binding.ivRepeatMode.setImageResource(R.drawable.ic_repeat_all_on)
-            } else if (player.repeatMode == Player.REPEAT_MODE_ALL) { // 전 곡 반복 재생 모드일 때
-                player.repeatMode = Player.REPEAT_MODE_ONE
-                binding.ivRepeatMode.setImageResource(R.drawable.ic_repeat_one_on)
-            } else { // 한 곡 반복 재생 모드일 때
-                player.repeatMode = Player.REPEAT_MODE_OFF
-                binding.ivRepeatMode.setImageResource(R.drawable.ic_repeat_all)
-            }
-        }
-    }
-
-    private fun toggleVolumeIcon() {
-        binding.ivVolume.setOnClickListener {
-            val volumeDrawable = binding.ivVolume.drawable
-            val volumeBitmap = drawableToBitmap(volumeDrawable)
-
-            val muteDrawable = ContextCompat.getDrawable(requireContext(), R.drawable.ic_mute)
-
-            if (muteDrawable != null) {
-                val muteBitmap = drawableToBitmap(muteDrawable)
-
-                if (areBitmapsEqual(volumeBitmap, muteBitmap)) {
-                    binding.ivVolume.setImageResource(R.drawable.ic_volume)
-                    currentVolume = previousVolume
-                    audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, currentVolume, 0)
-                    binding.sbVolume.progress = currentVolume
-
-                } else {
-                    binding.ivVolume.setImageResource(R.drawable.ic_mute)
-                    val muteValue = AudioManager.ADJUST_MUTE
-                    previousVolume = currentVolume
-                    currentVolume = 0
-                    audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, muteValue, 0)
-                    binding.sbVolume.progress = 0
-                }
-            }
-        }
-    }
-
-    private fun initViewModel() {
-        viewLifecycleOwner.lifecycleScope.launch {
-            playerViewModel.musicList.observe(viewLifecycleOwner) { musicList ->
-                if (_binding == null) return@observe
-
-                Log.d("initViewModel", "playerModel: $playerModel")
-                playerModel.replaceMusicList(musicList)
-
-                // 현재 ExoPlayer가 재생 중인 곡의 id를 우선 사용
-                val currentMediaId = player.currentMediaItem?.mediaId
-                val nowMusic = musicList.find { it.id == currentMediaId }
-                    ?: musicList.find { it.id == musicKey }
-                    ?: musicList.getOrNull(0)
-
-                // PlayerModel, UI 동기화
-                if (nowMusic != null) {
-                    playerModel.updateCurrentMusic(nowMusic)
-                    updatePlayerView(nowMusic)
-                }
-
-                // 이미 재생 중인 곡이 있으면 playMusic을 다시 호출하지 않음
-                if (player.currentMediaItem == null && nowMusic != null) {
-                    playMusic(musicList, nowMusic)
-                }
-            }
-        }
-    }
-
-    fun changeMusic(musicId: String) {
-        val findIndex = playerViewModel.musicList.value.orEmpty()
-            .indexOfFirst {
-                it.id == musicId
-            }
-
-        Log.d("changeMusic", "findIndex: $findIndex")
-
-        if (findIndex != -1) {
-            player.seekTo(findIndex, 0)
-            player.play()
-        }
-    }
-
-    private fun initSeekBar() {
-        changeVolume()
-
-        binding.sbPlayer.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
-            override fun onProgressChanged(
-                seekBar: SeekBar?,
-                progress: Int,
-                fromUser: Boolean,
-            ) {
-            }
-
-            override fun onStartTrackingTouch(seekBar: SeekBar?) {
-            }
-
-            override fun onStopTrackingTouch(seekBar: SeekBar) {
-                player.seekTo(seekBar.progress * 1000L)
-            }
-        })
-    }
-
-    private fun changeVolume() {
-        val maxVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
-
-        previousVolume = currentVolume
-        binding.sbVolume.progress = currentVolume
-
-        binding.sbVolume.max = maxVolume
-
-        binding.sbVolume.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
-            override fun onProgressChanged(
-                seekBar: SeekBar?,
-                progress: Int,
-                fromUser: Boolean,
-            ) {
-                if (fromUser) {
-                    currentVolume = progress
-                    audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, progress, 0)
-                }
-            }
-
-            override fun onStartTrackingTouch(seekBar: SeekBar?) {
-            }
-
-            override fun onStopTrackingTouch(seekBar: SeekBar) {
-                if (seekBar.progress == 0) {
-                    binding.ivVolume.setImageResource(R.drawable.ic_mute)
-                } else {
-                    binding.ivVolume.setImageResource(R.drawable.ic_volume)
-                }
-
-                binding.sbVolume.progress = seekBar.progress
-                currentVolume = seekBar.progress
-                audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, currentVolume, 0)
-            }
-        })
-    }
-
-    private fun initPlayControlButtons() {
-        // 재생 or 일시정지 버튼
-        binding.ivPlayPause.setOnClickListener {
-            val action =
-                if (player.isPlaying) PAUSE
-                else PLAY
-            sendServiceAction(action)
-        }
-
-        binding.ivNext.setOnClickListener {
-            Log.d("PlayerFragment", "Next 버튼 클릭됨")
-            sendServiceAction(SKIP_NEXT)
-        }
-
-        binding.ivPrevious.setOnClickListener {
-            Log.d("PlayerFragment", "Prev 버튼 클릭됨")
-            sendServiceAction(SKIP_PREV)
-        }
-    }
-
-    private fun sendServiceAction(action: String) {
-        val appCtx = requireContext().applicationContext
-        val intent = Intent(appCtx, MusicService::class.java).apply {
-            this.action = action
-        }
-        // 서비스가 이미 실행 중이면 일반 startService로 전달되고, O+에서 미실행이면 FG로 승격됨
-        startForegroundService(appCtx, intent)
-    }
-
-    private fun initPlayView() {
-        binding.vPlayer.player = player
-
-        syncPlayerUi()
-        startSeekUpdates() // 포그라운드 진입 직후 진행바 시작
-
-        // 화면 회전/재진입 등으로 initPlayView()가 여러 번 호출되면, 기존 리스너 위에 새 리스너가 계속 추가되어 콜백이 중복 실행됨 -> 이를 방지
-        playerListener?.let { player.removeListener(it) }
-
-        playerListener = object : Player.Listener {
-            override fun onIsPlayingChanged(isPlaying: Boolean) {
-                super.onIsPlayingChanged(isPlaying)
-
-                // 재생 아이콘 및 비주얼라이저 동기화
-                syncPlayerUi()
-                if (isPlaying) startSeekUpdates() else stopSeekUpdates()
-            }
-
-            // 미디어 아이템이 바뀔 때
-            override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
-                super.onMediaItemTransition(mediaItem, reason)
-
-                val newMusicKey: String = mediaItem?.mediaId ?: return
-                playerModel.changedMusic(newMusicKey)
-
-                Log.d("onMediaItemTransition", "playerModel.currentMusic: ${playerModel.currentMusic}")
-                updatePlayerView(playerModel.currentMusic)
-
-                // 트랙 전환 시 제목/아티스트/아트 동기화
-                syncCollapsedPlayerWithNotification()
-            }
-
-            // 재생, 재생 완료, 버퍼링 상태 ...
-            override fun onPlaybackStateChanged(state: Int) {
-                super.onPlaybackStateChanged(state)
-
-                updateSeek()
-
-                // 재생 반복 해제 모드 & 마지막 트랙 재생이 끝났을 때 -> 첫번째 트랙으로 이동 & 일시정지 상태
-                if (player.repeatMode == Player.REPEAT_MODE_OFF &&
-                    player.currentMediaItemIndex == player.mediaItemCount - 1 &&
-                    state == Player.STATE_ENDED
-                ) {
-                    player.seekTo(0, 0)
-                    updatePlayerView(playerModel.currentMusic)
-                    player.pause()
+    // AudioDeviceInfo를 이용한 블루투스 오디오 기기 탐지
+    private fun isBluetoothAudioDeviceConnected(audioManager: AudioManager): Boolean {
+        val devices = audioManager.getDevices(AudioManager.GET_DEVICES_OUTPUTS)
+        for (device in devices) {
+            when (device.type) {
+                AudioDeviceInfo.TYPE_BLUETOOTH_A2DP,
+                AudioDeviceInfo.TYPE_BLUETOOTH_SCO,
+                    -> {
+                    Log.d("Bluetooth", "Bluetooth output device connected: type=${device.type}")
+                    return true
                 }
             }
         }
 
-        player.addListener(playerListener!!)
+        return false
     }
 
-    private fun syncCollapsedPlayerWithNotification() {
-        // 현재 트랙을 우선 ExoPlayer에서, 없으면 PlayerModel에서 조회
-        val currentMusic = playerModel.currentMusic
-
-        currentMusic?.let { music ->
-            // 프로젝트의 기존 메서드로 텍스트/아트 일괄 반영
-            updatePlayerView(music)
+    // AudioDeviceInfo를 이용한 유선 오디오 기기 탐지
+    private fun isWiredAudioDeviceConnected(audioManager: AudioManager): Boolean {
+        val devices = audioManager.getDevices(AudioManager.GET_DEVICES_OUTPUTS)
+        for (device in devices) {
+            when (device.type) {
+                AudioDeviceInfo.TYPE_WIRED_HEADPHONES,
+                AudioDeviceInfo.TYPE_WIRED_HEADSET,
+                    -> {
+                    Log.d("Bluetooth", "Wired output device connected: type=${device.type}")
+                    return true
+                }
+            }
         }
 
-        // 재생/일시정지 아이콘 및 비주얼라이저 동기화
-        syncPlayerUi()
-    }
-
-    private fun syncPlayerUi() {
-        if (!isAdded || _binding == null) return // 뷰가 준비되지 않았거나 파괴된 상태면 아무 작업도 하지 않음
-
-        val isPlaying = player.isPlaying
-
-        // 플레이어가 재생 또는 일시정지 될 때 재생/일시정지 버튼 아이콘 전환하고 애니메이션 재생/정지
-        binding.ivPlayPause.setImageResource(
-            if (isPlaying) R.drawable.ic_pause_button else R.drawable.ic_play_button
-        )
-        if (isPlaying) binding.animationViewVisualizer.playAnimation()
-        else binding.animationViewVisualizer.pauseAnimation()
-    }
-
-    private fun startSeekUpdates() {
-        if (_binding == null) return
-
-        binding.root.removeCallbacks(updateSeekRunnable)
-
-        updateSeek() // 즉시 1회 갱신하고, 내부에서 다음 주기를 예약
-    }
-
-    private fun stopSeekUpdates() {
-        if (_binding == null) return
-
-        binding.root.removeCallbacks(updateSeekRunnable)
-    }
-
-    private fun updateSeek() {
-        if (_binding == null) return
-        val player = this.player
-        val duration = if (player.duration >= 0) player.duration else 0 // 전체 음악 길이
-        val position = player.currentPosition
-
-        updateSeekUi(duration, position)
-
-        val state = player.playbackState
-
-        val view = binding.root
-        view.removeCallbacks(updateSeekRunnable)
-    }
-
-    private fun updateSeekUi(duration: Long, position: Long) {
-        binding.sbPlayer.max = (duration / 1000).toInt() // 총 길이를 설정. 1000으로 나눠 작게
-        binding.sbPlayer.progress = (position / 1000).toInt() // 동일하게 1000으로 나눠 작게
-
-        binding.tvCurrentPlayTime.text = String.format(
-            Locale.KOREA,
-            "%02d:%02d",
-            TimeUnit.MINUTES.convert(position, TimeUnit.MILLISECONDS), // 현재 분
-            (position / 1000) % 60 // 분 단위를 제외한 현재 초
-        )
-
-        binding.tvTotalTime.text = String.format(
-            Locale.KOREA,
-            "%02d:%02d",
-            TimeUnit.MINUTES.convert(duration, TimeUnit.MILLISECONDS), // 전체 분
-            (duration / 1000) % 60 // 분 단위를 제외한 초
-        )
-    }
-
-    private fun updatePlayerView(musicModel: MusicModel?) {
-        if (_binding == null || musicModel == null) return
-
-        binding.tvSongTitle.text = musicModel.title
-        binding.tvSongArtist.text = musicModel.artist
-
-        Glide.with(binding.ivAlbumArt.context)
-            .load(musicModel.getAlbumUri())
-            .override(binding.ivAlbumArt.layoutParams.width, binding.ivAlbumArt.layoutParams.height)
-            .error(R.drawable.ic_no_album_image)
-            .fallback(R.drawable.ic_no_album_image)
-            .transform(RoundedCorners(12))
-            .into(binding.ivAlbumArt)
-
-        binding.tvSongAlbum.text = musicModel.album
-    }
-
-
-    @OptIn(UnstableApi::class)
-    private fun playMusic(musicList: List<MusicModel>, nowPlayMusic: MusicModel?) {
-        if (nowPlayMusic != null) {
-            currentMusic = nowPlayMusic
-            playerModel.updateCurrentMusic(nowPlayMusic)
-        }
-
-        val musicMediaItems = musicList.map { music ->
-            val defaultDataSourceFactory =
-                DefaultDataSource.Factory(requireContext())
-            val musicFileUri = music.getMusicFileUri()
-            val mediaItem = MediaItem.Builder()
-                .setMediaId(music.id)
-                .setUri(musicFileUri)
-                .build()
-
-            val mediaSource = ProgressiveMediaSource.Factory(defaultDataSourceFactory) // 미디어 정보를 가져오는 클래스
-                .createMediaSource(mediaItem)
-            mediaSource
-        }
-
-        val playIndex = musicList.indexOf(nowPlayMusic)
-
-        player.run {
-            setMediaSources(musicMediaItems)
-            prepare()
-            seekTo(max(playIndex, 0), 0) // positionsMs=0 초 부터 시작
-        }
-    }
-
-    private fun drawableToBitmap(drawable: Drawable): Bitmap {
-        if (drawable is BitmapDrawable) {
-            return drawable.bitmap
-        }
-
-        val bitmap = createBitmap(drawable.intrinsicWidth, drawable.intrinsicHeight)
-        val canvas = Canvas(bitmap)
-        drawable.setBounds(0, 0, canvas.width, canvas.height)
-        drawable.draw(canvas)
-
-        return bitmap
-    }
-
-    private fun areBitmapsEqual(bitmap1: Bitmap, bitmap2: Bitmap): Boolean {
-        return bitmap1.sameAs(bitmap2)
+        return false
     }
 
     override fun onStop() {
@@ -748,36 +724,22 @@ class PlayerFragment : Fragment() {
             scheduleBluetoothUpdate()
         }
 
-        // 현재 재생 중인 곡 정보를 즉시 UI에 반영
-        player.currentMediaItem?.mediaId?.let { mediaId ->
-            val music = playerViewModel.musicList.value?.find { it.id == mediaId }
-            if (music != null) {
-                playerModel.updateCurrentMusic(music)
-                updatePlayerView(music)
-            }
-        }
-
         // 포그라운드 복귀 시 반드시 루프 재시작
         startSeekUpdates()
         startVolumeObserver()   // 하드웨어 볼륨 변경 감지 시작
     }
 
     override fun onDestroyView() {
-        // Detach player from view to avoid leaking the surface
+        // 리스너 참조로 인한 메모리/수명 누수 방지
         playerListener?.let { player.removeListener(it) }
         playerListener = null
 
+        // Surface 리소스 누수(Fragment의 View가 파괴된 뒤에도 플레이어가 그 Surface를 붙잡고 있어 해제되지 않는 상황)를 방지하기 위해 뷰에서 플레이어를 분리
         _binding?.vPlayer?.player = null
         stopSeekUpdates()
         binding.root.removeCallbacks(updateBluetoothRunnable)
         _binding = null
         super.onDestroyView()
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-
-        _binding = null
     }
 
     private fun scheduleBluetoothUpdate() {
