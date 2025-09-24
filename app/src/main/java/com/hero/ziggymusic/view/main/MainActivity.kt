@@ -111,8 +111,6 @@ class MainActivity : AppCompatActivity(),
         val titleArr = resources.getStringArray(R.array.title_array)
 
         binding.ivBack.setOnClickListener {
-            val transaction = supportFragmentManager.beginTransaction()
-            transaction.remove(supportFragmentManager.findFragmentById(R.id.layoutFrame)!!).commit()
             supportFragmentManager.popBackStack()
 
             binding.ivBack.isInvisible = true
@@ -145,22 +143,6 @@ class MainActivity : AppCompatActivity(),
         musicServiceStart()
 
         super.onStart()
-    }
-
-    private fun setFragmentAdapter() {
-        val fragmentAdapter = FragmentAdapter(this)
-        binding.viewPagerMain.adapter = fragmentAdapter
-
-        val titleArr = resources.getStringArray(R.array.title_array)
-
-        binding.viewPagerMain.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
-            override fun onPageSelected(position: Int) {
-                super.onPageSelected(position)
-                binding.bottomNavMain.menu[position].isChecked = true
-                binding.tvMainTitle.text = titleArr[position]
-                title = titleArr[position]
-            }
-        })
     }
 
     private fun initViewModel() {
@@ -301,7 +283,6 @@ class MainActivity : AppCompatActivity(),
             }
         }
         if (needs.isEmpty()) {
-            setFragmentAdapter()
             playerController.startPlayer()
         } else {
             permissionLauncher.launch(needs.toTypedArray())
@@ -333,7 +314,6 @@ class MainActivity : AppCompatActivity(),
         }
 
         // 오디오 권한 허용됨 -> 핵심 기능 시작
-        setFragmentAdapter()
         playerController.startPlayer()
 
         // 알림 권한 선택적 처리
