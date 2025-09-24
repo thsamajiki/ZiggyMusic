@@ -24,7 +24,6 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
-import androidx.viewpager2.widget.ViewPager2
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.navigation.NavigationBarView
 import com.hero.ziggymusic.R
@@ -39,9 +38,11 @@ import com.squareup.otto.Subscribe
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import javax.inject.Inject
-import androidx.core.view.get
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import com.hero.ziggymusic.view.main.musiclist.MusicListFragment
+import com.hero.ziggymusic.view.main.myplaylist.MyPlaylistFragment
 
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity(),
@@ -116,7 +117,6 @@ class MainActivity : AppCompatActivity(),
             binding.ivBack.isInvisible = true
             binding.ivSetting.isVisible = true
             binding.ivSetting.isEnabled = true
-            binding.viewPagerMain.isVisible = true
 
             binding.tvMainTitle.text = title
         }
@@ -130,12 +130,12 @@ class MainActivity : AppCompatActivity(),
             binding.ivBack.isVisible = true
             binding.ivSetting.isInvisible = true
             binding.ivSetting.isEnabled = false
-            binding.viewPagerMain.isInvisible = true
 
             binding.tvMainTitle.text = titleArr[2]
         }
 
         binding.bottomNavMain.setOnItemSelectedListener(this)
+        binding.bottomNavMain.selectedItemId = R.id.menu_music_list
     }
 
     override fun onStart() {
@@ -160,15 +160,25 @@ class MainActivity : AppCompatActivity(),
     }
 
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
+        val titleArr = resources.getStringArray(R.array.title_array)
+        val transaction = supportFragmentManager.beginTransaction()
         when (item.itemId) {
             R.id.menu_music_list -> {
-                binding.viewPagerMain.currentItem = 0
+                val fragment = supportFragmentManager.findFragmentByTag("music_list")
+                    ?: MusicListFragment.newInstance()
+                transaction.replace(binding.fcvMain.id, fragment, "music_list").commit()
+                binding.tvMainTitle.text = titleArr[0]
+                title = titleArr[0]
             }
             R.id.menu_my_play_list -> {
-                binding.viewPagerMain.currentItem = 1
+                val fragment = supportFragmentManager.findFragmentByTag("my_play_list")
+                    ?: MyPlaylistFragment.newInstance()
+                transaction.replace(binding.fcvMain.id, fragment, "my_play_list").commit()
+                binding.tvMainTitle.text = titleArr[1]
+                title = titleArr[1]
             }
         }
-        return false
+        return true
     }
 
     // 미니 플레이어에서 사용하는 버튼에 리스너 세팅
