@@ -122,9 +122,13 @@ class MainActivity : AppCompatActivity(),
         }
 
         binding.ivSetting.setOnClickListener {
-            val intent = SettingFragment.newInstance()
-            val transaction = supportFragmentManager.beginTransaction()
-            transaction.add(R.id.layoutFrame, intent).commit()
+            val settingFragment = supportFragmentManager.findFragmentByTag("setting")
+                ?: SettingFragment.newInstance()
+
+            supportFragmentManager.beginTransaction()
+                .replace(binding.fcvMain.id, settingFragment, "setting")
+                .addToBackStack("setting")
+                .commit()
             supportFragmentManager.executePendingTransactions()
 
             binding.ivBack.isVisible = true
