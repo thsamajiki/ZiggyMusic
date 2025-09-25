@@ -83,9 +83,11 @@ class MainActivity : AppCompatActivity(),
                 when (newState) {
                     BottomSheetBehavior.STATE_EXPANDED -> {
                         binding.bottomNavMain.isGone = true
+                        setPlayerExpandedMode(true)
                     }
                     BottomSheetBehavior.STATE_COLLAPSED -> {
                         binding.bottomNavMain.isVisible = true
+                        setPlayerExpandedMode(false)
                     }
                 }
             })
@@ -418,9 +420,28 @@ class MainActivity : AppCompatActivity(),
         startActivity(intent)
     }
 
+    private fun setPlayerExpandedMode(isExpanded: Boolean) {
+        if (isExpanded) {
+            ViewCompat.setOnApplyWindowInsetsListener(binding.containerPlayer) { view, insets ->
+                val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+                view.setPadding(
+                    0,
+                    systemBars.top,  // 상단 상태바
+                    0,
+                    systemBars.bottom  // 하단 시스템 바 (네비게이션 바 포함)
+                )
+                insets
+            }
+            ViewCompat.requestApplyInsets(binding.containerPlayer)
+        } else {
+            ViewCompat.setOnApplyWindowInsetsListener(binding.containerPlayer, null)
+            binding.containerPlayer.setPadding(0, 0, 0, 0)
+        }
+    }
+
     override fun onDestroy() {
         EventBus.getInstance().unregister(this)
-        // -> 액티비티 종료/재생성 Notification 클릭 등과 무관하게 백그라운드 재생 유지
+
         super.onDestroy()
     }
 }
