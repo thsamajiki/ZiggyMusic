@@ -196,8 +196,6 @@ class MainActivity : AppCompatActivity(),
 
                 val newMusicKey: String = mediaItem?.mediaId ?: return
                 playerModel.changedMusic(newMusicKey)
-
-                Log.d("onMediaItemTransition", "player.isPlaying: ${player.isPlaying}")
             }
         })
     }
