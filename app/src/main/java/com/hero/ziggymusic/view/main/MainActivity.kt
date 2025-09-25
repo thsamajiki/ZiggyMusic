@@ -70,17 +70,13 @@ class MainActivity : AppCompatActivity(),
 
         initStatusBarColor()
         initBottomNavigationView()
-
         initViewModel()
-        EventBus.getInstance().register(this)
-
         initPlayerController()
-
+        initSoundEQSettings()
+        initListeners()
         requestPermissions()
 
-        initSoundEQSettings()
-
-        initListeners()
+        EventBus.getInstance().register(this)
     }
 
     @OptIn(UnstableApi::class)
