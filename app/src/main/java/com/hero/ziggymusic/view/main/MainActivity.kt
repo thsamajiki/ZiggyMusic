@@ -52,7 +52,7 @@ class MainActivity : AppCompatActivity(),
 
     private var title: String = ""
 
-    private val viewModel by viewModels<MainViewModel>()
+    private val vm by viewModels<MainViewModel>()
 
     @Inject
     lateinit var player: ExoPlayer
@@ -152,7 +152,7 @@ class MainActivity : AppCompatActivity(),
     }
 
     private fun initViewModel() {
-        with(viewModel) {
+        with(vm) {
             lifecycleScope.launch {
                 musicList.observe(this@MainActivity) { musicList ->
                     playerModel.replaceMusicList(musicList)
