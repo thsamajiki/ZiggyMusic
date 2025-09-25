@@ -4,7 +4,6 @@ import android.Manifest
 import android.app.AlertDialog
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
@@ -16,6 +15,7 @@ import androidx.activity.viewModels
 import androidx.annotation.OptIn
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.core.net.toUri
 import androidx.core.view.isGone
 import androidx.core.view.isInvisible
 import androidx.core.view.isVisible
@@ -24,7 +24,6 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
-import androidx.viewpager2.widget.ViewPager2
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.navigation.NavigationBarView
 import com.hero.ziggymusic.R
@@ -39,26 +38,25 @@ import com.squareup.otto.Subscribe
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import javax.inject.Inject
-import androidx.core.view.get
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import com.hero.ziggymusic.view.main.musiclist.MusicListFragment
+import com.hero.ziggymusic.view.main.myplaylist.MyPlaylistFragment
 
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity(),
     NavigationBarView.OnItemSelectedListener {
 
     private lateinit var binding: ActivityMainBinding
-
+    private val vm by viewModels<MainViewModel>()
     private var title: String = ""
-
-    private val viewModel by viewModels<MainViewModel>()
 
     @Inject
     lateinit var player: ExoPlayer
     private val playerModel: PlayerModel = PlayerModel.getInstance()
     private lateinit var playerController: PlayerController
 
-    @OptIn(UnstableApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -70,10 +68,16 @@ class MainActivity : AppCompatActivity(),
 
         initStatusBarColor()
         initBottomNavigationView()
-
         initViewModel()
-        EventBus.getInstance().register(this)
+        initPlayerController()
+        initSoundEQSettings()
+        initListeners()
+        requestPermissions()
 
+        EventBus.getInstance().register(this)
+    }
+
+    private fun initPlayerController() {
         playerController = PlayerController(
             this,
             binding.containerPlayer,
@@ -82,89 +86,59 @@ class MainActivity : AppCompatActivity(),
                 when (newState) {
                     BottomSheetBehavior.STATE_EXPANDED -> {
                         binding.bottomNavMain.isGone = true
+                        setPlayerExpandedMode(true)
                     }
+
                     BottomSheetBehavior.STATE_COLLAPSED -> {
                         binding.bottomNavMain.isVisible = true
+                        setPlayerExpandedMode(false)
                     }
                 }
             })
-
-        requestPermissions()
-
-        if (player.audioSessionId != 0) {
-            SoundEQSettings.init(player.audioSessionId)
-        } else {
-            player.addListener(object : Player.Listener {
-                override fun onAudioSessionIdChanged(audioSessionId: Int) {
-                    if (audioSessionId != 0) {
-                        SoundEQSettings.init(audioSessionId)
-                        player.removeListener(this)
-                    }
-                }
-            })
-        }
-
-        setupListeners()
     }
 
-    private fun setupListeners() {
+    private fun initListeners() {
         val titleArr = resources.getStringArray(R.array.title_array)
 
         binding.ivBack.setOnClickListener {
-            val transaction = supportFragmentManager.beginTransaction()
-            transaction.remove(supportFragmentManager.findFragmentById(R.id.layoutFrame)!!).commit()
             supportFragmentManager.popBackStack()
 
             binding.ivBack.isInvisible = true
             binding.ivSetting.isVisible = true
             binding.ivSetting.isEnabled = true
-            binding.viewPagerMain.isVisible = true
 
             binding.tvMainTitle.text = title
         }
 
         binding.ivSetting.setOnClickListener {
-            val intent = SettingFragment.newInstance()
-            val transaction = supportFragmentManager.beginTransaction()
-            transaction.add(R.id.layoutFrame, intent).commit()
+            val settingFragment = supportFragmentManager.findFragmentByTag("setting")
+                ?: SettingFragment.newInstance()
+
+            supportFragmentManager.beginTransaction()
+                .replace(binding.fcvMain.id, settingFragment, "setting")
+                .addToBackStack("setting")
+                .commit()
             supportFragmentManager.executePendingTransactions()
 
             binding.ivBack.isVisible = true
             binding.ivSetting.isInvisible = true
             binding.ivSetting.isEnabled = false
-            binding.viewPagerMain.isInvisible = true
 
             binding.tvMainTitle.text = titleArr[2]
         }
 
         binding.bottomNavMain.setOnItemSelectedListener(this)
+        binding.bottomNavMain.selectedItemId = R.id.menu_music_list
     }
 
     override fun onStart() {
-        Log.d("onStart", "playerModel: $playerModel playerModel.currentMusic: ${playerModel.currentMusic}")
         musicServiceStart()
 
         super.onStart()
     }
 
-    private fun setFragmentAdapter() {
-        val fragmentAdapter = FragmentAdapter(this)
-        binding.viewPagerMain.adapter = fragmentAdapter
-
-        val titleArr = resources.getStringArray(R.array.title_array)
-
-        binding.viewPagerMain.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
-            override fun onPageSelected(position: Int) {
-                super.onPageSelected(position)
-                binding.bottomNavMain.menu[position].isChecked = true
-                binding.tvMainTitle.text = titleArr[position]
-                title = titleArr[position]
-            }
-        })
-    }
-
     private fun initViewModel() {
-        with(viewModel) {
+        with(vm) {
             lifecycleScope.launch {
                 musicList.observe(this@MainActivity) { musicList ->
                     playerModel.replaceMusicList(musicList)
@@ -178,15 +152,25 @@ class MainActivity : AppCompatActivity(),
     }
 
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
+        val titleArr = resources.getStringArray(R.array.title_array)
+        val transaction = supportFragmentManager.beginTransaction()
         when (item.itemId) {
             R.id.menu_music_list -> {
-                binding.viewPagerMain.currentItem = 0
+                val fragment = supportFragmentManager.findFragmentByTag("music_list")
+                    ?: MusicListFragment.newInstance()
+                transaction.replace(binding.fcvMain.id, fragment, "music_list").commit()
+                binding.tvMainTitle.text = titleArr[0]
+                title = titleArr[0]
             }
             R.id.menu_my_play_list -> {
-                binding.viewPagerMain.currentItem = 1
+                val fragment = supportFragmentManager.findFragmentByTag("my_play_list")
+                    ?: MyPlaylistFragment.newInstance()
+                transaction.replace(binding.fcvMain.id, fragment, "my_play_list").commit()
+                binding.tvMainTitle.text = titleArr[1]
+                title = titleArr[1]
             }
         }
-        return false
+        return true
     }
 
     // 미니 플레이어에서 사용하는 버튼에 리스너 세팅
@@ -198,8 +182,6 @@ class MainActivity : AppCompatActivity(),
 
                 val newMusicKey: String = mediaItem?.mediaId ?: return
                 playerModel.changedMusic(newMusicKey)
-
-                Log.d("onMediaItemTransition", "player.isPlaying: ${player.isPlaying}")
             }
         })
     }
@@ -301,7 +283,6 @@ class MainActivity : AppCompatActivity(),
             }
         }
         if (needs.isEmpty()) {
-            setFragmentAdapter()
             playerController.startPlayer()
         } else {
             permissionLauncher.launch(needs.toTypedArray())
@@ -333,7 +314,6 @@ class MainActivity : AppCompatActivity(),
         }
 
         // 오디오 권한 허용됨 -> 핵심 기능 시작
-        setFragmentAdapter()
         playerController.startPlayer()
 
         // 알림 권한 선택적 처리
@@ -416,7 +396,7 @@ class MainActivity : AppCompatActivity(),
     private fun openAppSettings() {
         val intent = Intent(
             Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
-            Uri.parse("package:$packageName")
+            "package:$packageName".toUri()
         ).apply {
             addCategory(Intent.CATEGORY_DEFAULT)
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
@@ -424,9 +404,44 @@ class MainActivity : AppCompatActivity(),
         startActivity(intent)
     }
 
+    private fun setPlayerExpandedMode(isExpanded: Boolean) {
+        if (isExpanded) {
+            ViewCompat.setOnApplyWindowInsetsListener(binding.containerPlayer) { view, insets ->
+                val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+                view.setPadding(
+                    0,
+                    systemBars.top,  // 상단 상태바
+                    0,
+                    systemBars.bottom  // 하단 시스템 바 (네비게이션 바 포함)
+                )
+                insets
+            }
+            ViewCompat.requestApplyInsets(binding.containerPlayer)
+        } else {
+            ViewCompat.setOnApplyWindowInsetsListener(binding.containerPlayer, null)
+            binding.containerPlayer.setPadding(0, 0, 0, 0)
+        }
+    }
+
+    @OptIn(UnstableApi::class)
+    private fun initSoundEQSettings() {
+        if (player.audioSessionId != 0) {
+            SoundEQSettings.init(player.audioSessionId)
+        } else {
+            player.addListener(object : Player.Listener {
+                override fun onAudioSessionIdChanged(audioSessionId: Int) {
+                    if (audioSessionId != 0) {
+                        SoundEQSettings.init(audioSessionId)
+                        player.removeListener(this)
+                    }
+                }
+            })
+        }
+    }
+
     override fun onDestroy() {
         EventBus.getInstance().unregister(this)
-        // -> 액티비티 종료/재생성 Notification 클릭 등과 무관하게 백그라운드 재생 유지
+
         super.onDestroy()
     }
 }
