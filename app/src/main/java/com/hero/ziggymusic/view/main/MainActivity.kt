@@ -49,10 +49,8 @@ class MainActivity : AppCompatActivity(),
     NavigationBarView.OnItemSelectedListener {
 
     private lateinit var binding: ActivityMainBinding
-
-    private var title: String = ""
-
     private val vm by viewModels<MainViewModel>()
+    private var title: String = ""
 
     @Inject
     lateinit var player: ExoPlayer
