@@ -79,22 +79,6 @@ class MainActivity : AppCompatActivity(),
         EventBus.getInstance().register(this)
     }
 
-    @OptIn(UnstableApi::class)
-    private fun initSoundEQSettings() {
-        if (player.audioSessionId != 0) {
-            SoundEQSettings.init(player.audioSessionId)
-        } else {
-            player.addListener(object : Player.Listener {
-                override fun onAudioSessionIdChanged(audioSessionId: Int) {
-                    if (audioSessionId != 0) {
-                        SoundEQSettings.init(audioSessionId)
-                        player.removeListener(this)
-                    }
-                }
-            })
-        }
-    }
-
     private fun initPlayerController() {
         playerController = PlayerController(
             this,
@@ -439,6 +423,22 @@ class MainActivity : AppCompatActivity(),
         } else {
             ViewCompat.setOnApplyWindowInsetsListener(binding.containerPlayer, null)
             binding.containerPlayer.setPadding(0, 0, 0, 0)
+        }
+    }
+
+    @OptIn(UnstableApi::class)
+    private fun initSoundEQSettings() {
+        if (player.audioSessionId != 0) {
+            SoundEQSettings.init(player.audioSessionId)
+        } else {
+            player.addListener(object : Player.Listener {
+                override fun onAudioSessionIdChanged(audioSessionId: Int) {
+                    if (audioSessionId != 0) {
+                        SoundEQSettings.init(audioSessionId)
+                        player.removeListener(this)
+                    }
+                }
+            })
         }
     }
 
