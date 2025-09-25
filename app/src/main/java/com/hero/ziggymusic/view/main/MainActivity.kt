@@ -107,10 +107,10 @@ class MainActivity : AppCompatActivity(),
             })
         }
 
-        setupListeners()
+        initListeners()
     }
 
-    private fun setupListeners() {
+    private fun initListeners() {
         val titleArr = resources.getStringArray(R.array.title_array)
 
         binding.ivBack.setOnClickListener {
