@@ -59,7 +59,6 @@ class MainActivity : AppCompatActivity(),
     private val playerModel: PlayerModel = PlayerModel.getInstance()
     private lateinit var playerController: PlayerController
 
-    @OptIn(UnstableApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -79,6 +78,13 @@ class MainActivity : AppCompatActivity(),
 
         requestPermissions()
 
+        initSoundEQSettings()
+
+        initListeners()
+    }
+
+    @OptIn(UnstableApi::class)
+    private fun initSoundEQSettings() {
         if (player.audioSessionId != 0) {
             SoundEQSettings.init(player.audioSessionId)
         } else {
@@ -91,8 +97,6 @@ class MainActivity : AppCompatActivity(),
                 }
             })
         }
-
-        initListeners()
     }
 
     private fun initPlayerController() {
