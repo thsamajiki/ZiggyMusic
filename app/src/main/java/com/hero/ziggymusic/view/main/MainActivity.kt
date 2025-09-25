@@ -75,22 +75,7 @@ class MainActivity : AppCompatActivity(),
         initViewModel()
         EventBus.getInstance().register(this)
 
-        playerController = PlayerController(
-            this,
-            binding.containerPlayer,
-            supportFragmentManager,
-            onStateChanged = { newState ->
-                when (newState) {
-                    BottomSheetBehavior.STATE_EXPANDED -> {
-                        binding.bottomNavMain.isGone = true
-                        setPlayerExpandedMode(true)
-                    }
-                    BottomSheetBehavior.STATE_COLLAPSED -> {
-                        binding.bottomNavMain.isVisible = true
-                        setPlayerExpandedMode(false)
-                    }
-                }
-            })
+        initPlayerController()
 
         requestPermissions()
 
@@ -108,6 +93,26 @@ class MainActivity : AppCompatActivity(),
         }
 
         initListeners()
+    }
+
+    private fun initPlayerController() {
+        playerController = PlayerController(
+            this,
+            binding.containerPlayer,
+            supportFragmentManager,
+            onStateChanged = { newState ->
+                when (newState) {
+                    BottomSheetBehavior.STATE_EXPANDED -> {
+                        binding.bottomNavMain.isGone = true
+                        setPlayerExpandedMode(true)
+                    }
+
+                    BottomSheetBehavior.STATE_COLLAPSED -> {
+                        binding.bottomNavMain.isVisible = true
+                        setPlayerExpandedMode(false)
+                    }
+                }
+            })
     }
 
     private fun initListeners() {
