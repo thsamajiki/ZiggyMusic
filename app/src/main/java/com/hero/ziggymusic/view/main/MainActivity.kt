@@ -132,7 +132,6 @@ class MainActivity : AppCompatActivity(),
     }
 
     override fun onStart() {
-        Log.d("onStart", "playerModel: $playerModel playerModel.currentMusic: ${playerModel.currentMusic}")
         musicServiceStart()
 
         super.onStart()
