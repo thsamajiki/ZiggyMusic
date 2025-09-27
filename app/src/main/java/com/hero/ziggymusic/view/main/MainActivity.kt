@@ -17,7 +17,6 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
 import androidx.core.view.isGone
-import androidx.core.view.isInvisible
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.MediaItem
@@ -100,12 +99,7 @@ class MainActivity : AppCompatActivity(),
     private fun initListeners() {
         binding.ivBack.setOnClickListener {
             supportFragmentManager.popBackStack()
-
-            binding.ivBack.isInvisible = true
-            binding.ivSetting.isVisible = true
-            binding.ivSetting.isEnabled = true
-
-            binding.tvMainTitle.text = title
+            vm.navigateBack()
         }
 
         binding.ivSetting.setOnClickListener {
