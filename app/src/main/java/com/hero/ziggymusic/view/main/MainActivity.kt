@@ -41,6 +41,7 @@ import javax.inject.Inject
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
+import com.hero.ziggymusic.view.main.model.MainTitle
 import com.hero.ziggymusic.view.main.musiclist.MusicListFragment
 import com.hero.ziggymusic.view.main.myplaylist.MyPlaylistFragment
 
@@ -97,8 +98,6 @@ class MainActivity : AppCompatActivity(),
     }
 
     private fun initListeners() {
-        val titleArr = resources.getStringArray(R.array.title_array)
-
         binding.ivBack.setOnClickListener {
             supportFragmentManager.popBackStack()
 
@@ -119,11 +118,7 @@ class MainActivity : AppCompatActivity(),
                 .commit()
             supportFragmentManager.executePendingTransactions()
 
-            binding.ivBack.isVisible = true
-            binding.ivSetting.isInvisible = true
-            binding.ivSetting.isEnabled = false
-
-            binding.tvMainTitle.text = titleArr[2]
+            vm.setTitle(MainTitle.Setting)
         }
 
         binding.bottomNavMain.setOnItemSelectedListener(this)
@@ -142,6 +137,14 @@ class MainActivity : AppCompatActivity(),
                 musicList.observe(this@MainActivity) { musicList ->
                     playerModel.replaceMusicList(musicList)
                 }
+
+                // Title과 UI 상태를 한번에 관찰
+                currentTitle.observe(this@MainActivity) { mainTitle ->
+                    binding.tvMainTitle.text = getString(mainTitle.resId)
+                    binding.ivBack.isVisible = mainTitle.showBackButton
+                    binding.ivSetting.isVisible = mainTitle.showSettingButton
+                    binding.ivSetting.isEnabled = mainTitle.showSettingButton
+                }
             }
         }
     }
@@ -151,22 +154,19 @@ class MainActivity : AppCompatActivity(),
     }
 
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
-        val titleArr = resources.getStringArray(R.array.title_array)
         val transaction = supportFragmentManager.beginTransaction()
         when (item.itemId) {
             R.id.menu_music_list -> {
                 val fragment = supportFragmentManager.findFragmentByTag("music_list")
                     ?: MusicListFragment.newInstance()
                 transaction.replace(binding.fcvMain.id, fragment, "music_list").commit()
-                binding.tvMainTitle.text = titleArr[0]
-                title = titleArr[0]
+                vm.setTitle(MainTitle.MusicList)
             }
             R.id.menu_my_play_list -> {
                 val fragment = supportFragmentManager.findFragmentByTag("my_play_list")
                     ?: MyPlaylistFragment.newInstance()
                 transaction.replace(binding.fcvMain.id, fragment, "my_play_list").commit()
-                binding.tvMainTitle.text = titleArr[1]
-                title = titleArr[1]
+                vm.setTitle(MainTitle.MyPlaylist)
             }
         }
         return true
