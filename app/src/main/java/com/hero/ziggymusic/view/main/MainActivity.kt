@@ -50,7 +50,6 @@ class MainActivity : AppCompatActivity(),
 
     private lateinit var binding: ActivityMainBinding
     private val vm by viewModels<MainViewModel>()
-    private var title: String = ""
 
     @Inject
     lateinit var player: ExoPlayer
@@ -194,8 +193,6 @@ class MainActivity : AppCompatActivity(),
 
     @Subscribe
     fun doEvent(event: Event) {
-        val currentMusic = playerModel.currentMusic
-
         when(event.getEvent()) {
             "PLAY_NEW_MUSIC" -> { // 새로운 음원이 재생
                 musicServiceStart()
