@@ -6,7 +6,7 @@ import com.hero.ziggymusic.database.music.entity.MusicModel
 
 @Dao
 interface MusicFileDao {
-    @Query("SELECT * FROM music_table ORDER BY id ASC")
+    @Query("SELECT * FROM music_table ORDER BY title ASC")
     fun getAllFiles() : LiveData<List<MusicModel>>
 
     @Query("SELECT * FROM music_table WHERE id = :key limit 1")
