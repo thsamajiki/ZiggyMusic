@@ -228,3 +228,9 @@ fabric.properties
 /app/config/detekt.yml
 /app/config/lint/lint.xml
 /app/config/lint/lint-baseline.xml
+
+# Native prebuilt libraries
+app/src/main/jniLibs/
+app/src/main/cpp/android/
+app/src/main/cpp/OpenSource/
+app/src/main/cpp/SLES/
