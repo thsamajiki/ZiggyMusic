@@ -7,7 +7,18 @@ object BufferAddressHelper {
     init {
         try {
             System.loadLibrary("ziggymusic_audio_dsp")
-        } catch (_: UnsatisfiedLinkError) { /* 이미 로드된 경우 무시 */ }
+        } catch (e: UnsatisfiedLinkError) {
+            android.util.Log.e(
+                "BufferAddressHelper",
+                "Failed to load native library 'ziggymusic_audio_dsp'. " +
+                        "The application cannot use native audio DSP features.",
+                e
+            )
+            throw IllegalStateException(
+                "Native library 'ziggymusic_audio_dsp' could not be loaded",
+                e
+            )
+        }
     }
 
     /**
