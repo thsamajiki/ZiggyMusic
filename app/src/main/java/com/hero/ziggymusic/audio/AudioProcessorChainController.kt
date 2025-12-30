@@ -17,38 +17,8 @@ object AudioProcessorChainController {
     external fun setReverb(enabled: Boolean, wet: Float)
     external fun processBuffer(bufferPtr: Long, frames: Int, sampleRate: Int)
 
-    // Helper: try a list of candidate method names (no args)
-    private fun tryCallNoArgs(vararg candidates: String): Boolean {
-        for (name in candidates) {
-            try {
-                val method = this::class.java.getMethod(name)
-                method.invoke(this)
-                Log.d(TAG, "Called method: $name")
-                return true
-            } catch (ignored: NoSuchMethodException) { /* try next */ }
-            catch (e: IllegalAccessException) { Log.w(TAG, "access denied for $name", e) ; return true }
-            catch (e: InvocationTargetException) { Log.w(TAG, "invocation target for $name", e) ; return true }
-        }
-        return false
-    }
-
-    // Helper: try a list of candidate method names with (Int, Int) args
-    private fun tryCallIntInt(vararg candidates: String, a: Int, b: Int): Boolean {
-        for (name in candidates) {
-            try {
-                val method = this::class.java.getMethod(name, Int::class.javaPrimitiveType, Int::class.javaPrimitiveType)
-                method.invoke(this, a, b)
-                Log.d(TAG, "Called method: $name")
-                return true
-            } catch (ignored: NoSuchMethodException) { /* try next */ }
-            catch (e: IllegalAccessException) { Log.w(TAG, "access denied for $name", e) ; return true }
-            catch (e: InvocationTargetException) { Log.w(TAG, "invocation target for $name", e) ; return true }
-        }
-        return false
-    }
-
     // Public API requested by SettingFragment — direct JNI calls only.
-// Keep the API contract explicit and fail fast if the native symbol is missing.
+    // Keep the API contract explicit and fail fast if the native symbol is missing.
     fun nativeStartAudioIO(sampleRate: Int, bufferSize: Int) {
         try {
             createChain(sampleRate)
