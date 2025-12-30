@@ -1,0 +1,63 @@
+#include <jni.h>
+#include <mutex>
+#include <atomic>
+#include "Superpowered.h"
+#include "AudioDspChain.h"
+
+static std::unique_ptr<AudioDspChain> chain;
+static std::mutex chainMutex;
+static std::once_flag superpoweredInitFlag;
+
+extern "C" JNIEXPORT void JNICALL
+Java_com_hero_ziggymusic_audio_AudioProcessorChainController_createChain(JNIEnv *env, jobject /*cls*/, jint sampleRate) {
+    std::call_once(superpoweredInitFlag, [](){
+        Superpowered::Initialize("ExampleLicenseKey-WillExpire-OnNextUpdate");
+    });
+
+    std::lock_guard<std::mutex> lock(chainMutex);
+    if (!chain) chain = std::make_unique<AudioDspChain>((unsigned int)sampleRate);
+}
+
+extern "C" JNIEXPORT void JNICALL
+Java_com_hero_ziggymusic_audio_AudioProcessorChainController_destroyChain(JNIEnv *env, jobject /*cls*/) {
+    std::lock_guard<std::mutex> lock(chainMutex);
+    chain.reset(); // unique_ptr 자동 삭제, 안전함
+}
+
+extern "C" JNIEXPORT void JNICALL
+Java_com_hero_ziggymusic_audio_AudioProcessorChainController_setEQBand(JNIEnv *env, jobject /*cls*/, jint bandIndex, jfloat gainDb) {
+    std::lock_guard<std::mutex> lock(chainMutex);
+    if (chain) chain->setEQBand((int)bandIndex, (float)gainDb);
+}
+
+extern "C" JNIEXPORT void JNICALL
+Java_com_hero_ziggymusic_audio_AudioProcessorChainController_setCompressor(
+        JNIEnv *env, jobject /*cls*/,
+        jfloat thresholdDb, jfloat ratio, jfloat attackMs, jfloat releaseMs, jfloat makeupDb) {
+    std::lock_guard<std::mutex> lock(chainMutex);
+    if (chain) chain->setCompressor((float)thresholdDb, (float)ratio, (float)attackMs, (float)releaseMs, (float)makeupDb);
+}
+
+extern "C" JNIEXPORT void JNICALL
+Java_com_hero_ziggymusic_audio_AudioProcessorChainController_setReverb(
+        JNIEnv *env, jobject /*cls*/,
+        jboolean enabled, jfloat wet) {
+    std::lock_guard<std::mutex> lock(chainMutex);
+    if (chain) chain->setReverb((bool)enabled, (float)wet);
+}
+
+extern "C" JNIEXPORT void JNICALL
+Java_com_hero_ziggymusic_audio_AudioProcessorChainController_processBuffer(
+        JNIEnv *env, jobject, /*cls*/
+        jlong bufferPtr,
+        jint frames, jint sampleRate) {
+    if (bufferPtr == 0) return;
+
+    // jlong(주소) -> float*
+    auto* buf = reinterpret_cast<float*>(static_cast<intptr_t>(bufferPtr));
+
+    std::lock_guard<std::mutex> lock(chainMutex);
+    if (chain) {
+        chain->process(buf, (unsigned int)frames, (unsigned int)sampleRate);
+    }
+}
