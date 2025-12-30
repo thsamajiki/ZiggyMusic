@@ -88,20 +88,35 @@ class AudioProcessorAdapter(
             inputBuffer.position(inputBuffer.position() + frames * channelCount * 4)
         } else {
             // PCM16 -> float 변환
+            val bytesPerFrame = channelCount * 2
+            val availableBytes = inputBuffer.remaining()
+
+            // 입력 버퍼가 프레임 단위로 깨끗하게 들어오지 않거나 손상된 경우를 대비해
+            // 처리 가능한 프레임 수를 "가능한 만큼"으로 내림 처리
+            val safeFrames = min(frames, availableBytes / bytesPerFrame)
+            if (safeFrames <= 0) return
+
+            val safeSamples = safeFrames * channelCount
+            val safeFloatBytes = safeSamples * 4
+            ensureCapacityFloat(safeFloatBytes)
+            floatBuffer.clear()
+
             val src = inputBuffer.slice().order(ByteOrder.LITTLE_ENDIAN)
+            src.limit(safeFrames * bytesPerFrame)
+
             val srcShorts: ShortBuffer = src.asShortBuffer()
             val dstFloats: FloatBuffer = floatBuffer.order(ByteOrder.LITTLE_ENDIAN).asFloatBuffer()
 
-            for (i in 0 until samples) {
+            for (i in 0 until safeSamples) {
                 val s = srcShorts.get(i).toInt()
                 dstFloats.put(i, s / 32768.0f)
             }
 
             floatBuffer.position(0)
-            floatBuffer.limit(floatBytes)
+            floatBuffer.limit(safeFloatBytes)
 
             // 소비
-            inputBuffer.position(inputBuffer.position() + frames * channelCount * 2)
+            inputBuffer.position(inputBuffer.position() + safeFrames * bytesPerFrame)
         }
 
         // 2) (선택) 네이티브 DSP 적용 - 사용 중이면 호출, 아니면 주석 가능
