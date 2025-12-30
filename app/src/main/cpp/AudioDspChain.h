@@ -23,7 +23,7 @@ public:
 private:
     unsigned int currentSampleRate;
     unsigned int numBands;
-    // Filters as unique_ptr -> 자동 소멸
+
     std::vector<std::unique_ptr<Superpowered::Filter>> eqBands;
     std::unique_ptr<Superpowered::Reverb> reverb;
 
