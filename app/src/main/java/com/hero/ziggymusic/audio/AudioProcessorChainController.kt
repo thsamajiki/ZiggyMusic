@@ -47,83 +47,41 @@ object AudioProcessorChainController {
         return false
     }
 
-    // Public API requested by SettingFragment — delegates to existing or native implementations.
+    // Public API requested by SettingFragment — direct JNI calls only.
+// Keep the API contract explicit and fail fast if the native symbol is missing.
     fun nativeStartAudioIO(sampleRate: Int, bufferSize: Int) {
-        val candidates = arrayOf("StartAudio", "startAudio", "startAudioIO", "nativeStart", "start")
-        if (tryCallIntInt(*candidates, a = sampleRate, b = bufferSize)) return
-
-        // fallback to JNI if available
-        try {
-//            AudioEffects.initializeDsp(sampleRate, bufferSize)
-            Log.d(TAG, "Called nativeStartAudioIONative")
-        } catch (e: UnsatisfiedLinkError) {
-            Log.w(TAG, "AudioEffects.startAudio native not available", e)
-        } catch (e: Throwable) {
-            Log.w(TAG, "Error calling AudioEffects.startAudio", e)
-        }
-
-        // last fallback: create chain directly via nativeCreateChain
         try {
             createChain(sampleRate)
-            Log.d(TAG, "Called nativeCreateChain as fallback")
-        } catch (e: Throwable) {
-            Log.w(TAG, "Error calling nativeCreateChain", e)
+            Log.d(TAG, "createChain(sampleRate=$sampleRate)")
+        } catch (e: UnsatisfiedLinkError) {
+            Log.e(TAG, "Native symbol missing: createChain()", e)
+            throw e
+        } catch (t: Throwable) {
+            Log.e(TAG, "Failed to start audio IO (= createChain)", t)
+            throw t
         }
     }
 
     fun nativeAudioIOOnForeground() {
-        val candidates = arrayOf("onForeground", "AudioIOOnForeground", "audioIOOnForeground", "onAudioForeground")
-        if (tryCallNoArgs(*candidates)) return
-
-        try {
-            Log.d(TAG, "Called AudioEffects.onForeground")
-            return
-        } catch (e: UnsatisfiedLinkError) {
-            Log.w(TAG, "AudioEffects.onForeground native not available", e)
-        } catch (e: Throwable) {
-            Log.w(TAG, "Error calling AudioEffects.onForeground", e)
-        }
-
-        // no-op fallback
-        Log.d(TAG, "nativeAudioIOOnForeground: no-op fallback")
+        // No native entrypoint defined for foreground transition.
+        Log.d(TAG, "nativeAudioIOOnForeground: no-op")
     }
 
     fun nativeAudioIOOnBackground() {
-        val candidates = arrayOf("onBackground", "AudioIOOnBackground", "audioIOOnBackground", "onAudioBackground")
-        if (tryCallNoArgs(*candidates)) return
-
-        try {
-            Log.d(TAG, "Called AudioEffects.onBackground")
-            return
-        } catch (e: UnsatisfiedLinkError) {
-            Log.w(TAG, "AudioEffects.onBackground native not available", e)
-        } catch (e: Throwable) {
-            Log.w(TAG, "Error calling AudioEffects.onBackground", e)
-        }
-
-        // no-op fallback
-        Log.d(TAG, "nativeAudioIOOnBackground: no-op fallback")
+        // No native entrypoint defined for background transition.
+        Log.d(TAG, "nativeAudioIOOnBackground: no-op")
     }
 
     fun nativeStopAudioIO() {
-        val candidates = arrayOf("StopAudio", "stopAudio", "stopAudioIO", "nativeStop", "stop")
-        if (tryCallNoArgs(*candidates)) return
-
-        try {
-            Log.d(TAG, "Called AudioEffects.stopAudio")
-            return
-        } catch (e: UnsatisfiedLinkError) {
-            Log.w(TAG, "AudioEffects.stopAudio native not available", e)
-        } catch (e: Throwable) {
-            Log.w(TAG, "Error calling AudioEffects.stopAudio", e)
-        }
-
-        // last fallback: destroy chain directly via nativeDestroyChain
         try {
             destroyChain()
-            Log.d(TAG, "Called nativeDestroyChain as fallback")
-        } catch (e: Throwable) {
-            Log.w(TAG, "Error calling nativeDestroyChain", e)
+            Log.d(TAG, "destroyChain()")
+        } catch (e: UnsatisfiedLinkError) {
+            Log.e(TAG, "Native symbol missing: destroyChain()", e)
+            throw e
+        } catch (t: Throwable) {
+            Log.e(TAG, "Failed to stop audio IO (= destroyChain)", t)
+            throw t
         }
     }
 
