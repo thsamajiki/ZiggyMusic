@@ -123,8 +123,18 @@ void AudioDspChain::setEQBand(int bandIndex, float gainDb) {
 void AudioDspChain::setCompressor(float thresholdDb, float ratio, float attackMs, float releaseMs, float makeupDb) {
     compThreshold = dbToLinear(thresholdDb);
     compRatio = ratio <= 1.0f ? 1.0f : ratio;
-    compAttackCoeff = expf(-1.0f / (0.001f * attackMs * currentSampleRate));
-    compReleaseCoeff = expf(-1.0f / (0.001f * releaseMs * currentSampleRate));
+
+    // Prevent division by zero / denormals: enforce a small minimum time.
+    const float minMs = 0.1f;
+    if (attackMs <= minMs) attackMs = minMs;
+    if (releaseMs <= minMs) releaseMs = minMs;
+
+    const float attackSeconds = 0.001f * attackMs;
+    const float releaseSeconds = 0.001f * releaseMs;
+
+    compAttackCoeff = expf(-1.0f / (attackSeconds * (float)currentSampleRate));
+    compReleaseCoeff = expf(-1.0f / (releaseSeconds * (float)currentSampleRate));
+
     compGainMakeup = dbToLinear(makeupDb);
 }
 
