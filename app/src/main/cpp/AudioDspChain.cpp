@@ -104,9 +104,18 @@ void AudioDspChain::process(float *bufferInterleaved, unsigned int numberOfFrame
             rightBuffer.resize(maxFramesAllocated);
             interleavedTemp.resize(maxFramesAllocated * 2);
         }
-        // copy into interleavedTemp, process, mix
-        std::memcpy(interleavedTemp.data(), bufferInterleaved, sizeof(float) * numberOfFrames * 2);
-        reverb->process(interleavedTemp.data(), interleavedTemp.data(), numberOfFrames);
+        for (unsigned int i = 0; i < numberOfFrames; ++i) {
+            leftBuffer[i] = bufferInterleaved[i * 2];
+            rightBuffer[i] = bufferInterleaved[i * 2 + 1];
+        }
+        for (unsigned int i = 0; i < numberOfFrames; ++i) {
+            bufferInterleaved[i * 2] = leftBuffer[i];
+            bufferInterleaved[i * 2 + 1] = rightBuffer[i];
+        }
+
+        // Process reverb: input = current bufferInterleaved, output = interleavedTemp (wet)
+        reverb->process(bufferInterleaved, interleavedTemp.data(), numberOfFrames);
+
         float wet = reverbWet;
         float dry = 1.0f - wet;
         for (unsigned int i = 0; i < numberOfFrames * 2; ++i) {
