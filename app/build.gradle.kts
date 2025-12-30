@@ -27,7 +27,10 @@ android {
         externalNativeBuild {
             cmake {
                 cppFlags += listOf("-std=c++17", "-O3")
-                arguments += "-DPATH_TO_SUPERPOWERED=C:/Users/Hoseop/AndroidStudioProjects/ZiggyMusic/app/src/main/jniLibs"
+                val pathToSuperpowered = System.getenv("PATH_TO_SUPERPOWERED")
+                    ?: (project.findProperty("PATH_TO_SUPERPOWERED") as String?)
+                    ?: file("src/main/jniLibs").absolutePath
+                arguments += "-DPATH_TO_SUPERPOWERED=$pathToSuperpowered"
             }
         }
     }
