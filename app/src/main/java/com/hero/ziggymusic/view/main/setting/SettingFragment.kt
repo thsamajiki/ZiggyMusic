@@ -53,8 +53,12 @@ class SettingFragment : Fragment() {
         initReverb()
         initVirtualizerSeekbar()
 
-        // 네이티브 체인 초기화: 디바이스 샘플레이트를 Activity 또는 AudioManager에서 가져와 전달
-        val sampleRate = 48000 // 실제로는 시스템 샘플레이트를 사용
+        // 네이티브 체인 초기화: 시스템 샘플레이트를 사용 (없으면 안전한 기본값으로 폴백)
+        val audioManager = requireContext().getSystemService(android.content.Context.AUDIO_SERVICE) as android.media.AudioManager
+        val sampleRate = audioManager.getProperty(android.media.AudioManager.PROPERTY_OUTPUT_SAMPLE_RATE)
+            ?.toIntOrNull()
+            ?: 48000
+
         AudioProcessorChainController.createChain(sampleRate)
         // 필요하면 Audio IO도 시작
         AudioProcessorChainController.nativeStartAudioIO(sampleRate, 256)
@@ -335,6 +339,8 @@ class SettingFragment : Fragment() {
         val bassProgress = settings!!.getInt("BASS", 0)
         binding.sbBass.progress = bassProgress
 
+        // 체인의 생명주기는 Fragment가 아니라 Application/Service 레벨에서 관리해야 함.
+        // 여기서는 UI가 포그라운드로 돌아왔음을 네이티브에 알리는 정도만 수행.
         AudioProcessorChainController.nativeAudioIOOnForeground()
     }
 
@@ -346,9 +352,9 @@ class SettingFragment : Fragment() {
             putInt("VIRTUALIZER", binding.sbVirtualizer.progress)
         }
 
+        // 백그라운드로 내려갔음을 알리되, 체인 destroy/stop은 여기서 하지 않음.
+        // (서비스에서 백그라운드 재생 중일 수 있음)
         AudioProcessorChainController.nativeAudioIOOnBackground()
-        AudioProcessorChainController.destroyChain()
-        AudioProcessorChainController.nativeStopAudioIO()
     }
 
     override fun onDestroyView() {
