@@ -60,9 +60,16 @@ object PlayerModule {
         @ApplicationContext context: Context,
     ): () -> Int {
         val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
+        val defaultSampleRate = 48000
+
         return {
-            val s = audioManager.getProperty(AudioManager.PROPERTY_OUTPUT_SAMPLE_RATE)
-            s?.toIntOrNull() ?: 0
+            val raw = audioManager.getProperty(AudioManager.PROPERTY_OUTPUT_SAMPLE_RATE)
+            val parsed = raw?.toIntOrNull()
+
+            when {
+                parsed != null && parsed > 0 -> parsed
+                else -> defaultSampleRate
+            }
         }
     }
 
