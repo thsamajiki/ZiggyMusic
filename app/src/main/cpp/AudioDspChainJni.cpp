@@ -22,7 +22,7 @@ Java_com_hero_ziggymusic_audio_AudioProcessorChainController_createChain(JNIEnv 
 extern "C" JNIEXPORT void JNICALL
 Java_com_hero_ziggymusic_audio_AudioProcessorChainController_destroyChain(JNIEnv *env, jobject /*cls*/) {
     std::lock_guard<std::mutex> lock(chainMutex);
-    chain.reset(); // unique_ptr 자동 삭제, 안전함
+    chain.reset(); // shared_ptr 참조 해제: 더 이상 참조가 없으면 자동 삭제되어 안전함
 }
 
 extern "C" JNIEXPORT void JNICALL
