@@ -29,10 +29,6 @@ set(APP_SOURCES
 
 add_library(ziggymusic_audio_dsp SHARED ${APP_SOURCES})
 
-target_sources(ziggymusic_audio_dsp PRIVATE
-        ${CMAKE_CURRENT_SOURCE_DIR}/BufferAddressHelper.cpp
-)
-
 # 2) include 경로 (Superpowered 헤더 사용이 필수)
 target_include_directories(ziggymusic_audio_dsp PRIVATE
         "${CMAKE_CURRENT_SOURCE_DIR}"
