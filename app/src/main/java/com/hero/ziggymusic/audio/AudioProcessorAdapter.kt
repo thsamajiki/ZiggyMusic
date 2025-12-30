@@ -52,9 +52,6 @@ class AudioProcessorAdapter(
     override fun queueInput(inputBuffer: ByteBuffer) {
         if (!inputBuffer.hasRemaining()) return
 
-        // ✅ 이전 output이 아직 소비되지 않았다면 덮어쓰지 않기
-        if (outputBuffer.hasRemaining()) return
-
         val inRemaining = inputBuffer.remaining()
 
         val frames = when (inputEncoding) {
