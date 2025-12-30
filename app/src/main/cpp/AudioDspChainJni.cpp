@@ -1,10 +1,11 @@
 #include <jni.h>
+#include <memory>
 #include <mutex>
 #include <atomic>
 #include "Superpowered.h"
 #include "AudioDspChain.h"
 
-static std::unique_ptr<AudioDspChain> chain;
+static std::shared_ptr<AudioDspChain> chain;
 static std::mutex chainMutex;
 static std::once_flag superpoweredInitFlag;
 
@@ -15,7 +16,7 @@ Java_com_hero_ziggymusic_audio_AudioProcessorChainController_createChain(JNIEnv 
     });
 
     std::lock_guard<std::mutex> lock(chainMutex);
-    if (!chain) chain = std::make_unique<AudioDspChain>((unsigned int)sampleRate);
+    if (!chain) chain = std::make_shared<AudioDspChain>((unsigned int)sampleRate);
 }
 
 extern "C" JNIEXPORT void JNICALL
@@ -48,16 +49,21 @@ Java_com_hero_ziggymusic_audio_AudioProcessorChainController_setReverb(
 
 extern "C" JNIEXPORT void JNICALL
 Java_com_hero_ziggymusic_audio_AudioProcessorChainController_processBuffer(
-        JNIEnv *env, jobject, /*cls*/
+        JNIEnv *env, jobject /*cls*/,
         jlong bufferPtr,
         jint frames, jint sampleRate) {
     if (bufferPtr == 0) return;
+    if (frames <= 0 || sampleRate <= 0) return;
 
-    // jlong(주소) -> float*
     auto* buf = reinterpret_cast<float*>(static_cast<intptr_t>(bufferPtr));
 
-    std::lock_guard<std::mutex> lock(chainMutex);
-    if (chain) {
-        chain->process(buf, (unsigned int)frames, (unsigned int)sampleRate);
+    std::shared_ptr<AudioDspChain> localChain;
+    {
+        std::lock_guard<std::mutex> lock(chainMutex);
+        localChain = chain; // 스냅샷 확보: destroyChain()과 경쟁해도 안전
+    }
+
+    if (localChain) {
+        localChain->process(buf, (unsigned int)frames, (unsigned int)sampleRate);
     }
 }
