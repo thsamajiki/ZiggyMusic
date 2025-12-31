@@ -22,6 +22,17 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
+
+        @Suppress("UnstableApiUsage")
+        externalNativeBuild {
+            cmake {
+                cppFlags += listOf("-std=c++17", "-O3")
+                val pathToSuperpowered = System.getenv("PATH_TO_SUPERPOWERED")
+                    ?: (project.findProperty("PATH_TO_SUPERPOWERED") as String?)
+                    ?: file("src/main/jniLibs").absolutePath
+                arguments += "-DPATH_TO_SUPERPOWERED=$pathToSuperpowered"
+            }
+        }
     }
 
     buildTypes {
@@ -45,6 +56,11 @@ android {
     buildFeatures {
         viewBinding = true
         dataBinding = true
+    }
+    externalNativeBuild {
+        cmake {
+            path = file("src/main/cpp/CMakeLists.txt")
+        }
     }
 }
 
@@ -73,6 +89,7 @@ dependencies {
     // Glide
     implementation(libs.glide)
     ksp(libs.glide.compiler)
+    implementation(libs.palette)
 
     // Hilt
     implementation(libs.hilt.android)

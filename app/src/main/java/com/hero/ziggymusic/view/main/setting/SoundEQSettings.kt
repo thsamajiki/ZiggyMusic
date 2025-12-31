@@ -1,12 +1,15 @@
 package com.hero.ziggymusic.view.main.setting
 
-import android.graphics.Color
 import android.media.audiofx.BassBoost
 import android.media.audiofx.Equalizer
 import android.media.audiofx.PresetReverb
 import android.media.audiofx.Virtualizer
+import androidx.core.graphics.toColorInt
+import com.hero.ziggymusic.audio.AudioProcessorChainController
 
 object SoundEQSettings {
+    private val bandGainsDb = FloatArray(5)
+
     /**
      * Initializes the Audio Effects settings.
      *
@@ -19,6 +22,21 @@ object SoundEQSettings {
         SettingFragment.reverb = PresetReverb(1, mediaSession)
     }
 
+    fun setBandGain(bandIndex: Int, gainDb: Float) {
+        if (bandIndex in bandGainsDb.indices) {
+            bandGainsDb[bandIndex] = gainDb
+            AudioProcessorChainController.setEQBand(bandIndex, gainDb)
+        }
+    }
+
+    fun setCompressor(thresholdDb: Float, ratio: Float, attackMs: Float, releaseMs: Float, makeupDb: Float) {
+        AudioProcessorChainController.setCompressor(thresholdDb, ratio, attackMs, releaseMs, makeupDb)
+    }
+
+    fun setReverb(enabled: Boolean, wet: Float) {
+        AudioProcessorChainController.setReverb(enabled, wet)
+    }
+
     /**
      * Sets the main color for SoundEQ UI.
      *
@@ -26,7 +44,7 @@ object SoundEQSettings {
      */
     fun setColor(color: String) {
         try {
-            SettingFragment.mainColor = Color.parseColor(color)
+            SettingFragment.mainColor = color.toColorInt()
         } catch (_: Exception) {
             // Handle parsing exceptions
         }

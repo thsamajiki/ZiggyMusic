@@ -1,7 +1,6 @@
 package com.hero.ziggymusic.view.main.setting
 
 import android.content.SharedPreferences
-import android.graphics.Color
 import android.media.audiofx.BassBoost
 import android.media.audiofx.Equalizer
 import android.media.audiofx.PresetReverb
@@ -22,6 +21,9 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import com.hero.ziggymusic.R
 import com.hero.ziggymusic.databinding.FragmentSettingBinding
+import androidx.core.content.edit
+import androidx.core.graphics.toColorInt
+import com.hero.ziggymusic.audio.AudioProcessorChainController
 
 class SettingFragment : Fragment() {
     private var _binding: FragmentSettingBinding? = null
@@ -50,6 +52,16 @@ class SettingFragment : Fragment() {
         initBassSeekBar(settings)
         initReverb()
         initVirtualizerSeekbar()
+
+        // 네이티브 체인 초기화: 시스템 샘플레이트를 사용 (없으면 안전한 기본값으로 폴백)
+        val audioManager = requireContext().getSystemService(android.content.Context.AUDIO_SERVICE) as android.media.AudioManager
+        val sampleRate = audioManager.getProperty(android.media.AudioManager.PROPERTY_OUTPUT_SAMPLE_RATE)
+            ?.toIntOrNull()
+            ?: 48000
+
+        AudioProcessorChainController.createChain(sampleRate)
+        // 필요하면 Audio IO도 시작
+        AudioProcessorChainController.nativeStartAudioIO(sampleRate, 256)
     }
 
     private fun initSetting() {
@@ -60,7 +72,7 @@ class SettingFragment : Fragment() {
             bassBoost!!.enabled = true
             virtualizer!!.enabled = true
             reverb!!.enabled = true
-            settings.edit().putBoolean("ENABLED", true).apply()
+            settings.edit { putBoolean("ENABLED", true) }
         }
     }
 
@@ -74,9 +86,11 @@ class SettingFragment : Fragment() {
             presets[i + 1] = equalizer!!.getPresetName(i.toShort())
         }
 
-        val spinnerAdapter: ArrayAdapter<String?> =
-//            ArrayAdapter(requireContext(), android.R.layout.simple_spinner_dropdown_item, presets)
-            ArrayAdapter(requireContext(), R.layout.item_spinner, presets)
+        val spinnerAdapter: ArrayAdapter<String?> = ArrayAdapter(
+            requireContext(),
+            R.layout.item_spinner,
+            presets
+        )
         binding.spinnerPreset.adapter = spinnerAdapter
 
         binding.spinnerPreset.setSelection(settings.getInt("PRESET", 1))
@@ -90,7 +104,8 @@ class SettingFragment : Fragment() {
                     id: Long,
                 ) {
                     if (equalizer != null) {
-                        settings.edit().putInt("PRESET", position).apply()
+                        settings.edit { putInt("PRESET", position) }
+
                         Runnable {
                             if (position != 0) {
                                 equalizer!!.usePreset((position - 1).toShort())
@@ -125,8 +140,7 @@ class SettingFragment : Fragment() {
                 seekbarIds.add(index, View.generateViewId())
                 verticalSeekbar.max = max - min
                 verticalSeekbar.tag = index
-                //verticalSeekbar.progressDrawable = ContextCompat.getDrawable(this, R.drawable.seekbar_style_equalizer)
-                //verticalSeekbar.thumb = ContextCompat.getDrawable(this, R.drawable.thumb_equalizer)
+
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                     verticalSeekbar.maxHeight = 1
                 }
@@ -151,14 +165,22 @@ class SettingFragment : Fragment() {
                         if (equalizer != null) {
                             if (verticalSeekbar.shouldChange) {
                                 binding.spinnerPreset.setSelection(0)
-                                settings.edit().putInt(seekBar.tag.toString(), progress).apply()
-                                if (equalizer!!.enabled) {
+                                settings.edit { putInt(seekBar.tag.toString(), progress) }
 
+                                if (equalizer!!.enabled) {
                                     equalizer!!.setBandLevel(
                                         (seekBar.tag as Int).toShort(),
                                         (progress + min).toShort()
                                     )
                                 }
+
+                                // 네이티브 EQ에도 동일 변경 반영
+                                val bandIndex = (seekBar.tag as Int)
+                                val gainDb = mapEqProgressToDb(
+                                    progress = progress,
+                                    max = seekBar.max
+                                )
+                                SoundEQSettings.setBandGain(bandIndex, gainDb)
                             }
                         }
                     }
@@ -191,28 +213,30 @@ class SettingFragment : Fragment() {
                 textView.layoutParams = params
                 binding.tvSeekbar.addView(textView)
                 binding.seekbarContainer.addView(verticalSeekbar)
+
+                // 초기 로딩 시 네이티브 밴드도 저장값으로 동기화
+                val initialGainDb = mapEqProgressToDb(
+                    progress = verticalSeekbar.progress,
+                    max = verticalSeekbar.max
+                )
+                SoundEQSettings.setBandGain(index, initialGainDb)
             }
 
             initPresets(min)
         }
     }
 
+    // SettingsFragment의 progress 범위를 기준으로 dB로 환산
+    private fun mapEqProgressToDb(progress: Int, max: Int): Float {
+        if (max <= 0) return 0.0f
+        val normalized = (progress.toFloat() / max.toFloat()).coerceIn(0.0f, 1.0f) // 0..1
+        return (normalized * 24.0f) - 12.0f // -12..+12
+    }
+
     private fun initReverb() {
-        val reverbAdapter =
-//            ArrayAdapter(
-//            requireContext(),
-//            android.R.layout.simple_spinner_dropdown_item,
-//            arrayOf(
-//                "None",
-//                "Small Room",
-//                "Medium Room",
-//                "Large Room",
-//                "Medium Hall",
-//                "Large Hall",
-//                "Plate"
-//            )
-//        )
-        ArrayAdapter(requireContext(), R.layout.item_spinner, arrayOf(
+        val reverbAdapter = ArrayAdapter(requireContext(),
+            R.layout.item_spinner,
+            arrayOf(
             "None",
             "Small Room",
             "Medium Room",
@@ -236,7 +260,7 @@ class SettingFragment : Fragment() {
                     Runnable {
                         reverb!!.preset = position.toShort()
                         reverb!!.enabled = true
-                        settings.edit().putInt("REVERB", position).apply()
+                        settings.edit { putInt("REVERB", position) }
                     }.run()
                 }
             }
@@ -306,28 +330,31 @@ class SettingFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
-        //overridePendingTransition(R.anim.zoom_enter, R.anim.none)
 
-        val settings = requireActivity().getSharedPreferences("SettingFragment", 0)
+        val settings = requireContext().getSharedPreferences("SettingFragment", 0)
 
         val virtualizerProgress = settings.getInt("VIRTUALIZER", 0)
         binding.sbVirtualizer.progress = virtualizerProgress
 
         val bassProgress = settings!!.getInt("BASS", 0)
         binding.sbBass.progress = bassProgress
+
+        // 체인의 생명주기는 Fragment가 아니라 Application/Service 레벨에서 관리해야 함.
+        // 여기서는 UI가 포그라운드로 돌아왔음을 네이티브에 알리는 정도만 수행.
+        AudioProcessorChainController.nativeAudioIOOnForeground()
     }
 
     override fun onPause() {
         super.onPause()
 
-        //overridePendingTransition(R.anim.none, R.anim.zoom_exit)
+        requireContext().getSharedPreferences("SettingFragment", 0).edit {
+            putInt("BASS", binding.sbBass.progress)
+            putInt("VIRTUALIZER", binding.sbVirtualizer.progress)
+        }
 
-        val settings = requireActivity().getSharedPreferences("SettingFragment", 0).edit()
-
-        settings.putInt("BASS", binding.sbBass.progress)
-        settings.putInt("VIRTUALIZER", binding.sbVirtualizer.progress)
-
-        settings.apply()
+        // 백그라운드로 내려갔음을 알리되, 체인 destroy/stop은 여기서 하지 않음.
+        // (서비스에서 백그라운드 재생 중일 수 있음)
+        AudioProcessorChainController.nativeAudioIOOnBackground()
     }
 
     override fun onDestroyView() {
@@ -342,6 +369,6 @@ class SettingFragment : Fragment() {
         var reverb: PresetReverb? = null
         var bassBoost: BassBoost? = null
         var virtualizer: Virtualizer? = null
-        var mainColor = Color.parseColor("#00ffee")
+        var mainColor = "#00ffee".toColorInt()
     }
 }
