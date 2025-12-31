@@ -10,7 +10,7 @@ static std::mutex chainMutex;
 static std::once_flag superpoweredInitFlag;
 
 extern "C" JNIEXPORT void JNICALL
-Java_com_hero_ziggymusic_audio_AudioProcessorChainController_createChain(JNIEnv *env, jobject /*cls*/, jint sampleRate) {
+Java_com_hero_ziggymusic_audio_AudioProcessorChainController_createChain(JNIEnv *env, jobject jobj, jint sampleRate) {
     std::call_once(superpoweredInitFlag, [](){
         Superpowered::Initialize("ExampleLicenseKey-WillExpire-OnNextUpdate");
     });
@@ -20,20 +20,20 @@ Java_com_hero_ziggymusic_audio_AudioProcessorChainController_createChain(JNIEnv 
 }
 
 extern "C" JNIEXPORT void JNICALL
-Java_com_hero_ziggymusic_audio_AudioProcessorChainController_destroyChain(JNIEnv *env, jobject /*cls*/) {
+Java_com_hero_ziggymusic_audio_AudioProcessorChainController_destroyChain(JNIEnv *env, jobject jobj) {
     std::lock_guard<std::mutex> lock(chainMutex);
     chain.reset(); // shared_ptr 참조 해제: 더 이상 참조가 없으면 자동 삭제되어 안전함
 }
 
 extern "C" JNIEXPORT void JNICALL
-Java_com_hero_ziggymusic_audio_AudioProcessorChainController_setEQBand(JNIEnv *env, jobject /*cls*/, jint bandIndex, jfloat gainDb) {
+Java_com_hero_ziggymusic_audio_AudioProcessorChainController_setEQBand(JNIEnv *env, jobject jobj, jint bandIndex, jfloat gainDb) {
     std::lock_guard<std::mutex> lock(chainMutex);
     if (chain) chain->setEQBand((int)bandIndex, (float)gainDb);
 }
 
 extern "C" JNIEXPORT void JNICALL
 Java_com_hero_ziggymusic_audio_AudioProcessorChainController_setCompressor(
-        JNIEnv *env, jobject /*cls*/,
+        JNIEnv *env, jobject jobj,
         jfloat thresholdDb, jfloat ratio, jfloat attackMs, jfloat releaseMs, jfloat makeupDb) {
     std::lock_guard<std::mutex> lock(chainMutex);
     if (chain) chain->setCompressor((float)thresholdDb, (float)ratio, (float)attackMs, (float)releaseMs, (float)makeupDb);
@@ -41,7 +41,7 @@ Java_com_hero_ziggymusic_audio_AudioProcessorChainController_setCompressor(
 
 extern "C" JNIEXPORT void JNICALL
 Java_com_hero_ziggymusic_audio_AudioProcessorChainController_setReverb(
-        JNIEnv *env, jobject /*cls*/,
+        JNIEnv *env, jobject jobj,
         jboolean enabled, jfloat wet) {
     std::lock_guard<std::mutex> lock(chainMutex);
     if (chain) chain->setReverb((bool)enabled, (float)wet);
@@ -49,7 +49,7 @@ Java_com_hero_ziggymusic_audio_AudioProcessorChainController_setReverb(
 
 extern "C" JNIEXPORT void JNICALL
 Java_com_hero_ziggymusic_audio_AudioProcessorChainController_processBuffer(
-        JNIEnv *env, jobject /*cls*/,
+        JNIEnv *env, jobject jobj,
         jlong bufferPtr,
         jint frames, jint sampleRate) {
     if (bufferPtr == 0) return;
