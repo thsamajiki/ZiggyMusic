@@ -29,6 +29,23 @@ set(APP_SOURCES
 
 add_library(ziggymusic_audio_dsp SHARED ${APP_SOURCES})
 
+# --- Superpowered license key (injected via Gradle) ---
+if(NOT DEFINED SUPERPOWERED_LICENSE_KEY OR SUPERPOWERED_LICENSE_KEY STREQUAL "")
+    message(FATAL_ERROR "SUPERPOWERED_LICENSE_KEY is not set. See README for setup.")
+endif()
+
+# Generate header at build time (do NOT commit any generated output)
+set(GENERATED_DIR "${CMAKE_BINARY_DIR}/generated")
+file(MAKE_DIRECTORY "${GENERATED_DIR}")
+
+configure_file(
+        ${CMAKE_CURRENT_LIST_DIR}/SuperpoweredConfig.h
+        ${GENERATED_DIR}/SuperpoweredConfig.h
+        @ONLY
+)
+
+target_include_directories(ziggymusic_audio_dsp PRIVATE ${GENERATED_DIR})
+
 # 2) include 경로 (Superpowered 헤더 사용이 필수)
 target_include_directories(ziggymusic_audio_dsp PRIVATE
         "${CMAKE_CURRENT_SOURCE_DIR}"

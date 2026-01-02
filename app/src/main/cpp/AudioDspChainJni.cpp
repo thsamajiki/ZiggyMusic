@@ -4,6 +4,7 @@
 #include <atomic>
 #include "Superpowered.h"
 #include "AudioDspChain.h"
+#include "SuperpoweredConfig.h"
 
 static std::shared_ptr<AudioDspChain> chain;
 static std::mutex chainMutex;
@@ -12,7 +13,7 @@ static std::once_flag superpoweredInitFlag;
 extern "C" JNIEXPORT void JNICALL
 Java_com_hero_ziggymusic_audio_AudioProcessorChainController_createChain(JNIEnv *env, jobject jobj, jint sampleRate) {
     std::call_once(superpoweredInitFlag, [](){
-        Superpowered::Initialize("ExampleLicenseKey-WillExpire-OnNextUpdate");
+        Superpowered::Initialize(SUPERPOWERED_LICENSE_KEY);
     });
 
     std::lock_guard<std::mutex> lock(chainMutex);

@@ -1,4 +1,5 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import java.util.Properties
 
 plugins {
     alias(libs.plugins.android.application)
@@ -31,6 +32,28 @@ android {
                     ?: (project.findProperty("PATH_TO_SUPERPOWERED") as String?)
                     ?: file("src/main/jniLibs").absolutePath
                 arguments += "-DPATH_TO_SUPERPOWERED=$pathToSuperpowered"
+
+                val spKey = System.getenv("SUPERPOWERED_LICENSE_KEY")
+                    ?: (project.findProperty("SUPERPOWERED_LICENSE_KEY") as String?)
+                    ?: run {
+                        // 프로젝트 루트의 local.secrets.properties를 선택적으로 읽는 방식 (C안)
+                        val f = rootProject.file("local.secrets.properties")
+                        if (f.exists()) {
+                            val p = Properties()
+                            f.inputStream().use { p.load(it) }
+                            p.getProperty("SUPERPOWERED_LICENSE_KEY")
+                        } else null
+                    }
+
+                // release에서 키 없으면 실패시키는 게 현업적으로 안전
+                if (spKey.isNullOrBlank()) {
+                    throw GradleException(
+                        "SUPERPOWERED_LICENSE_KEY is missing. " +
+                                "Set env var / ~/.gradle/gradle.properties / local.secrets.properties"
+                    )
+                }
+
+                arguments += "-DSUPERPOWERED_LICENSE_KEY=$spKey"
             }
         }
     }
