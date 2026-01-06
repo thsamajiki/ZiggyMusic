@@ -265,8 +265,6 @@ class MainActivity : AppCompatActivity(),
         // statusBar 컬러를 toolBar 컬러와 동일하게 맞추기 위함
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) { // Android 11+
             window.decorView.setOnApplyWindowInsetsListener { view, insets ->
-                val statusBarInsets = insets.getInsets(WindowInsets.Type.statusBars())
-//                view.setBackgroundColor(ContextCompat.getColor(this, R.color.dark_black))
 
                 insets
             }
