@@ -83,7 +83,7 @@ class PlayerFragment : Fragment() {
 
     private lateinit var playerMotionManager: PlayerMotionManager
     private lateinit var playerBottomSheetManager: PlayerBottomSheetManager
-    private lateinit var albumGradientManager: MusicAlbumArtGradientManager
+    private var albumGradientManager: MusicAlbumArtGradientManager? = null
     private var latestAlbumBitmap: Bitmap? = null
 
     private lateinit var audioManager: AudioManager
@@ -190,13 +190,16 @@ class PlayerFragment : Fragment() {
                         startSeekUpdates()
 
                         latestAlbumBitmap?.let { bmp ->
-                            albumGradientManager.applyGradients(bmp, binding.albumBackground)
+                            albumGradientManager?.applyGradients(bmp, binding.albumBackground)
                         }
                     } else {
                         // 플레이어가 닫히면(Collapsed) 투명해진 배경을 다시 원래 검은색으로 복구
                         binding.constraintLayout.setBackgroundResource(R.color.dark_black)
-                        // 부모 컨테이너의 그라데이션 제거
-                        requireActivity().findViewById<View>(R.id.containerPlayer)?.background = null
+                        // 캐시된 앨범 비트맵이 없을 때만 부모 컨테이너의 그라데이션 제거
+                        // (비트맵이 있으면 나중에 다시 expanded 될 때 그라데이션을 재적용하기 위해 보관)
+                        if (latestAlbumBitmap == null) {
+                            requireActivity().findViewById<View>(R.id.containerPlayer)?.background = null
+                        }
 
                         stopSeekUpdates()
                     }
@@ -503,7 +506,7 @@ class PlayerFragment : Fragment() {
 
                     // expanded일 때만 적용
                     if (vm.state.value == PlayerMotionManager.State.EXPANDED) {
-                        albumGradientManager.applyGradients(resource, binding.albumBackground)
+                        albumGradientManager?.applyGradients(resource, binding.albumBackground)
                     }
                     return false
                 }
@@ -791,6 +794,23 @@ class PlayerFragment : Fragment() {
         _binding?.vPlayer?.player = null
         stopSeekUpdates()
         binding.root.removeCallbacks(updateBluetoothRunnable)
+
+        // 앨범 비트맵 해제하여 메모리 누수 방지
+        try {
+            latestAlbumBitmap?.let { bitmap ->
+                if (!bitmap.isRecycled) {
+                    bitmap.recycle()
+                }
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to recycle latestAlbumBitmap", e)
+        } finally {
+            latestAlbumBitmap = null
+        }
+
+        // 앨범 그라데이션 매니저 해제
+        albumGradientManager = null
+
         _binding = null
         super.onDestroyView()
     }
