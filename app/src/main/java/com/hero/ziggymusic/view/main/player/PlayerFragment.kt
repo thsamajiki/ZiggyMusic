@@ -62,6 +62,10 @@ import javax.inject.Inject
 import kotlin.math.max
 import kotlin.random.Random
 import androidx.core.graphics.createBitmap
+import com.bumptech.glide.load.DataSource
+import com.bumptech.glide.load.engine.GlideException
+import com.bumptech.glide.request.RequestListener
+import com.hero.ziggymusic.view.main.MainActivity
 
 @AndroidEntryPoint
 class PlayerFragment : Fragment() {
@@ -79,6 +83,8 @@ class PlayerFragment : Fragment() {
 
     private lateinit var playerMotionManager: PlayerMotionManager
     private lateinit var playerBottomSheetManager: PlayerBottomSheetManager
+    private lateinit var albumGradientManager: MusicAlbumArtGradientManager
+    private var latestAlbumBitmap: Bitmap? = null
 
     private lateinit var audioManager: AudioManager
     private var currentVolume: Int = 0  // 현재 볼륨
@@ -180,8 +186,18 @@ class PlayerFragment : Fragment() {
                     playerMotionManager.changeState(state)
 
                     if (state == PlayerMotionManager.State.EXPANDED) {
+                        (activity as? MainActivity)?.setPlayerExpanded(true)
                         startSeekUpdates()
+
+                        latestAlbumBitmap?.let { bmp ->
+                            albumGradientManager.applyGradients(bmp, binding.albumBackground)
+                        }
                     } else {
+                        // 플레이어가 닫히면(Collapsed) 투명해진 배경을 다시 원래 검은색으로 복구
+                        binding.constraintLayout.setBackgroundResource(R.color.dark_black)
+                        // 부모 컨테이너의 그라데이션 제거
+                        requireActivity().findViewById<View>(R.id.containerPlayer)?.background = null
+
                         stopSeekUpdates()
                     }
                 }
@@ -320,6 +336,8 @@ class PlayerFragment : Fragment() {
     private fun initPlayView() {
         binding.vPlayer.player = player
 
+        albumGradientManager = MusicAlbumArtGradientManager(requireActivity())
+
         syncPlayerUi()
         startSeekUpdates() // 포그라운드 진입 직후 진행바 시작
 
@@ -450,11 +468,46 @@ class PlayerFragment : Fragment() {
         binding.tvSongArtist.text = musicModel.artist
 
         Glide.with(binding.ivAlbumArt.context)
+            .asBitmap()
             .load(musicModel.getAlbumUri())
             .override(binding.ivAlbumArt.layoutParams.width, binding.ivAlbumArt.layoutParams.height)
             .error(R.drawable.ic_no_album_image)
             .fallback(R.drawable.ic_no_album_image)
             .transform(RoundedCorners(12))
+            .listener(object : RequestListener<Bitmap> {
+                override fun onLoadFailed(
+                    e: GlideException?,
+                    model: Any?,
+                    target: com.bumptech.glide.request.target.Target<Bitmap>,
+                    isFirstResource: Boolean
+                ): Boolean {
+                    // 실패 시 플레이스홀더 설정 및 그라데이션 제거(또는 기본 처리)
+                    latestAlbumBitmap = null
+                    binding.albumBackground.background = null
+
+                    // 부모 컨테이너(상태바 포함 영역)의 배경을 dark_black으로 강제 설정
+                    requireActivity().findViewById<View>(R.id.containerPlayer)
+                        ?.setBackgroundResource(R.color.dark_black)
+
+                    return false
+                }
+
+                override fun onResourceReady(
+                    resource: Bitmap,
+                    model: Any,
+                    target: com.bumptech.glide.request.target.Target<Bitmap>,
+                    dataSource: DataSource,
+                    isFirstResource: Boolean
+                ): Boolean {
+                    latestAlbumBitmap = resource
+
+                    // expanded일 때만 적용
+                    if (vm.state.value == PlayerMotionManager.State.EXPANDED) {
+                        albumGradientManager.applyGradients(resource, binding.albumBackground)
+                    }
+                    return false
+                }
+            })
             .into(binding.ivAlbumArt)
 
         binding.tvSongAlbum.text = musicModel.album
