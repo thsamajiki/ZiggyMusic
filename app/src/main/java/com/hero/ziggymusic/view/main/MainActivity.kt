@@ -4,6 +4,7 @@ import android.Manifest
 import android.app.AlertDialog
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
@@ -40,6 +41,7 @@ import javax.inject.Inject
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import com.hero.ziggymusic.view.main.model.MainTitle
 import com.hero.ziggymusic.view.main.musiclist.MusicListFragment
 import com.hero.ziggymusic.view.main.myplaylist.MyPlaylistFragment
@@ -74,6 +76,29 @@ class MainActivity : AppCompatActivity(),
         requestPermissions()
 
         EventBus.getInstance().register(this)
+    }
+
+    fun setPlayerExpanded(expanded: Boolean) {
+        // 1. Edge-to-Edge 설정: 앱의 콘텐츠가 상태바 뒤까지 그려지도록 합니다.
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+
+        // 2. 상태바 아이콘 색상 설정 (Light/Dark 모드)
+        WindowInsetsControllerCompat(window, window.decorView).apply {
+            isAppearanceLightStatusBars = false // 상태바 아이콘을 흰색으로 유지
+        }
+
+        // 3. 배경색 및 Insets 처리
+        val rootView = window.decorView.rootView
+        if (expanded) {
+            // 플레이어 확장 시: 배경을 투명하게 (사실상 뒤의 콘텐츠가 보임)
+            rootView.setBackgroundColor(Color.TRANSPARENT)
+        } else {
+            // 플레이어 축소 시: 원하는 테마 색상 적용
+            rootView.setBackgroundColor(getColor(R.color.dark_black))
+        }
+
+        // 4. Insets 적용 요청
+        ViewCompat.requestApplyInsets(window.decorView)
     }
 
     private fun initPlayerController() {
@@ -241,7 +266,7 @@ class MainActivity : AppCompatActivity(),
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) { // Android 11+
             window.decorView.setOnApplyWindowInsetsListener { view, insets ->
                 val statusBarInsets = insets.getInsets(WindowInsets.Type.statusBars())
-                view.setBackgroundColor(ContextCompat.getColor(this, R.color.dark_black))
+//                view.setBackgroundColor(ContextCompat.getColor(this, R.color.dark_black))
 
                 insets
             }
@@ -397,18 +422,16 @@ class MainActivity : AppCompatActivity(),
 
     private fun setPlayerExpandedMode(isExpanded: Boolean) {
         if (isExpanded) {
+            window.decorView.setBackgroundColor(Color.TRANSPARENT)
             ViewCompat.setOnApplyWindowInsetsListener(binding.containerPlayer) { view, insets ->
                 val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-                view.setPadding(
-                    0,
-                    systemBars.top,  // 상단 상태바
-                    0,
-                    systemBars.bottom  // 하단 시스템 바 (네비게이션 바 포함)
-                )
+                view.setPadding(0, systemBars.top, 0, systemBars.bottom)
+
                 insets
             }
             ViewCompat.requestApplyInsets(binding.containerPlayer)
         } else {
+            window.decorView.setBackgroundColor(ContextCompat.getColor(this, R.color.dark_black))
             ViewCompat.setOnApplyWindowInsetsListener(binding.containerPlayer, null)
             binding.containerPlayer.setPadding(0, 0, 0, 0)
         }
