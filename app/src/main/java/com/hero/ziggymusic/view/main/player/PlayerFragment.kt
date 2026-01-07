@@ -189,6 +189,9 @@ class PlayerFragment : Fragment() {
                         (activity as? MainActivity)?.setPlayerExpanded(true)
                         startSeekUpdates()
 
+                        // MotionLayout 배경 제거 -> containerPlayer 배경(그라데이션)이 보이도록 함
+                        binding.constraintLayout.background = null
+
                         latestAlbumBitmap?.let { bmp ->
                             albumGradientManager?.applyGradients(bmp, binding.albumBackground)
                         }
