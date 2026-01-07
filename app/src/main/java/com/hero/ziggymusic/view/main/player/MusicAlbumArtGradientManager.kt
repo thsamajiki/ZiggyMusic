@@ -58,12 +58,15 @@ class MusicAlbumArtGradientManager(private val context: Context) {
 
             albumBackground.post {
                 albumBackground.background = null
-                (albumBackground.parent as? View)?.background = null
-
                 if (context is Activity) {
                     val containerPlayer = context.findViewById<View>(R.id.containerPlayer)
-                    // 부모 컨테이너에 그라데이션 적용 (상태바 영역까지 한 번에 커버됨)
+                    // 부모 컨테이너에 그라디언트 적용 (상태바 영역까지 덮으려면 window 배경도 설정)
                     containerPlayer?.background = layer
+                    try {
+                        context.window.setBackgroundDrawable(layer)
+                    } catch (e: Exception) {
+                        Log.w("MusicAlbumArtGradient", "Failed to set window background: ${e.message}")
+                    }
                 } else {
                     // non-Activity context인 경우 폴백 적용
                     albumBackground.background = layer
