@@ -18,19 +18,7 @@
             android:visibility="gone" />
 
         <Constraint
-            android:id="@+id/vSupporterAlbumBackground"
-            android:visibility="gone" />
-
-        <Constraint
-            android:id="@+id/vSupporterAlbumArt"
-            android:visibility="gone" />
-
-        <Constraint
-            android:id="@+id/vAlbumBackground1"
-            android:visibility="gone" />
-
-        <Constraint
-            android:id="@+id/vAlbumBackground2"
+            android:id="@+id/albumBackground"
             android:visibility="gone" />
 
         <Constraint
@@ -143,58 +131,23 @@
 
     <ConstraintSet android:id="@+id/expanded">
         <Constraint
+            android:id="@+id/albumBackground"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:background="@color/black"
+            android:clickable="false"
+            android:focusable="false"
+            motion:layout_constraintTop_toTopOf="parent"
+            motion:layout_constraintBottom_toTopOf="@id/vPlayer"
+            motion:layout_constraintStart_toStartOf="parent"
+            motion:layout_constraintEnd_toEndOf="parent" />
+
+        <Constraint
             android:id="@+id/toolbarNowPlayingTitle"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
             motion:contentInsetStart="0dp"
             motion:layout_constraintTop_toTopOf="parent" />
-
-        <Constraint
-            android:id="@+id/vSupporterAlbumBackground"
-            android:layout_width="@dimen/view_supporter"
-            android:layout_height="@dimen/view_supporter"
-            android:layout_marginTop="@dimen/space_xxxl"
-            motion:layout_constraintEnd_toEndOf="@id/vPlayer"
-            motion:layout_constraintStart_toStartOf="@id/vPlayer"
-            motion:layout_constraintTop_toTopOf="@id/vPlayer" />
-
-        <Constraint
-            android:id="@+id/vSupporterAlbumArt"
-            android:layout_width="@dimen/view_supporter"
-            android:layout_height="@dimen/view_supporter"
-            motion:layout_constraintBottom_toTopOf="@id/vPlayer"
-            motion:layout_constraintEnd_toEndOf="parent"
-            motion:layout_constraintStart_toStartOf="parent"
-            motion:layout_constraintTop_toTopOf="parent" />
-
-        <Constraint
-            android:id="@+id/vAlbumBackground1"
-            android:layout_width="0dp"
-            android:layout_height="0dp"
-            android:background="@color/background2"
-            motion:layout_constraintBottom_toTopOf="@id/vSupporterAlbumArt"
-            motion:layout_constraintEnd_toStartOf="@id/vSupporterAlbumArt"
-            motion:layout_constraintStart_toStartOf="parent"
-            motion:layout_constraintTop_toBottomOf="@id/toolbarNowPlayingTitle" />
-
-        <Constraint
-            android:id="@+id/vAlbumBackground2"
-            android:layout_width="0dp"
-            android:layout_height="0dp"
-            android:background="@color/background2"
-            motion:layout_constraintBottom_toTopOf="@id/vPlayer"
-            motion:layout_constraintEnd_toEndOf="parent"
-            motion:layout_constraintStart_toEndOf="@id/vAlbumBackground1"
-            motion:layout_constraintTop_toBottomOf="@id/vAlbumBackground1" />
-
-        <Constraint
-            android:id="@+id/ivAlbumArt"
-            android:layout_width="@dimen/album_art_size_expanded"
-            android:layout_height="@dimen/album_art_size_expanded"
-            motion:layout_constraintBottom_toBottomOf="@id/vSupporterAlbumArt"
-            motion:layout_constraintEnd_toEndOf="parent"
-            motion:layout_constraintStart_toStartOf="parent"
-            motion:layout_constraintTop_toTopOf="@id/vSupporterAlbumArt" />
 
         <Constraint
             android:id="@+id/tvSongTitle"
@@ -217,6 +170,15 @@
                 motion:customFloatValue="20" />
 
         </Constraint>
+
+        <Constraint
+            android:id="@+id/ivAlbumArt"
+            android:layout_width="@dimen/album_art_size_expanded"
+            android:layout_height="@dimen/album_art_size_expanded"
+            android:layout_marginTop="@dimen/space_xl"
+            motion:layout_constraintEnd_toEndOf="parent"
+            motion:layout_constraintStart_toStartOf="parent"
+            motion:layout_constraintTop_toBottomOf="@id/tvSongTitle" />
 
         <Constraint
             android:id="@+id/tvSongArtist"
