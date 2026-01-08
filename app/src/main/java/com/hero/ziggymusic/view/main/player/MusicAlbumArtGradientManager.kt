@@ -63,7 +63,9 @@ class MusicAlbumArtGradientManager(private val context: Context) {
                     // 부모 컨테이너에 그라데이션 적용 (상태바 영역까지 덮으려면 window 배경도 설정)
                     containerPlayer?.background = layer
                     try {
-                        context.window.setBackgroundDrawable(layer)
+                        // stateful drawable로 인한 렌더링/공유 문제를 대부분 해결
+                        val windowBackground = layer.constantState?.newDrawable(context.resources)?.mutate() ?: layer
+                        context.window.setBackgroundDrawable(windowBackground)
                     } catch (e: Exception) {
                         Log.w("MusicAlbumArtGradient", "Failed to set window background: ${e.message}")
                     }
