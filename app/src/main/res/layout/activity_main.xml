@@ -80,7 +80,6 @@
         android:layout_width="match_parent"
         android:layout_height="@dimen/bottom_nav_height"
         android:layout_gravity="bottom"
-        android:elevation="5dp"
         app:backgroundTint="@color/dark_black"
         app:itemIconTint="@color/normal_gray"
         app:itemTextColor="@color/normal_gray"
