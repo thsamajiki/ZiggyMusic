@@ -409,7 +409,7 @@ class MainActivity : AppCompatActivity(),
 
     fun setPlayerExpandedMode(isExpanded: Boolean) {
         // 1. Edge-to-Edge 설정
-        WindowCompat.setDecorFitsSystemWindows(window, false)
+        WindowCompat.setDecorFitsSystemWindows(window, !isExpanded)
 
         // 2. 상태바 아이콘 색상 설정
         WindowInsetsControllerCompat(window, window.decorView).apply {
@@ -417,11 +417,10 @@ class MainActivity : AppCompatActivity(),
         }
 
         // 3. 배경색 및 Insets 처리
-        if (isExpanded) {
-            // 앨범 아트가 없을 때는 이 색상이 시스템 바 영역에 보이게,
-            // 앨범 아트가 있을 때는 MusicAlbumArtGradientManager가 이 위에 그라데이션을 덮어씀.
-            window.decorView.setBackgroundColor(ContextCompat.getColor(this, R.color.dark_black))
+        window.decorView.setBackgroundColor(ContextCompat.getColor(this, R.color.dark_black))
+        binding.containerPlayer.setBackgroundColor(ContextCompat.getColor(this, R.color.dark_black))
 
+        if (isExpanded) {
             ViewCompat.setOnApplyWindowInsetsListener(binding.containerPlayer) { view, insets ->
                 val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
                 view.setPadding(0, systemBars.top, 0, systemBars.bottom)
@@ -429,12 +428,6 @@ class MainActivity : AppCompatActivity(),
             }
             ViewCompat.requestApplyInsets(binding.containerPlayer)
         } else {
-            // Collapsed 상태: 기본 배경색 유지 및 Insets 해제
-            window.decorView.setBackgroundColor(ContextCompat.getColor(this, R.color.dark_black))
-
-            // FitsSystemWindows를 true로 돌려 Toolbar 침범 방지
-            WindowCompat.setDecorFitsSystemWindows(window, true)
-
             ViewCompat.setOnApplyWindowInsetsListener(binding.containerPlayer, null)
             binding.containerPlayer.setPadding(0, 0, 0, 0)
         }
