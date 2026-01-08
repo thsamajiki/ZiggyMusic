@@ -198,7 +198,8 @@ class PlayerFragment : Fragment() {
                             // 앨범 아트가 없을 때 (리스트에서 클릭하여 진입한 경우 등)
                             // 그라데이션 대신 확실하게 dark_black 배경을 적용하고, 기존 그라데이션 제거
                             requireActivity().window.decorView.setBackgroundColor(ContextCompat.getColor(requireActivity(), R.color.dark_black))
-                            requireActivity().findViewById<View>(R.id.containerPlayer)?.background = null
+                            requireActivity().findViewById<View>(R.id.containerPlayer)
+                                ?.setBackgroundColor(ContextCompat.getColor(requireActivity(), R.color.dark_black))
                         }
                     } else {
                         // 플레이어가 닫히면(Collapsed) 투명해진 배경을 다시 원래 검은색으로 복구
@@ -503,8 +504,8 @@ class PlayerFragment : Fragment() {
                     // 이전 곡이 그라데이션이었다면 여기서 리셋해줘야 StatusBar 뒤쪽도 검은색이 됨.
                     if (vm.motionState.value == PlayerMotionManager.State.EXPANDED) {
                         requireActivity().window.decorView.setBackgroundColor(ContextCompat.getColor(requireActivity(), R.color.dark_black))
-                        // GradientManager가 설정했을 수 있는 containerPlayer 배경 제거
-                        requireActivity().findViewById<View>(R.id.containerPlayer)?.background = null
+                        requireActivity().findViewById<View>(R.id.containerPlayer)
+                            ?.setBackgroundColor(ContextCompat.getColor(requireActivity(), R.color.dark_black))
                     }
 
                     return false
@@ -779,14 +780,6 @@ class PlayerFragment : Fragment() {
         return false
     }
 
-    override fun onStop() {
-        super.onStop()
-
-        stopSeekUpdates()
-        binding.root.removeCallbacks(updateBluetoothRunnable)
-        stopVolumeObserver()    // 하드웨어 볼륨 변경 감지 중지
-    }
-
     override fun onResume() {
         super.onResume()
         // 화면이 다시 보일 때 블루투스 상태 업데이트
@@ -798,6 +791,14 @@ class PlayerFragment : Fragment() {
         // 포그라운드 복귀 시 반드시 루프 재시작
         startSeekUpdates()
         startVolumeObserver()   // 하드웨어 볼륨 변경 감지 시작
+    }
+
+    override fun onStop() {
+        super.onStop()
+
+        stopSeekUpdates()
+        binding.root.removeCallbacks(updateBluetoothRunnable)
+        stopVolumeObserver()    // 하드웨어 볼륨 변경 감지 중지
     }
 
     override fun onDestroyView() {
