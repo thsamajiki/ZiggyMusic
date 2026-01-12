@@ -3,12 +3,12 @@ package com.hero.ziggymusic.audio
 /**
  * JNI 브릿지 전용 컨트롤러.
  *
- * - 여기에는 "선언(external)"만 둡니다.
- * - 구현은 app/src/main/cpp/AudioDspChainJni.cpp 에서 JNIEXPORT로 제공합니다.
+ * - 여기에는 "선언(external)"만 둠.
+ * - 구현은 app/src/main/cpp/AudioDspChainJni.cpp 에서 JNIEXPORT로 제공.
  *
  * 주의:
- * - 함수명/시그니처가 JNI와 1:1로 매칭되어야 합니다.
- * - 라이브러리 이름("ziggymusic_audio_dsp")은 CMake의 add_library 이름과 일치해야 합니다.
+ * - 함수명/시그니처가 JNI와 1:1로 매칭되어야 함.
+ * - 라이브러리 이름("ziggymusic_audio_dsp")은 CMake의 add_library 이름과 일치해야 함.
  */
 object AudioProcessorChainController {
 
