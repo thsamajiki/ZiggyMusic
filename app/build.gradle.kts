@@ -27,7 +27,10 @@ android {
         @Suppress("UnstableApiUsage")
         externalNativeBuild {
             cmake {
+                arguments += "-DANDROID_STL=c++_shared"
+
                 cppFlags += listOf("-std=c++17", "-O3")
+
                 val pathToSuperpowered = System.getenv("PATH_TO_SUPERPOWERED")
                     ?: (project.findProperty("PATH_TO_SUPERPOWERED") as String?)
                     ?: file("src/main/jniLibs").absolutePath
@@ -79,6 +82,7 @@ android {
     buildFeatures {
         viewBinding = true
         dataBinding = true
+        prefab = true
     }
     externalNativeBuild {
         cmake {
@@ -136,6 +140,8 @@ dependencies {
     implementation(libs.bundles.media3)
 
     implementation(libs.lottie)
+
+    implementation(libs.oboe)
 }
 
 kapt {

@@ -155,7 +155,114 @@
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@id/tvVirtualizer" />
 
+                <TextView
+                    android:id="@+id/tvLoudnessEnhancer"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/space_xxxl"
+                    android:layout_marginTop="@dimen/space_xl"
+                    android:text="@string/loudness_enhancer"
+                    android:textSize="@dimen/small_text_size"
+                    android:textColor="@color/white"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/sbVirtualizer" />
+
+                <SeekBar
+                    android:id="@+id/sbLoudnessEnhancer"
+                    android:layout_width="match_parent"
+                    android:layout_height="40dp"
+                    android:layout_gravity="center_vertical"
+                    android:layout_marginVertical="@dimen/space_md"
+                    android:max="100"
+                    android:maxHeight="1dp"
+                    android:paddingStart="@dimen/seekbar_padding"
+                    android:paddingEnd="@dimen/seekbar_padding"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/tvLoudnessEnhancer" />
+
+                <TextView
+                    android:id="@+id/tvSpatialAudio"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/space_xxxl"
+                    android:layout_marginTop="@dimen/space_xxl"
+                    android:text="Spatial Audio (XR)"
+                    android:textSize="@dimen/small_text_size"
+                    android:textStyle="bold"
+                    android:textColor="@color/white"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/sbLoudnessEnhancer" />
+
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:id="@+id/layoutSpatialAudioEnable"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/space_md"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/tvSpatialAudio">
+
+                    <TextView
+                        android:id="@+id/tvSpatialAudioEnable"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="@dimen/space_xxxl"
+                        android:text="Enable Spatial Audio"
+                        android:textSize="@dimen/small_text_size"
+                        android:textColor="@color/white"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:layout_constraintBottom_toBottomOf="parent"/>
+
+                    <androidx.appcompat.widget.SwitchCompat
+                        android:id="@+id/swSpatialAudio"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="@dimen/space_xl"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:layout_constraintBottom_toBottomOf="parent"/>
+
+                </androidx.constraintlayout.widget.ConstraintLayout>
+
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:id="@+id/layoutHeadTracking"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/space_sm"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/layoutSpatialAudioEnable">
+
+                    <TextView
+                        android:id="@+id/tvHeadTracking"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="@dimen/space_xxxl"
+                        android:text="Head Tracking"
+                        android:textSize="@dimen/small_text_size"
+                        android:textColor="@color/white"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:layout_constraintBottom_toBottomOf="parent"/>
+
+                    <androidx.appcompat.widget.SwitchCompat
+                        android:id="@+id/swHeadTracking"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="@dimen/space_xl"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:layout_constraintBottom_toBottomOf="parent"/>
+
+                </androidx.constraintlayout.widget.ConstraintLayout>
+
             </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <View
+                android:layout_width="0dp"
+                android:layout_height="70dp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent" />
 
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>

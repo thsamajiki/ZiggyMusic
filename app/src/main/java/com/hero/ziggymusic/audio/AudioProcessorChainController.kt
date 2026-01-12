@@ -1,114 +1,59 @@
 package com.hero.ziggymusic.audio
 
-import android.util.Log
-import java.nio.ByteBuffer
-import java.nio.ByteOrder
-
+/**
+ * JNI 브릿지 전용 컨트롤러.
+ *
+ * - 여기에는 "선언(external)"만 둠.
+ * - 구현은 app/src/main/cpp/AudioDspChainJni.cpp 에서 JNIEXPORT로 제공.
+ *
+ * 주의:
+ * - 함수명/시그니처가 JNI와 1:1로 매칭되어야 함.
+ * - 라이브러리 이름("ziggymusic_audio_dsp")은 CMake의 add_library 이름과 일치해야 함.
+ */
 object AudioProcessorChainController {
-    private const val TAG = "AudioProcessorChainController"
 
-    init { System.loadLibrary("ziggymusic_audio_dsp") } // CMake에서 만든 라이브러리 이름과 일치시킬 것
+    init {
+        System.loadLibrary("ziggymusic_audio_dsp")
+    }
 
     external fun createChain(sampleRate: Int)
     external fun destroyChain()
+
     external fun setEQBand(bandIndex: Int, gainDb: Float)
-    external fun setCompressor(thresholdDb: Float, ratio: Float, attackMs: Float, releaseMs: Float, makeupDb: Float)
+    external fun setCompressor(
+        thresholdDb: Float,
+        ratio: Float,
+        attackMs: Float,
+        releaseMs: Float,
+        makeupDb: Float
+    )
+
     external fun setReverb(enabled: Boolean, wet: Float)
+
+    // In-app spatial (Superpowered DSP 내부 처리)
+    external fun setSpatialEnabled(enabled: Boolean)
+    external fun setSpatialPosition(azimuthDeg: Float, elevationDeg: Float, distanceMeters: Float)
+
+    // Head tracking (Yaw in degrees)
+    external fun setHeadTrackingEnabled(enabled: Boolean)
+    external fun setHeadTrackingYaw(yawDeg: Float)
+
+    /**
+     * Media3 AudioProcessorAdapter 에서 DIRECT ByteBuffer의 주소(ptr)를 얻어 전달합니다.
+     * bufferPtr은 float interleaved stereo(LRLR...)를 가리키는 포인터여야 합니다.
+     */
     external fun processBuffer(bufferPtr: Long, frames: Int, sampleRate: Int)
 
-    // Public API requested by SettingFragment — direct JNI calls only.
-    // Keep the API contract explicit and fail fast if the native symbol is missing.
-    fun nativeStartAudioIO(sampleRate: Int, bufferSize: Int) {
-        try {
-            createChain(sampleRate)
-            Log.d(TAG, "createChain(sampleRate=$sampleRate)")
-        } catch (e: UnsatisfiedLinkError) {
-            Log.e(TAG, "Native symbol missing: createChain()", e)
-            throw e
-        } catch (t: Throwable) {
-            Log.e(TAG, "Failed to start audio IO (= createChain)", t)
-            throw t
-        }
-    }
+    // Oboe Preview I/O (Settings에서 테스트 톤 + DSP 체감용)
+    external fun nativeStartAudioIO(sampleRate: Int, framesPerCallback: Int)
+    external fun nativeStopAudioIO()
+    external fun nativeAudioIOOnForeground()
+    external fun nativeAudioIOOnBackground()
 
-    fun nativeAudioIOOnForeground() {
-        // No native entrypoint defined for foreground transition.
-        Log.d(TAG, "nativeAudioIOOnForeground: no-op")
-    }
+    external fun nativeSetTestToneEnabled(enabled: Boolean)
+    external fun nativeSetTestToneFrequency(hz: Float)
+    external fun nativeSetTestToneLevel(level0to1: Float)
 
-    fun nativeAudioIOOnBackground() {
-        // No native entrypoint defined for background transition.
-        Log.d(TAG, "nativeAudioIOOnBackground: no-op")
-    }
-
-    fun nativeStopAudioIO() {
-        try {
-            destroyChain()
-            Log.d(TAG, "destroyChain()")
-        } catch (e: UnsatisfiedLinkError) {
-            Log.e(TAG, "Native symbol missing: destroyChain()", e)
-            throw e
-        } catch (t: Throwable) {
-            Log.e(TAG, "Failed to stop audio IO (= destroyChain)", t)
-            throw t
-        }
-    }
-
-    // Helper: accept a FloatArray (interleaved stereo) and call native via a direct ByteBuffer.
-    // Minimal, safe, and efficient: allocateDirect once per call and fill then call JNI.
-    fun processFloatArrayInterleaved(array: FloatArray, frames: Int, sampleRate: Int) {
-        val expectedFloats = frames * 2
-        if (array.size < expectedFloats) {
-            Log.w(TAG, "processFloatArrayInterleaved: array too small (need $expectedFloats floats)")
-            return
-        }
-
-        val byteBuffer = ByteBuffer
-            .allocateDirect(expectedFloats * 4)
-            .order(ByteOrder.nativeOrder())
-
-        byteBuffer.asFloatBuffer().put(array, 0, expectedFloats)
-
-        // ByteBuffer를 그대로 넘기지 말고, 주소(Long)로 변환해서 넘김
-        val bufferPtr = toDirectNativePtr(byteBuffer)
-        processBuffer(bufferPtr, frames, sampleRate)
-    }
-
-    // Helper: accept any ByteBuffer; if it's direct + native order and large enough, call native directly,
-    // otherwise create a direct buffer and copy contents (minimal fallback).
-    fun processByteBufferInterleaved(buffer: ByteBuffer, frames: Int, sampleRate: Int) {
-        val expectedBytes = frames * 2 * 4
-        val src = buffer.duplicate()
-        src.rewind()
-
-        val direct: ByteBuffer =
-            if (src.isDirect && src.order() == ByteOrder.nativeOrder() && src.capacity() >= expectedBytes) {
-                src
-            } else {
-                val d = ByteBuffer.allocateDirect(expectedBytes).order(ByteOrder.nativeOrder())
-                // copy up to expectedBytes (if source smaller, fill zeros implicitly)
-                val toCopy = minOf(src.remaining(), expectedBytes)
-                if (toCopy > 0) {
-                    val tmp = ByteArray(toCopy)
-                    src.get(tmp)
-                    d.put(tmp)
-                }
-                d.rewind()
-                d
-            }
-
-        // ByteBuffer -> Long(pointer)
-        val bufferPtr = toDirectNativePtr(direct)
-        processBuffer(bufferPtr, frames, sampleRate)
-    }
-
-    // Helper: ByteBuffer -> Long(bufferPtr) 변환
-    private fun toDirectNativePtr(directBuffer: ByteBuffer): Long {
-        // BufferAddressHelper는 이미 audio-engine을 load 하도록 되어 있으므로 그대로 사용
-        val ptr = BufferAddressHelper.getDirectBufferAddress(directBuffer)
-        if (ptr == 0L) {
-            throw IllegalStateException("Direct buffer address is 0. Buffer must be a DIRECT ByteBuffer.")
-        }
-        return ptr
-    }
+    // Media3 → (float PCM) → Native preview ringbuffer enqueue
+    external fun nativeEnqueuePreviewPcm(bufferPtr: Long, frames: Int, sampleRate: Int)
 }

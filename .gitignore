@@ -232,5 +232,9 @@ fabric.properties
 # Native prebuilt libraries
 app/src/main/jniLibs/
 app/src/main/cpp/android/
+app/src/main/cpp/oboe/
 app/src/main/cpp/OpenSource/
 app/src/main/cpp/SLES/
+
+# Etc
+secrets/
