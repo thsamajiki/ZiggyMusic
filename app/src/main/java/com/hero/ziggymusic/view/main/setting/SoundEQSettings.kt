@@ -14,9 +14,9 @@ object SoundEQSettings {
     private val bandGainsDb = FloatArray(5)
 
     /**
-     * Initializes the Audio Effects settings.
+     * 음향 효과 설정을 초기화함.
      *
-     * @param mediaSession An integer representing the media session.
+     * @param mediaSession media session을 나타내는 정수값.
      */
     fun init(mediaSession: Int) {
         SettingFragment.equalizer = Equalizer(1, mediaSession)
@@ -69,8 +69,8 @@ object SoundEQSettings {
     }
 
     /**
-     * - Fragment는 체인 생성/파괴를 하지 않고, 현재 저장된 설정값을 네이티브에 반영만 합니다.
-     * - EQ band 값은 prefs에 저장된 progress를 dB로 변환해서 반영합니다.
+     * - Fragment는 체인 생성/파괴를 하지 않고, 현재 저장된 설정값을 네이티브에 반영.
+     * - EQ band 값은 prefs에 저장된 progress를 dB로 변환해서 반영.
      */
     fun applySettingsFromPrefs(
         prefs: SharedPreferences,
@@ -97,9 +97,9 @@ object SoundEQSettings {
     }
 
     /**
-     * Sets the main color for SoundEQ UI.
+     * SoundEQ UI의 main color를 설정.
      *
-     * @param color A color string in the format "#RRGGBB" or "#AARRGGBB".
+     * @param color "#RRGGBB" or "#AARRGGBB" 형식의 color string.
      */
     fun setColor(color: String) {
         try {
