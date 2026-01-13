@@ -88,9 +88,13 @@ class MainActivity : AppCompatActivity(),
             supportFragmentManager,
             onStateChanged = { newState ->
                 when (newState) {
-                    BottomSheetBehavior.STATE_EXPANDED -> {
+                    BottomSheetBehavior.STATE_EXPANDED,
+                    BottomSheetBehavior.STATE_DRAGGING,
+                    BottomSheetBehavior.STATE_SETTLING -> {
                         binding.bottomNavMain.isGone = true
-                        playerVm.changeState(PlayerMotionManager.State.EXPANDED)
+                        if (newState == BottomSheetBehavior.STATE_EXPANDED) {
+                            playerVm.changeState(PlayerMotionManager.State.EXPANDED)
+                        }
                     }
 
                     BottomSheetBehavior.STATE_COLLAPSED -> {
