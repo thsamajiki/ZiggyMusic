@@ -80,7 +80,7 @@ class SettingFragment : Fragment() {
         }
     }
 
-    // Spatial Audio & Head Tracking UI Setup
+    // Spatial Audio & Head Tracking UI 설정
     private fun initSpatialAudioUi() {
         Log.d("SettingFragment", "Spatializer status: ${spatializerSupport.describeStatus()}")
         // 1. Spatial Audio & Head Tracking Enable Switch
@@ -149,6 +149,15 @@ class SettingFragment : Fragment() {
     private fun updateHeadTrackingUiState(isSpatialEnabled: Boolean) {
         binding.swHeadTracking.isEnabled = isSpatialEnabled
         binding.tvHeadTracking.alpha = if (isSpatialEnabled) 1.0f else 0.5f
+
+        // Spatial 활성 여부에 따라 보이기/숨기기 처리
+        if (isSpatialEnabled) {
+            binding.tvHeadTracking.visibility = View.VISIBLE
+            binding.swHeadTracking.visibility = View.VISIBLE
+        } else {
+            binding.tvHeadTracking.visibility = View.GONE
+            binding.swHeadTracking.visibility = View.GONE
+        }
     }
 
     private fun initSetting() {
@@ -172,7 +181,7 @@ class SettingFragment : Fragment() {
 
     private fun initPresets(min: Int) {
         if (equalizer == null) {
-            // 실제 오디오 출력 또는 프리뷰 세션 ID가 있으면 전달하세요.
+            // 실제 오디오 출력 또는 프리뷰 세션 ID가 있으면 전달.
             // 기본은 0(전역)으로 유지하되, 외부에서 세션이 확보되면 attachAudioSession을 호출해 재초기화 가능.
             val sessionId = 0
             equalizer = Equalizer(0, sessionId)
@@ -443,11 +452,6 @@ class SettingFragment : Fragment() {
         val bassProgress = settings!!.getInt("BASS", 0)
         binding.sbBass.progress = bassProgress
 
-        // 화면 복귀 시: prefs 기반 상태를 네이티브에 재적용(안전)
-//        runCatching {
-//            SoundEQSettings.applySettingsFromPrefs(prefs)
-//        }
-
         // 화면에 돌아왔을 때 설정에 따라 트래킹 재개
         if (binding.swSpatialAudio.isChecked && binding.swHeadTracking.isChecked) {
             headTracker.start()
@@ -480,7 +484,6 @@ class SettingFragment : Fragment() {
 
         const val KEY_SPATIAL_ENABLED = "SPATIAL_ENABLED"
         const val KEY_HEAD_TRACKING_ENABLED = "HEAD_TRACKING_ENABLED"
-        const val KEY_PRESET = "PRESET"
         const val KEY_BASS = "BASS"
         const val KEY_VIRTUALIZER = "VIRTUALIZER"
 

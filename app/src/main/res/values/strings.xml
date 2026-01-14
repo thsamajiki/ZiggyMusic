@@ -26,4 +26,6 @@
     <string name="reverb">Reverb:</string>
     <string name="bass">Bass:</string>
     <string name="_3d_virtualizer">3D Virtualizer:</string>
+    <string name="spatial_audio">Spatial Audio</string>
+    <string name="head_tracking">Head Tracking</string>
 </resources>
