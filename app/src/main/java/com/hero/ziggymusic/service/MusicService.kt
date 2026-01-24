@@ -377,8 +377,8 @@ class MusicService : MediaLibraryService() {
             for (task in am.appTasks) {
                 task.finishAndRemoveTask()
             }
-        } catch (t: Throwable) {
-            Log.w("MusicService", "finishAndRemoveTask 실패", t)
+        } catch (e: Exception) {
+            Log.e("MusicService", "finishAndRemoveTask 실패", e)
         }
 
         stopSelf()
