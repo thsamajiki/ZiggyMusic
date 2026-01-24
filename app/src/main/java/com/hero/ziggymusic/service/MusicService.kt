@@ -334,7 +334,7 @@ class MusicService : MediaLibraryService() {
     }
 
     override fun onTaskRemoved(rootIntent: Intent?) {
-        // 사용자가 최근 앱 목록에서 앱을 제거(스와이프 종료)해도
+        // 사용자가 최근 앱 목록에서 앱을 제거(백그라운드 종료)해도
         // 음악 재생은 유지되는 것이 일반적인 음악 플레이어의 동작입니다.
         //
         // 또한 여기서 stopSelf()를 호출하면 서비스가 파괴되며(onDestroy),
@@ -348,7 +348,7 @@ class MusicService : MediaLibraryService() {
     }
 
     /**
-     * 사용자 종료(스와이프 종료 / 알림 X) 공통 처리
+     * 사용자 종료(백그라운드 종료 / 알림 X) 공통 처리
      */
     private fun exitPlayer() {
         if (isExiting) return
