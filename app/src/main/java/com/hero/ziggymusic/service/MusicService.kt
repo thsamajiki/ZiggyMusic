@@ -1,14 +1,16 @@
 package com.hero.ziggymusic.service
 
+import android.app.ActivityManager
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
+import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.ImageDecoder
-import android.net.Uri
+import androidx.core.net.toUri
 import android.os.Build
 import android.util.Log
 import android.widget.RemoteViews
@@ -27,7 +29,6 @@ import com.hero.ziggymusic.event.EventBus
 import com.hero.ziggymusic.view.main.MainActivity
 import java.io.IOException
 import javax.inject.Inject
-import kotlin.system.exitProcess
 import com.squareup.otto.Subscribe
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -37,6 +38,23 @@ class MusicService : MediaLibraryService() {
     lateinit var player: ExoPlayer
 
     private val playerModel: PlayerModel = PlayerModel.getInstance()
+
+    @Volatile
+    private var isExiting: Boolean = false
+
+    private val playerListener = object : Player.Listener {
+        override fun onIsPlayingChanged(isPlaying: Boolean) {
+            if (isExiting) return
+            // 재생/일시정지 상태가 바뀔 때마다 Notification 갱신
+            updateNotification()
+        }
+
+        override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
+            if (isExiting) return
+            // 곡이 바뀔 때도 Notification 갱신
+            updateNotification()
+        }
+    }
 
     private lateinit var mediaLibrarySession: MediaLibrarySession
     private lateinit var remoteNotificationLayout: RemoteViews
@@ -54,16 +72,7 @@ class MusicService : MediaLibraryService() {
         }).build()
 
         // ExoPlayer 상태 변화 감지 리스너 등록
-        player.addListener(object : Player.Listener {
-            override fun onIsPlayingChanged(isPlaying: Boolean) {
-                // 재생/일시정지 상태가 바뀔 때마다 Notification 갱신
-                updateNotification()
-            }
-            override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
-                // 곡이 바뀔 때도 Notification 갱신
-                updateNotification()
-            }
-        })
+        player.addListener(playerListener)
     }
 
     override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaLibrarySession? {
@@ -71,6 +80,7 @@ class MusicService : MediaLibraryService() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        super.onStartCommand(intent, flags, startId)
         createNotificationChannel() // 알림 채널 생성
 
         // Notification 에 사용할 RemoteViews 생성
@@ -90,7 +100,7 @@ class MusicService : MediaLibraryService() {
                 .setSmallIcon(R.drawable.ic_music_note)
                 .build()
         }
-        startForeground(1, notification) // Foreground 에서 실행
+        startForeground(NOTIFICATION_ID, notification) // Foreground 에서 실행
 
         when(intent?.action) {
             PLAY -> { // Notification 에서 재생 / 일시 정지 버튼을 누를 시
@@ -114,15 +124,16 @@ class MusicService : MediaLibraryService() {
                 player.seekToNext()
             }
             CLOSE -> { // Notification 에서 닫기 버튼 누를 시
-                stopSelf()
-                exitProcess(0)
+                exitPlayer()
             }
         }
 
-        return super.onStartCommand(intent, flags, startId)
+        return START_NOT_STICKY
     }
 
     private fun updateNotification() {
+        if (isExiting) return
+
         val notification = try {
             createNotification()
         } catch (e: Exception) {
@@ -135,7 +146,7 @@ class MusicService : MediaLibraryService() {
 
         // 음악 재생 상태 변화 등 이벤트가 발생할 때 알림 UI가 최신 상태로 유지
         val manager = getSystemService(NotificationManager::class.java)
-        manager.notify(1, notification)
+        manager.notify(NOTIFICATION_ID, notification)
     }
 
     @Subscribe
@@ -269,7 +280,7 @@ class MusicService : MediaLibraryService() {
 
     private fun setMusicInNotification(music: MusicModel?) {
         var bitmap: Bitmap? = null
-        val albumUri = music?.getAlbumUri() ?: Uri.parse("")
+        val albumUri = music?.getAlbumUri() ?: "".toUri()
 
         try {
             bitmap = if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) { // P 이상인 경우
@@ -323,14 +334,69 @@ class MusicService : MediaLibraryService() {
     }
 
     override fun onTaskRemoved(rootIntent: Intent?) {
-        stopSelf()
+        // 사용자가 최근 앱 목록에서 앱을 제거(스와이프 종료)해도
+        // 음악 재생은 유지되는 것이 일반적인 음악 플레이어의 동작입니다.
+        //
+        // 또한 여기서 stopSelf()를 호출하면 서비스가 파괴되며(onDestroy),
+        // DI로 공유 중인 ExoPlayer(@Singleton)가 release()되는 순간
+        // 같은 프로세스에서 다시 앱을 실행했을 때(재실행) 재생이 불가능해집니다.
+        // (UI/Fragment 전환은 되지만, player 인스턴스는 이미 release 상태)
+        //
+        // 따라서 Task 제거 이벤트에서는 서비스를 강제 종료하지 않습니다.
+        exitPlayer()
         super.onTaskRemoved(rootIntent)
+    }
+
+    /**
+     * 사용자 종료(스와이프 종료 / 알림 X) 공통 처리
+     */
+    private fun exitPlayer() {
+        if (isExiting) return
+        isExiting = true
+
+        // 종료 중에는 Notification 갱신이 절대 발생하면 안 되므로, 리스너를 먼저 제거
+        player.removeListener(playerListener)
+
+        // 자동 재생처럼 보이는 문제를 막기 위해 상태를 확실히 끊는다.
+        player.pause()
+        player.playWhenReady = false
+
+        // 필요하면 플레이리스트도 끊어준다(원치 않으면 이 줄은 제거 가능)
+        player.stop()
+        player.clearMediaItems()
+
+        // stopForeground 전에 cancel을 먼저 때려서 "큰뷰/작은뷰 토글" 깜빡임을 방지
+        val manager = getSystemService(NotificationManager::class.java)
+        manager.cancel(NOTIFICATION_ID)
+        stopForeground(STOP_FOREGROUND_REMOVE)
+
+        try {
+            val am = getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
+            // 현재 프로세스에 속한 task들을 최근 앱 목록에서 제거
+            // (백그라운드에 Activity가 살아있든, task만 남아있든 모두 처리)
+            for (task in am.appTasks) {
+                task.finishAndRemoveTask()
+            }
+        } catch (t: Throwable) {
+            Log.w("MusicService", "finishAndRemoveTask 실패", t)
+        }
+
+        stopSelf()
     }
 
     // 서비스가 완전히 종료되면
     override fun onDestroy() {
-        player.stop() // 플레이어 중단
-        player.release()
+        // ExoPlayer가 Hilt @Singleton 으로 제공되어
+        // Activity/Fragment/Service가 같은 인스턴스를 공유.
+        //
+        // 여기서 player.release()를 호출하면, 앱을 종료했다가 다시 실행하는 케이스에서
+        // (프로세스는 유지된 채 Activity만 재생성되는 경우가 흔함)
+        // DI가 동일한 ExoPlayer 인스턴스를 재주입하게 되고,
+        // 이미 release 된 player로 인해 "재생/seek/prepare"가 전부 동작하지 않게 됨.
+        //
+        // 서비스가 내려가더라도 프로세스가 살아있는 동안은 player를 release 하지 않음.
+        // 프로세스가 종료되면 시스템이 리소스를 회수하므로 별도 release는 불필요함.
+        stopForeground(STOP_FOREGROUND_REMOVE)
 
         if (::mediaLibrarySession.isInitialized) {
             mediaLibrarySession.release()
@@ -342,6 +408,7 @@ class MusicService : MediaLibraryService() {
 
     companion object {
         const val CHANNEL_ID = "MusicChannel" // 알림 채널 ID
+        const val NOTIFICATION_ID = 1 // Foreground 알림 ID
 
         const val PLAY = "com.hero.ziggymusic.PLAY" // Notification 에서 재생 버튼을 누를 시
         const val PAUSE = "com.hero.ziggymusic.PAUSE" // Notification 에서 일시 정지 버튼을 누를 시
