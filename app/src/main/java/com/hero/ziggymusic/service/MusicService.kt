@@ -335,14 +335,14 @@ class MusicService : MediaLibraryService() {
 
     override fun onTaskRemoved(rootIntent: Intent?) {
         // 사용자가 최근 앱 목록에서 앱을 제거(백그라운드 종료)해도
-        // 음악 재생은 유지되는 것이 일반적인 음악 플레이어의 동작입니다.
+        // 음악 재생은 유지되는 것이 일반적인 음악 플레이어의 동작.
         //
         // 또한 여기서 stopSelf()를 호출하면 서비스가 파괴되며(onDestroy),
         // DI로 공유 중인 ExoPlayer(@Singleton)가 release()되는 순간
-        // 같은 프로세스에서 다시 앱을 실행했을 때(재실행) 재생이 불가능해집니다.
+        // 같은 프로세스에서 다시 앱을 실행했을 때(재실행) 재생이 불가능해짐.
         // (UI/Fragment 전환은 되지만, player 인스턴스는 이미 release 상태)
         //
-        // 따라서 Task 제거 이벤트에서는 서비스를 강제 종료하지 않습니다.
+        // 따라서 Task 제거 이벤트에서는 서비스를 강제 종료하지 않음.
         exitPlayer()
         super.onTaskRemoved(rootIntent)
     }
