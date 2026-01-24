@@ -186,27 +186,27 @@ class MusicService : MediaLibraryService() {
         // 각 action 에 해당하는 PendingIntent 생성
         val prevIntent = Intent(this, MusicService::class.java).run {
             action = SKIP_PREV
-            PendingIntent.getService(this@MusicService, 0, this, PendingIntent.FLAG_IMMUTABLE)
+            PendingIntent.getService(this@MusicService, REQ_CODE_PREV, this, PendingIntent.FLAG_IMMUTABLE)
         }
         val playIntent = Intent(this, MusicService::class.java).run {
             action = PLAY
-            PendingIntent.getService(this@MusicService, 1, this, PendingIntent.FLAG_IMMUTABLE)
+            PendingIntent.getService(this@MusicService, REQ_CODE_PLAY, this, PendingIntent.FLAG_IMMUTABLE)
         }
         val pauseIntent = Intent(this, MusicService::class.java).run {
             action = PAUSE
-            PendingIntent.getService(this@MusicService, 2, this, PendingIntent.FLAG_IMMUTABLE)
+            PendingIntent.getService(this@MusicService, REQ_CODE_PAUSE, this, PendingIntent.FLAG_IMMUTABLE)
         }
         val nextIntent = Intent(this, MusicService::class.java).run {
             action = SKIP_NEXT
-            PendingIntent.getService(this@MusicService, 3, this, PendingIntent.FLAG_IMMUTABLE)
+            PendingIntent.getService(this@MusicService, REQ_CODE_NEXT, this, PendingIntent.FLAG_IMMUTABLE)
         }
         val closeIntent = Intent(this, MusicService::class.java).run {
             action = CLOSE
-            PendingIntent.getService(this@MusicService, 4, this, PendingIntent.FLAG_IMMUTABLE)
+            PendingIntent.getService(this@MusicService, REQ_CODE_CLOSE, this, PendingIntent.FLAG_IMMUTABLE)
         }
         val notificationTouchIntent = Intent(this, MainActivity::class.java).run {
             addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
-            PendingIntent.getActivity(this@MusicService, 5, this, PendingIntent.FLAG_IMMUTABLE)
+            PendingIntent.getActivity(this@MusicService, REQ_CODE_NOTIFICATION_TOUCH, this, PendingIntent.FLAG_IMMUTABLE)
         }
 
         val isPlaying = player.isPlaying
@@ -271,11 +271,11 @@ class MusicService : MediaLibraryService() {
 
     private fun getPlayIntent(): PendingIntent {
         val playIntent = Intent(this, MusicService::class.java).apply { action = PLAY }
-        return PendingIntent.getService(this, 1, playIntent, PendingIntent.FLAG_IMMUTABLE)
+        return PendingIntent.getService(this, REQ_CODE_PLAY, playIntent, PendingIntent.FLAG_IMMUTABLE)
     }
     private fun getPauseIntent(): PendingIntent {
         val pauseIntent = Intent(this, MusicService::class.java).apply { action = PAUSE }
-        return PendingIntent.getService(this, 2, pauseIntent, PendingIntent.FLAG_IMMUTABLE)
+        return PendingIntent.getService(this, REQ_CODE_PAUSE, pauseIntent, PendingIntent.FLAG_IMMUTABLE)
     }
 
     private fun setMusicInNotification(music: MusicModel?) {
@@ -415,5 +415,13 @@ class MusicService : MediaLibraryService() {
         const val SKIP_PREV = "com.hero.ziggymusic.SKIP_PREV" // Notification 에서 이전 곡 버튼을 누를 시
         const val SKIP_NEXT = "com.hero.ziggymusic.SKIP_NEXT" // Notification 에서 다음 곡 버튼을 누를 시
         const val CLOSE = "com.hero.ziggymusic.CLOSE" // 닫기 버튼을 누를 시
+
+        // PendingIntent Request 코드
+        const val REQ_CODE_PREV = 100
+        const val REQ_CODE_PLAY = 101
+        const val REQ_CODE_PAUSE = 102
+        const val REQ_CODE_NEXT = 103
+        const val REQ_CODE_CLOSE = 104
+        const val REQ_CODE_NOTIFICATION_TOUCH = 105
     }
 }
