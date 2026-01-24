@@ -116,6 +116,12 @@ class PlayerFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        // DataBinding 변수(music)가 null이면 리바인딩 타이밍에 제목/아티스트가 빈 값으로 덮이는 간헐적 문제가 발생할 수 있음.
+        // (앨범아트는 ImageView에 이미 로드되어 남아있어서 '텍스트만 사라진 것'처럼 보임)
+        binding.lifecycleOwner = viewLifecycleOwner
+        binding.music = playerModel.currentMusic
+        binding.executePendingBindings()
+
         initAudioManager()
         initPlayView()
         initPlayControlButtons()
@@ -473,7 +479,27 @@ class PlayerFragment : Fragment() {
     }
 
     private fun updatePlayerView(musicModel: MusicModel?) {
-        if (_binding == null || musicModel == null) return
+        if (_binding == null) return
+
+        if (musicModel == null) {
+            // 상태 초기화(필요 시)
+            binding.music = null
+            binding.executePendingBindings()
+
+            binding.tvSongTitle.text = ""
+            binding.tvSongArtist.text = ""
+            binding.tvSongAlbum.text = ""
+
+            latestAlbumBitmap = null
+            binding.albumBackground.setBackgroundResource(R.color.dark_black)
+            binding.ivAlbumArt.setImageResource(R.drawable.ic_no_album_image)
+            return
+        }
+
+        // XML에서 tvSongTitle/tvSongArtist/tvSongAlbum 및 ivAlbumArt가 DataBinding(@{music.*})로 그려지고 있으므로,
+        // music 변수를 갱신하지 않으면 리바인딩 타이밍에 텍스트가 null(또는 빈 문자열)로 덮일 수 있음.
+        binding.music = musicModel
+        binding.executePendingBindings()
 
         binding.tvSongTitle.text = musicModel.title
         binding.tvSongArtist.text = musicModel.artist
@@ -884,6 +910,7 @@ class PlayerFragment : Fragment() {
     companion object {
         const val TAG = "PlayerFragment"
         const val EXTRA_MUSIC_FILE_KEY: String = "id"
+
         fun newInstance(musicKey: String): PlayerFragment =
             PlayerFragment().apply {
                 arguments = Bundle().apply {
