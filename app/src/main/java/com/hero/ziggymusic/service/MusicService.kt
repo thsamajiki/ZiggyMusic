@@ -57,8 +57,8 @@ class MusicService : MediaLibraryService() {
     }
 
     private lateinit var mediaLibrarySession: MediaLibrarySession
-    private lateinit var remoteNotificationLayout: RemoteViews
-    private lateinit var remoteNotificationExtendedLayout: RemoteViews
+    private lateinit var collapsedNotificationView: RemoteViews
+    private lateinit var expandedNotificationView: RemoteViews
 
     override fun onCreate() {
         super.onCreate()
@@ -84,8 +84,8 @@ class MusicService : MediaLibraryService() {
         createNotificationChannel() // 알림 채널 생성
 
         // Notification 에 사용할 RemoteViews 생성
-        remoteNotificationLayout = RemoteViews(this.packageName, R.layout.notification_player)
-        remoteNotificationExtendedLayout = RemoteViews(this.packageName, R.layout.notification_player_extended)
+        collapsedNotificationView = RemoteViews(this.packageName, R.layout.notification_player)
+        expandedNotificationView = RemoteViews(this.packageName, R.layout.notification_player_extended)
 
         Log.d("MusicServiceAction", "action = ${intent?.action}")
 
@@ -215,23 +215,23 @@ class MusicService : MediaLibraryService() {
         setPlayPauseButtonState(isPlaying)
 
         // setOnClickPendingIntent()를 이용해서 클릭 리스너를 달아준다.
-        remoteNotificationLayout.setOnClickPendingIntent(
+        collapsedNotificationView.setOnClickPendingIntent(
             R.id.btnNotificationPrev,
             prevIntent
         )
-        remoteNotificationLayout.setOnClickPendingIntent(
+        collapsedNotificationView.setOnClickPendingIntent(
             R.id.btnNotificationNext,
             nextIntent
         )
-        remoteNotificationExtendedLayout.setOnClickPendingIntent(
+        expandedNotificationView.setOnClickPendingIntent(
             R.id.btnNotificationExtendedPrev,
             prevIntent
         )
-        remoteNotificationExtendedLayout.setOnClickPendingIntent(
+        expandedNotificationView.setOnClickPendingIntent(
             R.id.btnNotificationExtendedNext,
             nextIntent
         )
-        remoteNotificationExtendedLayout.setOnClickPendingIntent(
+        expandedNotificationView.setOnClickPendingIntent(
             R.id.btnNotificationExtendedClose,
             closeIntent
         )
@@ -248,8 +248,8 @@ class MusicService : MediaLibraryService() {
             .setStyle(NotificationCompat.DecoratedCustomViewStyle())
             .setColor(ContextCompat.getColor(this, R.color.dark_black))
             .setColorized(true)
-            .setCustomContentView(remoteNotificationLayout)
-            .setCustomBigContentView(remoteNotificationExtendedLayout)
+            .setCustomContentView(collapsedNotificationView)
+            .setCustomBigContentView(expandedNotificationView)
             .setContentIntent(notificationTouchIntent)
             .setOngoing(true)
             .build()
@@ -257,15 +257,15 @@ class MusicService : MediaLibraryService() {
 
     private fun setPlayPauseButtonState(isPlaying: Boolean) {
         if (isPlaying) {
-            remoteNotificationLayout.setImageViewResource(R.id.btnNotificationPlay, R.drawable.ic_pause_button)
-            remoteNotificationLayout.setOnClickPendingIntent(R.id.btnNotificationPlay, getPauseIntent())
-            remoteNotificationExtendedLayout.setImageViewResource(R.id.btnNotificationExtendedPlay, R.drawable.ic_pause_button)
-            remoteNotificationExtendedLayout.setOnClickPendingIntent(R.id.btnNotificationExtendedPlay, getPauseIntent())
+            collapsedNotificationView.setImageViewResource(R.id.btnNotificationPlay, R.drawable.ic_pause_button)
+            collapsedNotificationView.setOnClickPendingIntent(R.id.btnNotificationPlay, getPauseIntent())
+            expandedNotificationView.setImageViewResource(R.id.btnNotificationExtendedPlay, R.drawable.ic_pause_button)
+            expandedNotificationView.setOnClickPendingIntent(R.id.btnNotificationExtendedPlay, getPauseIntent())
         } else {
-            remoteNotificationLayout.setImageViewResource(R.id.btnNotificationPlay, R.drawable.ic_play_button)
-            remoteNotificationLayout.setOnClickPendingIntent(R.id.btnNotificationPlay, getPlayIntent())
-            remoteNotificationExtendedLayout.setImageViewResource(R.id.btnNotificationExtendedPlay, R.drawable.ic_play_button)
-            remoteNotificationExtendedLayout.setOnClickPendingIntent(R.id.btnNotificationExtendedPlay, getPlayIntent())
+            collapsedNotificationView.setImageViewResource(R.id.btnNotificationPlay, R.drawable.ic_play_button)
+            collapsedNotificationView.setOnClickPendingIntent(R.id.btnNotificationPlay, getPlayIntent())
+            expandedNotificationView.setImageViewResource(R.id.btnNotificationExtendedPlay, R.drawable.ic_play_button)
+            expandedNotificationView.setOnClickPendingIntent(R.id.btnNotificationExtendedPlay, getPlayIntent())
         }
     }
 
@@ -295,39 +295,39 @@ class MusicService : MediaLibraryService() {
             bitmap = null
         } finally {
             if (bitmap != null) { // null 이 아닌 경우 다시 말해 앨범 아트 Uri 에 파일이 있는 경우
-                remoteNotificationLayout.setImageViewBitmap(R.id.ivNotificationAlbum, bitmap)
-                remoteNotificationExtendedLayout.setImageViewBitmap(
+                collapsedNotificationView.setImageViewBitmap(R.id.ivNotificationAlbum, bitmap)
+                expandedNotificationView.setImageViewBitmap(
                     R.id.ivNotificationExtendedAlbum,
                     bitmap
                 )
             } else { // 앨범 아트 Uri 에 파일이 없는 경우 기본 앨범 아트를 사용
-                remoteNotificationLayout.setImageViewResource(
+                collapsedNotificationView.setImageViewResource(
                     R.id.ivNotificationAlbum,
                     R.drawable.ic_no_album_image
                 )
-                remoteNotificationExtendedLayout.setImageViewResource(
+                expandedNotificationView.setImageViewResource(
                     R.id.ivNotificationExtendedAlbum,
                     R.drawable.ic_no_album_image
                 )
             }
         }
 
-        remoteNotificationLayout.setTextViewText(R.id.tvNotificationTitle, music?.title)
-        remoteNotificationLayout.setTextViewText(R.id.tvNotificationArtist, music?.artist)
-        remoteNotificationLayout.setImageViewResource(R.id.btnNotificationPrev, R.drawable.ic_prev_button)
-        remoteNotificationLayout.setImageViewResource(R.id.btnNotificationNext, R.drawable.ic_next_button)
+        collapsedNotificationView.setTextViewText(R.id.tvNotificationTitle, music?.title)
+        collapsedNotificationView.setTextViewText(R.id.tvNotificationArtist, music?.artist)
+        collapsedNotificationView.setImageViewResource(R.id.btnNotificationPrev, R.drawable.ic_prev_button)
+        collapsedNotificationView.setImageViewResource(R.id.btnNotificationNext, R.drawable.ic_next_button)
 
-        remoteNotificationExtendedLayout.setTextViewText(R.id.tvNotificationExtendedTitle, music?.title)
-        remoteNotificationExtendedLayout.setTextViewText(R.id.tvNotificationExtendedArtist, music?.artist)
-        remoteNotificationExtendedLayout.setImageViewResource(
+        expandedNotificationView.setTextViewText(R.id.tvNotificationExtendedTitle, music?.title)
+        expandedNotificationView.setTextViewText(R.id.tvNotificationExtendedArtist, music?.artist)
+        expandedNotificationView.setImageViewResource(
             R.id.btnNotificationExtendedPrev,
             R.drawable.ic_prev_button
         )
-        remoteNotificationExtendedLayout.setImageViewResource(
+        expandedNotificationView.setImageViewResource(
             R.id.btnNotificationExtendedNext,
             R.drawable.ic_next_button
         )
-        remoteNotificationExtendedLayout.setImageViewResource(
+        expandedNotificationView.setImageViewResource(
             R.id.btnNotificationExtendedClose,
             R.drawable.ic_white_close
         )
