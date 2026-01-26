@@ -15,7 +15,6 @@ class PlayerController(
     private val fragmentManager: FragmentManager,
     private val onStateChanged: (newState: Int) -> Unit
 ) : DefaultLifecycleObserver {
-
     private val bottomSheetBehavior: BottomSheetBehavior<View>
         get() = BottomSheetBehavior.from(fragmentContainer)
 
@@ -36,11 +35,11 @@ class PlayerController(
         lifecycleOwner.lifecycle.addObserver(this)
     }
 
-    fun startPlayer() {
+    fun startPlayer(initialMusicId: String = "") {
         fragmentManager.commit {
             add(
                 fragmentContainer.id,
-                PlayerFragment.newInstance(""),
+                PlayerFragment.newInstance(initialMusicId),
                 PlayerFragment.TAG
             )
         }
