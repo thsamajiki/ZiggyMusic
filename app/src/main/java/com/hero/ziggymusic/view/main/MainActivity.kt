@@ -43,6 +43,8 @@ import androidx.core.view.WindowInsetsControllerCompat
 import com.hero.ziggymusic.view.main.model.MainTitle
 import com.hero.ziggymusic.view.main.musiclist.MusicListFragment
 import com.hero.ziggymusic.view.main.myplaylist.MyPlaylistFragment
+import com.hero.ziggymusic.view.main.player.PlaybackContentType
+import com.hero.ziggymusic.view.main.player.PlaybackStateStore
 import com.hero.ziggymusic.view.main.player.PlayerMotionManager
 import com.hero.ziggymusic.view.main.player.viewmodel.PlayerViewModel
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -60,6 +62,7 @@ class MainActivity : AppCompatActivity(),
     lateinit var player: ExoPlayer
     private val playerModel: PlayerModel = PlayerModel.getInstance()
     private lateinit var playerController: PlayerController
+    private val playbackStateStore by lazy { PlaybackStateStore(this) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -290,7 +293,7 @@ class MainActivity : AppCompatActivity(),
             }
         }
         if (needs.isEmpty()) {
-            playerController.startPlayer()
+            playerController.startPlayer(playbackStateStore.loadLastPlayedId(PlaybackContentType.MUSIC).orEmpty())
         } else {
             permissionLauncher.launch(needs.toTypedArray())
         }
@@ -321,7 +324,7 @@ class MainActivity : AppCompatActivity(),
         }
 
         // 오디오 권한 허용됨 -> 핵심 기능 시작
-        playerController.startPlayer()
+        playerController.startPlayer(playbackStateStore.loadLastPlayedId(PlaybackContentType.MUSIC).orEmpty())
 
         // 알림 권한 선택적 처리
         if (!notifGranted) {
