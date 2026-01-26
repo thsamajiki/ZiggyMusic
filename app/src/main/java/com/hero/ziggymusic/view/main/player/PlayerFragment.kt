@@ -65,6 +65,7 @@ import androidx.fragment.app.activityViewModels
 import com.bumptech.glide.load.DataSource
 import com.bumptech.glide.load.engine.GlideException
 import com.bumptech.glide.request.RequestListener
+import com.hero.ziggymusic.view.main.player.model.LastPlayedMedia
 
 @AndroidEntryPoint
 class PlayerFragment : Fragment() {
@@ -79,6 +80,14 @@ class PlayerFragment : Fragment() {
     lateinit var player: ExoPlayer
 
     private var currentMusic: MusicModel? = null // 현재 재생 중인 음원
+    private val playbackStateStore by lazy { PlaybackStateStore(requireContext()) }
+
+    // position 저장 스로틀(너무 자주 prefs write 방지)
+    private var lastSavedAtMs: Long = 0L
+    private var lastSavedPositionMs: Long = -1L
+
+    private val saveIntervalMs = 3_000L   // 3초 간격 저장(현업에서 흔한 수준)
+    private val saveMinDeltaMs = 1_000L   // 위치 1초 이상 변했을 때만 저장
 
     private lateinit var playerMotionManager: PlayerMotionManager
     private lateinit var playerBottomSheetManager: PlayerBottomSheetManager
@@ -92,7 +101,7 @@ class PlayerFragment : Fragment() {
     private var volumeObserver: ContentObserver? = null // 시스템 볼륨 변경 이벤트 옵저버
 
     private val musicKey: String
-        get() = requireArguments().getString(EXTRA_MUSIC_FILE_KEY).orEmpty()
+        get() = requireArguments().getString(EXTRA_MUSIC_FILE_ID).orEmpty()
 
     private val updateSeekRunnable = Runnable {
         updateSeek()
@@ -279,6 +288,7 @@ class PlayerFragment : Fragment() {
 
             override fun onStopTrackingTouch(seekBar: SeekBar) {
                 player.seekTo(seekBar.progress * 1000L)
+                savePlaybackState(immediate = true)
             }
         })
     }
@@ -364,7 +374,13 @@ class PlayerFragment : Fragment() {
 
                 // 재생 아이콘 및 비주얼라이저 동기화
                 syncPlayerUi()
-                if (isPlaying) startSeekUpdates() else stopSeekUpdates()
+                if (isPlaying) {
+                    startSeekUpdates()
+                } else {
+                    // 일시정지/정지되는 순간 현재 position 저장
+                    savePlaybackState(immediate = true)
+                    stopSeekUpdates()
+                }
             }
 
             // 미디어 아이템이 바뀔 때
@@ -372,6 +388,16 @@ class PlayerFragment : Fragment() {
                 super.onMediaItemTransition(mediaItem, reason)
 
                 val newMusicKey: String = mediaItem?.mediaId ?: return
+                // 트랙이 바뀌면 새 트랙의 position=0으로 저장(직후)
+                playbackStateStore.saveLastPlayedMedia(
+                    LastPlayedMedia(
+                        type = PlaybackContentType.MUSIC,
+                        id = newMusicKey,
+                        positionMs = 0L,
+                        playWhenReady = player.playWhenReady,
+                        updatedAtMs = System.currentTimeMillis()
+                    )
+                )
                 playerModel.changedMusic(newMusicKey)
 
                 latestAlbumBitmap = null
@@ -404,6 +430,7 @@ class PlayerFragment : Fragment() {
                     if (player.mediaItemCount > 0) {
                         val firstId = player.getMediaItemAt(0).mediaId
                         playerModel.changedMusic(firstId)
+                        playbackStateStore.saveLastPlayedId(PlaybackContentType.MUSIC, firstId)
                         updatePlayerView(playerModel.currentMusic)
                     }
                     player.pause()
@@ -449,7 +476,9 @@ class PlayerFragment : Fragment() {
 
         updateSeekUi(duration, position)
 
-        val state = player.playbackState
+        if (player.isPlaying) {
+            savePlaybackState(immediate = false)
+        }
 
         val view = binding.root
         view.removeCallbacks(updateSeekRunnable)
@@ -558,12 +587,37 @@ class PlayerFragment : Fragment() {
             .into(binding.ivAlbumArt)
     }
 
+    private fun savePlaybackState(immediate: Boolean = false) {
+        val music = playerModel.currentMusic ?: return
+        val now = System.currentTimeMillis()
+        val position = player.currentPosition.coerceAtLeast(0L)
+
+        if (!immediate) {
+            val timeOk = (now - lastSavedAtMs) >= saveIntervalMs
+            val deltaOk = kotlin.math.abs(position - lastSavedPositionMs) >= saveMinDeltaMs
+            if (!timeOk || !deltaOk) return
+        }
+
+        lastSavedAtMs = now
+        lastSavedPositionMs = position
+
+        playbackStateStore.saveLastPlayedMedia(
+            LastPlayedMedia(
+                type = PlaybackContentType.MUSIC,
+                id = music.id,
+                positionMs = position,
+                playWhenReady = player.playWhenReady,
+                updatedAtMs = now
+            )
+        )
+    }
 
     @OptIn(UnstableApi::class)
     private fun playMusic(musicList: List<MusicModel>, nowPlayMusic: MusicModel?) {
         if (nowPlayMusic != null) {
             currentMusic = nowPlayMusic
             playerModel.updateCurrentMusic(nowPlayMusic)
+            playbackStateStore.saveLastPlayedId(PlaybackContentType.MUSIC, nowPlayMusic.id)
         }
 
         val musicMediaItems = musicList.map { music ->
@@ -575,17 +629,30 @@ class PlayerFragment : Fragment() {
                 .setUri(musicFileUri)
                 .build()
 
-            val mediaSource = ProgressiveMediaSource.Factory(defaultDataSourceFactory) // 미디어 정보를 가져오는 클래스
+            ProgressiveMediaSource.Factory(defaultDataSourceFactory) // 미디어 정보를 가져오는 클래스
                 .createMediaSource(mediaItem)
-            mediaSource
         }
 
         val playIndex = musicList.indexOf(nowPlayMusic)
 
+        // 마지막 저장 상태 로드(있으면 position 복원)
+        val lastPlayed = playbackStateStore.loadLastPlayedMedia()
+        val resumePositionMs =
+            if (lastPlayed != null &&
+                lastPlayed.type == PlaybackContentType.MUSIC &&
+                lastPlayed.id.isNotBlank() &&
+                nowPlayMusic != null &&
+                lastPlayed.id == nowPlayMusic.id
+            ) {
+                lastPlayed.positionMs.coerceAtLeast(0L)
+            } else {
+                0L
+            }
+
         player.run {
             setMediaSources(musicMediaItems)
             prepare()
-            seekTo(max(playIndex, 0), 0) // positionsMs=0 초 부터 시작
+            seekTo(max(playIndex, 0), resumePositionMs) // 마지막 재생 시간(초)부터 시작
         }
     }
 
@@ -822,12 +889,15 @@ class PlayerFragment : Fragment() {
     override fun onStop() {
         super.onStop()
 
+        savePlaybackState(immediate = true)
         stopSeekUpdates()
         binding.root.removeCallbacks(updateBluetoothRunnable)
         stopVolumeObserver()    // 하드웨어 볼륨 변경 감지 중지
     }
 
     override fun onDestroyView() {
+        // View 파괴 직전 마지막 상태 저장(안전망)
+        savePlaybackState(immediate = true)
         // 리스너 참조로 인한 메모리/수명 누수 방지
         playerListener?.let { player.removeListener(it) }
         playerListener = null
@@ -909,12 +979,12 @@ class PlayerFragment : Fragment() {
 
     companion object {
         const val TAG = "PlayerFragment"
-        const val EXTRA_MUSIC_FILE_KEY: String = "id"
+        const val EXTRA_MUSIC_FILE_ID: String = "id"
 
-        fun newInstance(musicKey: String): PlayerFragment =
+        fun newInstance(musicId: String): PlayerFragment =
             PlayerFragment().apply {
                 arguments = Bundle().apply {
-                    putString(EXTRA_MUSIC_FILE_KEY, musicKey)
+                    putString(EXTRA_MUSIC_FILE_ID, musicId)
                 }
             }
     }

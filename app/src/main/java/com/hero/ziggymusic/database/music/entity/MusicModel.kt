@@ -7,10 +7,11 @@ import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import kotlinx.parcelize.Parcelize
+import androidx.core.net.toUri
 
 @Parcelize
 @Entity(tableName = "music_table")
-data class MusicModel (
+data class MusicModel(
     @PrimaryKey
     val id: String,    // 음원 자체의 ID
     @ColumnInfo(name = "title")
@@ -24,7 +25,7 @@ data class MusicModel (
     @ColumnInfo(name = "duration")
     val duration: Long? = 0,     // 음원 재생 시간
     @ColumnInfo(name = "is_playing")
-    val isPlaying: Boolean = false
+    val isPlaying: Boolean = false,
 ) : Parcelable {
 
     fun getMusicFileUri(): Uri {
@@ -32,6 +33,6 @@ data class MusicModel (
     }
 
     fun getAlbumUri(): Uri {
-        return Uri.parse("content://media/external/audio/albumart/${albumId}")
+        return "content://media/external/audio/albumart/${albumId}".toUri()
     }
 }
