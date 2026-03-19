@@ -11,6 +11,7 @@ import android.content.pm.ServiceInfo
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.ImageDecoder
+import android.net.Uri
 import android.os.Build
 import android.util.Log
 import android.widget.RemoteViews
@@ -174,38 +175,7 @@ class MusicService : MediaLibraryService() {
             }
 
             ACTION_REFRESH_NOTIFICATION, null -> {
-                currentAlbumArtBitmap = null
-                updateNotification()
-
-                val music = playerModel.currentMusic
-                val albumUri = music?.getAlbumUri()
-
-                albumArtLoadJob?.cancel()
-                albumArtLoadJob = serviceScope.launch {
-                    val bitmap = withContext(Dispatchers.IO) {
-                        try {
-                            if (albumUri == null) {
-                                null
-                            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                                val source = ImageDecoder.createSource(contentResolver, albumUri)
-                                ImageDecoder.decodeBitmap(source)
-                            } else {
-                                contentResolver.openInputStream(albumUri)?.use { input ->
-                                    BitmapFactory.decodeStream(input)
-                                }
-                            }
-                        } catch (e: Exception) {
-                            Log.e("MusicService", "album art decode failed", e)
-                            null
-                        }
-                    }
-
-                    if (isExiting) return@launch
-                    if (music?.getAlbumUri() != playerModel.currentMusic?.getAlbumUri()) return@launch
-
-                    currentAlbumArtBitmap = bitmap
-                    updateNotification()
-                }
+                refreshAlbumArt()
             }
         }
 
@@ -229,6 +199,99 @@ class MusicService : MediaLibraryService() {
         } else {
             startForeground(NOTIFICATION_ID, notification)
         }
+    }
+
+    private fun refreshAlbumArt() {
+        currentAlbumArtBitmap = null
+        updateNotification()
+
+        val expectedAlbumUri = playerModel.currentMusic?.getAlbumUri()
+
+        albumArtLoadJob?.cancel()
+        albumArtLoadJob = serviceScope.launch {
+            val bitmap = withContext(Dispatchers.IO) {
+                decodeAlbumArtForNotification(expectedAlbumUri)
+            }
+
+            if (isExiting) return@launch
+            if (expectedAlbumUri != playerModel.currentMusic?.getAlbumUri()) return@launch
+
+            currentAlbumArtBitmap = bitmap
+            updateNotification()
+        }
+    }
+
+    private fun decodeAlbumArtForNotification(albumUri: Uri?): Bitmap? {
+        if (albumUri == null) return null
+
+        return try {
+            val targetSizePx = 256
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                val source = ImageDecoder.createSource(contentResolver, albumUri)
+                ImageDecoder.decodeBitmap(source) { decoder, info, _ ->
+                    val srcWidth = info.size.width
+                    val srcHeight = info.size.height
+
+                    val longestSide = maxOf(srcWidth, srcHeight)
+                    if (longestSide > targetSizePx) {
+                        val scale = targetSizePx.toFloat() / longestSide.toFloat()
+                        val targetWidth = (srcWidth * scale).toInt().coerceAtLeast(1)
+                        val targetHeight = (srcHeight * scale).toInt().coerceAtLeast(1)
+                        decoder.setTargetSize(targetWidth, targetHeight)
+                    }
+                }
+            } else {
+                val boundsOptions = BitmapFactory.Options().apply {
+                    inJustDecodeBounds = true
+                }
+
+                contentResolver.openInputStream(albumUri)?.use { input ->
+                    BitmapFactory.decodeStream(input, null, boundsOptions)
+                }
+
+                val sampleSize = calculateInSampleSize(
+                    width = boundsOptions.outWidth,
+                    height = boundsOptions.outHeight,
+                    reqWidth = targetSizePx,
+                    reqHeight = targetSizePx
+                )
+
+                val decodeOptions = BitmapFactory.Options().apply {
+                    inSampleSize = sampleSize
+                    inPreferredConfig = Bitmap.Config.RGB_565
+                }
+
+                contentResolver.openInputStream(albumUri)?.use { input ->
+                    BitmapFactory.decodeStream(input, null, decodeOptions)
+                }
+            }
+        } catch (e: Exception) {
+            Log.e("MusicService", "album art decode failed", e)
+            null
+        }
+    }
+
+    // 앨범 아트 크기 연산
+    private fun calculateInSampleSize(
+        width: Int,
+        height: Int,
+        reqWidth: Int,
+        reqHeight: Int
+    ): Int {
+        if (width <= 0 || height <= 0) return 1
+
+        var inSampleSize = 1
+        val halfWidth = width / 2
+        val halfHeight = height / 2
+
+        while ((halfWidth / inSampleSize) >= reqWidth &&
+            (halfHeight / inSampleSize) >= reqHeight
+        ) {
+            inSampleSize *= 2
+        }
+
+        return inSampleSize.coerceAtLeast(1)
     }
 
     private fun updateNotification() {
