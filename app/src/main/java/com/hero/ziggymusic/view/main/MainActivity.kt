@@ -29,7 +29,6 @@ import com.hero.ziggymusic.database.music.entity.PlayerModel
 import com.hero.ziggymusic.databinding.ActivityMainBinding
 import com.hero.ziggymusic.event.Event
 import com.hero.ziggymusic.event.EventBus
-import com.hero.ziggymusic.service.MusicService
 import com.hero.ziggymusic.view.main.setting.SoundEQSettings
 import com.hero.ziggymusic.view.main.setting.SettingFragment
 import com.squareup.otto.Subscribe

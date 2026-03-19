@@ -7,7 +7,6 @@ import android.bluetooth.BluetoothGatt
 import android.bluetooth.BluetoothManager
 import android.bluetooth.BluetoothProfile
 import android.content.Context
-import android.content.Intent
 import android.content.pm.PackageManager
 import android.database.ContentObserver
 import android.graphics.Bitmap
@@ -34,7 +33,6 @@ import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
-import androidx.core.content.ContextCompat.startForegroundService
 import androidx.media3.datasource.DefaultDataSource
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.source.ProgressiveMediaSource
@@ -47,7 +45,6 @@ import com.hero.ziggymusic.R
 import com.hero.ziggymusic.database.music.entity.MusicModel
 import com.hero.ziggymusic.database.music.entity.PlayerModel
 import com.hero.ziggymusic.databinding.FragmentPlayerBinding
-import com.hero.ziggymusic.service.MusicService
 import com.hero.ziggymusic.service.MusicService.Companion.PLAY
 import com.hero.ziggymusic.service.MusicService.Companion.PAUSE
 import com.hero.ziggymusic.service.MusicService.Companion.SKIP_PREV
