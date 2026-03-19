@@ -7,10 +7,10 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.content.pm.ServiceInfo
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.ImageDecoder
-import androidx.core.net.toUri
 import android.os.Build
 import android.util.Log
 import android.widget.RemoteViews
@@ -27,10 +27,16 @@ import com.hero.ziggymusic.database.music.entity.PlayerModel
 import com.hero.ziggymusic.event.Event
 import com.hero.ziggymusic.event.EventBus
 import com.hero.ziggymusic.view.main.MainActivity
-import java.io.IOException
 import javax.inject.Inject
 import com.squareup.otto.Subscribe
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @AndroidEntryPoint
 class MusicService : MediaLibraryService() {
@@ -42,17 +48,51 @@ class MusicService : MediaLibraryService() {
     @Volatile
     private var isExiting: Boolean = false
 
+    private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
+    private var albumArtLoadJob: Job? = null
+    private var currentAlbumArtBitmap: Bitmap? = null
+
     private val playerListener = object : Player.Listener {
         override fun onIsPlayingChanged(isPlaying: Boolean) {
             if (isExiting) return
-            // 재생/일시정지 상태가 바뀔 때마다 Notification 갱신
             updateNotification()
         }
 
         override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
             if (isExiting) return
-            // 곡이 바뀔 때도 Notification 갱신
+
+            currentAlbumArtBitmap = null
             updateNotification()
+
+            val music = playerModel.currentMusic
+            val albumUri = music?.getAlbumUri()
+
+            albumArtLoadJob?.cancel()
+            albumArtLoadJob = serviceScope.launch {
+                val bitmap = withContext(Dispatchers.IO) {
+                    try {
+                        if (albumUri == null) {
+                            null
+                        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                            val source = ImageDecoder.createSource(contentResolver, albumUri)
+                            ImageDecoder.decodeBitmap(source)
+                        } else {
+                            contentResolver.openInputStream(albumUri)?.use { input ->
+                                BitmapFactory.decodeStream(input)
+                            }
+                        }
+                    } catch (e: Exception) {
+                        Log.e("MusicService", "album art decode failed", e)
+                        null
+                    }
+                }
+
+                if (isExiting) return@launch
+                if (music?.getAlbumUri() != playerModel.currentMusic?.getAlbumUri()) return@launch
+
+                currentAlbumArtBitmap = bitmap
+                updateNotification()
+            }
         }
     }
 
@@ -62,6 +102,10 @@ class MusicService : MediaLibraryService() {
 
     override fun onCreate() {
         super.onCreate()
+
+        createNotificationChannel()
+        startForegroundCompat()
+        isForegroundStarted = true
 
         EventBus.getInstance().register(this)
 
@@ -81,70 +125,129 @@ class MusicService : MediaLibraryService() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         super.onStartCommand(intent, flags, startId)
-        createNotificationChannel() // 알림 채널 생성
 
-        // Notification 에 사용할 RemoteViews 생성
-        collapsedNotificationView = RemoteViews(this.packageName, R.layout.notification_player)
-        expandedNotificationView = RemoteViews(this.packageName, R.layout.notification_player_extended)
+        if (!::collapsedNotificationView.isInitialized) {
+            collapsedNotificationView = RemoteViews(this.packageName, R.layout.notification_player)
+            expandedNotificationView = RemoteViews(this.packageName, R.layout.notification_player_extended)
+        }
 
         Log.d("MusicServiceAction", "action = ${intent?.action}")
 
-        // 예외 발생 시에도 반드시 임시 알림으로 startForeground 호출
-        val notification = try {
-            createNotification()
-        } catch (e: Exception) {
-            Log.e("MusicService", "createNotification() 실패, 기본 알림으로 대체", e)
-            NotificationCompat.Builder(this, CHANNEL_ID)
-                .setContentTitle("Ziggy Music")
-                .setContentText("음악 재생 중")
-                .setSmallIcon(R.drawable.ic_music_note)
-                .build()
-        }
-        startForeground(NOTIFICATION_ID, notification) // Foreground 에서 실행
-
-        when(intent?.action) {
-            PLAY -> { // Notification 에서 재생 / 일시 정지 버튼을 누를 시
+        when (intent?.action) {
+            PLAY -> {
                 if (!player.isPlaying) {
                     Log.d("onStartCommand", "PLAY")
                     player.play()
                 }
+                updateNotification()
             }
-            PAUSE -> { // Notification 에서 재생 / 일시 정지 버튼을 누를 시
+
+            PAUSE -> {
                 if (player.isPlaying) {
                     Log.d("onStartCommand", "PAUSE")
                     player.pause()
                 }
+                updateNotification()
             }
-            SKIP_PREV -> { // Notification 에서 이전 곡 버튼을 누를 시
+
+            SKIP_PREV -> {
                 Log.d("onStartCommand", "SKIP_PREV")
                 player.seekToPrevious()
+                updateNotification()
             }
-            SKIP_NEXT -> { // Notification 에서 다음 곡 버튼을 누를 시
+
+            SKIP_NEXT -> {
                 Log.d("onStartCommand", "SKIP_NEXT")
                 player.seekToNext()
+                updateNotification()
             }
-            CLOSE -> { // Notification 에서 닫기 버튼 누를 시
+
+            CLOSE -> {
                 exitPlayer()
+            }
+
+            ACTION_REFRESH_NOTIFICATION, null -> {
+                currentAlbumArtBitmap = null
+                updateNotification()
+
+                val music = playerModel.currentMusic
+                val albumUri = music?.getAlbumUri()
+
+                albumArtLoadJob?.cancel()
+                albumArtLoadJob = serviceScope.launch {
+                    val bitmap = withContext(Dispatchers.IO) {
+                        try {
+                            if (albumUri == null) {
+                                null
+                            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                                val source = ImageDecoder.createSource(contentResolver, albumUri)
+                                ImageDecoder.decodeBitmap(source)
+                            } else {
+                                contentResolver.openInputStream(albumUri)?.use { input ->
+                                    BitmapFactory.decodeStream(input)
+                                }
+                            }
+                        } catch (e: Exception) {
+                            Log.e("MusicService", "album art decode failed", e)
+                            null
+                        }
+                    }
+
+                    if (isExiting) return@launch
+                    if (music?.getAlbumUri() != playerModel.currentMusic?.getAlbumUri()) return@launch
+
+                    currentAlbumArtBitmap = bitmap
+                    updateNotification()
+                }
             }
         }
 
         return START_NOT_STICKY
     }
 
+    private fun createBootstrapNotification(): Notification {
+        return NotificationCompat.Builder(this, CHANNEL_ID)
+            .setContentTitle("Ziggy Music")
+            .setContentText("음악 재생 준비 중")
+            .setSmallIcon(R.drawable.ic_music_note)
+            .setOngoing(true)
+            .build()
+    }
+
+    private fun startForegroundCompat() {
+        val notification = NotificationCompat.Builder(this, CHANNEL_ID)
+            .setContentTitle("Ziggy Music")
+            .setContentText("음악 재생 준비 중")
+            .setSmallIcon(R.drawable.ic_music_note)
+            .setOngoing(true)
+            .build()
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            startForeground(
+                NOTIFICATION_ID,
+                notification,
+                ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK
+            )
+        } else {
+            startForeground(NOTIFICATION_ID, notification)
+        }
+    }
+
     private fun updateNotification() {
-        if (isExiting) return
+        if (isExiting || !isForegroundStarted) return
 
         val notification = try {
             createNotification()
         } catch (e: Exception) {
+            Log.e("MusicService", "updateNotification() 실패, 기본 알림으로 대체", e)
             NotificationCompat.Builder(this, CHANNEL_ID)
                 .setContentTitle("Ziggy Music")
                 .setContentText("음악 재생 중")
                 .setSmallIcon(R.drawable.ic_music_note)
+                .setOngoing(true)
                 .build()
         }
 
-        // 음악 재생 상태 변화 등 이벤트가 발생할 때 알림 UI가 최신 상태로 유지
         val manager = getSystemService(NotificationManager::class.java)
         manager.notify(NOTIFICATION_ID, notification)
     }
@@ -279,37 +382,21 @@ class MusicService : MediaLibraryService() {
     }
 
     private fun setMusicInNotification(music: MusicModel?) {
-        var bitmap: Bitmap? = null
-        val albumUri = music?.getAlbumUri() ?: "".toUri()
-
-        try {
-            bitmap = if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) { // P 이상인 경우
-                val source = ImageDecoder.createSource(contentResolver, albumUri)
-                ImageDecoder.decodeBitmap(source)
-
-            } else { // 그 이하인 경우
-                BitmapFactory.decodeStream(contentResolver.openInputStream(albumUri))
-            }
-        } catch (e: IOException) { // 음원의 앨범 아트 Uri 에 해당하는 파일이 없는 경우 예외가 발생하고 이 경우 bitmap 에 null 을 담는다.
-            e.printStackTrace()
-            bitmap = null
-        } finally {
-            if (bitmap != null) { // null 이 아닌 경우 다시 말해 앨범 아트 Uri 에 파일이 있는 경우
-                collapsedNotificationView.setImageViewBitmap(R.id.ivNotificationAlbum, bitmap)
-                expandedNotificationView.setImageViewBitmap(
-                    R.id.ivNotificationExtendedAlbum,
-                    bitmap
-                )
-            } else { // 앨범 아트 Uri 에 파일이 없는 경우 기본 앨범 아트를 사용
-                collapsedNotificationView.setImageViewResource(
-                    R.id.ivNotificationAlbum,
-                    R.drawable.ic_no_album_image
-                )
-                expandedNotificationView.setImageViewResource(
-                    R.id.ivNotificationExtendedAlbum,
-                    R.drawable.ic_no_album_image
-                )
-            }
+        if (currentAlbumArtBitmap != null) {
+            collapsedNotificationView.setImageViewBitmap(R.id.ivNotificationAlbum, currentAlbumArtBitmap)
+            expandedNotificationView.setImageViewBitmap(
+                R.id.ivNotificationExtendedAlbum,
+                currentAlbumArtBitmap
+            )
+        } else {
+            collapsedNotificationView.setImageViewResource(
+                R.id.ivNotificationAlbum,
+                R.drawable.ic_no_album_image
+            )
+            expandedNotificationView.setImageViewResource(
+                R.id.ivNotificationExtendedAlbum,
+                R.drawable.ic_no_album_image
+            )
         }
 
         collapsedNotificationView.setTextViewText(R.id.tvNotificationTitle, music?.title)
@@ -386,6 +473,12 @@ class MusicService : MediaLibraryService() {
 
     // 서비스가 완전히 종료되면
     override fun onDestroy() {
+        isForegroundStarted = false
+
+        albumArtLoadJob?.cancel()
+        serviceScope.cancel()
+        currentAlbumArtBitmap = null
+
         // ExoPlayer가 Hilt @Singleton 으로 제공되어
         // Activity/Fragment/Service가 같은 인스턴스를 공유.
         //
@@ -415,6 +508,10 @@ class MusicService : MediaLibraryService() {
         const val SKIP_PREV = "com.hero.ziggymusic.SKIP_PREV" // Notification 에서 이전 곡 버튼을 누를 시
         const val SKIP_NEXT = "com.hero.ziggymusic.SKIP_NEXT" // Notification 에서 다음 곡 버튼을 누를 시
         const val CLOSE = "com.hero.ziggymusic.CLOSE" // 닫기 버튼을 누를 시
+        const val ACTION_REFRESH_NOTIFICATION = "com.hero.ziggymusic.REFRESH_NOTIFICATION"
+
+        @Volatile
+        var isForegroundStarted: Boolean = false
 
         // PendingIntent Request 코드
         const val REQ_CODE_PREV = 100
