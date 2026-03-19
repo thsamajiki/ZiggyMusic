@@ -1,6 +1,5 @@
 package com.hero.ziggymusic.view.main.musiclist
 
-import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
