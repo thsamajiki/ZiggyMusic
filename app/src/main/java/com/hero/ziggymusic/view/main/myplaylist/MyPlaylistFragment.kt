@@ -16,7 +16,7 @@ import com.hero.ziggymusic.database.music.entity.MusicModel
 import com.hero.ziggymusic.databinding.FragmentMyPlaylistBinding
 import com.hero.ziggymusic.event.EventBus
 import com.hero.ziggymusic.ext.playMusic
-import com.hero.ziggymusic.service.MusicService
+import com.hero.ziggymusic.service.MusicServiceLauncher
 import com.hero.ziggymusic.view.listener.OnRecyclerItemClickListener
 import com.hero.ziggymusic.view.main.myplaylist.viewmodel.MyPlaylistViewModel
 import dagger.hilt.android.AndroidEntryPoint
@@ -77,9 +77,8 @@ class MyPlaylistFragment : Fragment(),
     }
 
     private fun playMusic(musicKey: String) {
-        val intent = Intent(requireActivity(), MusicService::class.java)
-        requireActivity().startService(intent)
         requireContext().playMusic(musicKey)
+        MusicServiceLauncher.startOrRefresh(requireContext())
     }
 
     private fun openDeleteFromMyPlayListOptionMenu(data: MusicModel, anchorView: View) {

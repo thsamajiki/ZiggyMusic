@@ -65,6 +65,7 @@ import androidx.fragment.app.activityViewModels
 import com.bumptech.glide.load.DataSource
 import com.bumptech.glide.load.engine.GlideException
 import com.bumptech.glide.request.RequestListener
+import com.hero.ziggymusic.service.MusicServiceLauncher
 import com.hero.ziggymusic.view.main.player.model.LastPlayedMedia
 
 @AndroidEntryPoint
@@ -349,12 +350,7 @@ class PlayerFragment : Fragment() {
     }
 
     private fun sendServiceAction(action: String) {
-        val appCtx = requireContext().applicationContext
-        val intent = Intent(appCtx, MusicService::class.java).apply {
-            this.action = action
-        }
-        // 서비스가 이미 실행 중이면 일반 startService로 전달되고, O+에서 미실행이면 FG로 승격됨
-        startForegroundService(appCtx, intent)
+        MusicServiceLauncher.dispatchAction(requireContext(), action)
     }
 
     private fun initPlayView() {
