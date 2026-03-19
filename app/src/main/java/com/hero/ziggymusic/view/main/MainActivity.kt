@@ -40,6 +40,7 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
+import com.hero.ziggymusic.service.MusicServiceLauncher
 import com.hero.ziggymusic.view.main.model.MainTitle
 import com.hero.ziggymusic.view.main.musiclist.MusicListFragment
 import com.hero.ziggymusic.view.main.myplaylist.MyPlaylistFragment
@@ -202,8 +203,7 @@ class MainActivity : AppCompatActivity(),
 
     // 서비스를 시작하는 메서드
     private fun musicServiceStart() {
-        val serviceIntent = Intent(this, MusicService::class.java)
-        startForegroundService(serviceIntent)
+        MusicServiceLauncher.startOrRefresh(this)
     }
 
     @Subscribe
