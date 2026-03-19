@@ -106,6 +106,7 @@ class MusicService : MediaLibraryService() {
         createNotificationChannel()
         startForegroundCompat()
         isForegroundStarted = true
+        MusicServiceLauncher.onForegroundEntered()
 
         EventBus.getInstance().register(this)
 
@@ -125,6 +126,12 @@ class MusicService : MediaLibraryService() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         super.onStartCommand(intent, flags, startId)
+
+        if (!isForegroundStarted) {
+            startForegroundCompat()
+            isForegroundStarted = true
+            MusicServiceLauncher.onForegroundEntered()
+        }
 
         if (!::collapsedNotificationView.isInitialized) {
             collapsedNotificationView = RemoteViews(this.packageName, R.layout.notification_player)
@@ -203,15 +210,6 @@ class MusicService : MediaLibraryService() {
         }
 
         return START_NOT_STICKY
-    }
-
-    private fun createBootstrapNotification(): Notification {
-        return NotificationCompat.Builder(this, CHANNEL_ID)
-            .setContentTitle("Ziggy Music")
-            .setContentText("음악 재생 준비 중")
-            .setSmallIcon(R.drawable.ic_music_note)
-            .setOngoing(true)
-            .build()
     }
 
     private fun startForegroundCompat() {
@@ -474,6 +472,7 @@ class MusicService : MediaLibraryService() {
     // 서비스가 완전히 종료되면
     override fun onDestroy() {
         isForegroundStarted = false
+        MusicServiceLauncher.onServiceDestroyed()
 
         albumArtLoadJob?.cancel()
         serviceScope.cancel()
