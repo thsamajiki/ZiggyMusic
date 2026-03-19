@@ -12,6 +12,9 @@ import androidx.core.content.ContextCompat
  * - 서비스가 실행 중이 아니면 O+에서 startForegroundService로 승격
  */
 object MusicServiceLauncher {
+    @Volatile
+    private var isStartRequested: Boolean = false
+
     fun startOrRefresh(context: Context) {
         dispatchAction(context, MusicService.ACTION_REFRESH_NOTIFICATION)
     }
@@ -22,10 +25,19 @@ object MusicServiceLauncher {
             this.action = action
         }
 
-        if (MusicService.isForegroundStarted) {
+        if (MusicService.isForegroundStarted || isStartRequested) {
             appContext.startService(intent)
         } else {
+            isStartRequested = true
             ContextCompat.startForegroundService(appContext, intent)
         }
+    }
+
+    fun onForegroundEntered() {
+        isStartRequested = false
+    }
+
+    fun onServiceDestroyed() {
+        isStartRequested = false
     }
 }
