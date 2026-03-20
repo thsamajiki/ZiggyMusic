@@ -553,6 +553,9 @@ class MusicService : MediaLibraryService() {
         // 프로세스가 종료되면 시스템이 리소스를 회수하므로 별도 release는 불필요함.
         stopForeground(STOP_FOREGROUND_REMOVE)
 
+        val manager = getSystemService(NotificationManager::class.java)
+        manager.cancel(NOTIFICATION_ID)
+
         if (::mediaLibrarySession.isInitialized) {
             mediaLibrarySession.release()
         }
