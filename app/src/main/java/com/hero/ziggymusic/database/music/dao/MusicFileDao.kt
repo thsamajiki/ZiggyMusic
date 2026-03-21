@@ -9,6 +9,9 @@ interface MusicFileDao {
     @Query("SELECT * FROM music_table ORDER BY title ASC")
     fun getAllFiles() : LiveData<List<MusicModel>>
 
+    @Query("SELECT COUNT(*) FROM music_table")
+    suspend fun getMusicCount(): Int
+
     @Query("SELECT * FROM music_table WHERE id = :key limit 1")
     suspend fun getMusicFileFromKey(key: String?): MusicModel?
 
