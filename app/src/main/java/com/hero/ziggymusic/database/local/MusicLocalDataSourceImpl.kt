@@ -6,14 +6,15 @@ import androidx.lifecycle.LiveData
 import com.hero.ziggymusic.database.music.dao.MusicFileDao
 import com.hero.ziggymusic.database.music.dao.PlaylistMusicDao
 import com.hero.ziggymusic.database.music.entity.MusicModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 class MusicLocalDataSourceImpl @Inject constructor(
     private val application: Application,
     private val musicFileDao: MusicFileDao,
-    private val playlistMusicDao: PlaylistMusicDao
+    private val playlistMusicDao: PlaylistMusicDao,
 ) : MusicLocalDataSource {
-
     override suspend fun loadMusics() {
         val musicListUri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
 
@@ -27,33 +28,45 @@ class MusicLocalDataSourceImpl @Inject constructor(
             MediaStore.Audio.Media.DURATION
         )
 
-        // 3. 콘텐츠 리졸버에 해당 데이터 요청 (음원 목록에 있는 0번째 줄을 가리킴)
-        val cursor = application.contentResolver.query(
-            musicListUri,
-            projection,
-            null,
-            null,
-            null
-        )
+        val selection = "${MediaStore.Audio.Media.IS_MUSIC} != 0 AND ${MediaStore.Audio.Media.DURATION} > 0"
+        val sortOrder = "${MediaStore.Audio.Media.TITLE} ASC"
 
+        // 3. 콘텐츠 리졸버에 해당 데이터 요청 (음원 목록에 있는 0번째 줄을 가리킴)
         // 4. 커서로 전달된 데이터를 꺼내서 저장
         val musicList = mutableListOf<MusicModel>()
 
-        while (cursor?.moveToNext() == true) {
-            val id = cursor.getString(0)
-            val title = cursor.getString(1)
-            val artist = cursor.getString(2)
-            val albumId = cursor.getString(3)
-            val albumTitle = cursor.getString(4) //  (if (cursor.getString(4) == null) "Unknown Album" else cursor.getString(4))
-            val duration = cursor.getLong(5)
+        application.contentResolver.query(
+            musicListUri,
+            projection,
+            selection,
+            null,
+            sortOrder
+        )?.use { cursor ->
+            val idColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media._ID)
+            val titleColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.TITLE)
+            val artistColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ARTIST)
+            val albumIdColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM_ID)
+            val albumTitleColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM)
+            val durationColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DURATION)
 
-            val music = MusicModel(id, title, artist, albumId, albumTitle, duration)
-            musicList.add(music)
+            while (cursor.moveToNext()) {
+                val music = MusicModel(
+                    id = cursor.getString(idColumn),
+                    title = cursor.getString(titleColumn),
+                    artist = cursor.getString(artistColumn),
+                    albumId = cursor.getString(albumIdColumn),
+                    album = cursor.getString(albumTitleColumn),
+                    duration = cursor.getLong(durationColumn)
+                )
+                musicList.add(music)
+            }
         }
 
         musicFileDao.insertAll(musicList)
+    }
 
-        cursor?.close()
+    override suspend fun getMusicCount(): Int = withContext(Dispatchers.IO) {
+        musicFileDao.getMusicCount()
     }
 
     override suspend fun getMusic(key: String): MusicModel? {
