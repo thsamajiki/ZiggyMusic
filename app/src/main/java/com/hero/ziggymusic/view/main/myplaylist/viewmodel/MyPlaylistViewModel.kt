@@ -17,7 +17,6 @@ class MyPlaylistViewModel @Inject constructor(
     application: Application,
     private val musicRepository: MusicRepository
 ) : AndroidViewModel(application) {
-
 //    init {
 //        viewModelScope.launch {
 //            musicRepository.loadMusics()
@@ -26,8 +25,7 @@ class MyPlaylistViewModel @Inject constructor(
 
     val myPlaylist : LiveData<List<MusicModel>> = musicRepository.getMyPlaylistMusics()
 
-    private val _emptyStateMessage =
-        MutableLiveData(getApplication<Application>().getString(R.string.no_music_found))
+    private val _emptyStateMessage = MutableLiveData("")
     val emptyStateMessage: LiveData<String>
         get() = _emptyStateMessage
 

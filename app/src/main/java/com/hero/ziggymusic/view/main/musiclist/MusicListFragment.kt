@@ -1,7 +1,6 @@
 package com.hero.ziggymusic.view.main.musiclist
 
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -17,14 +16,11 @@ import com.hero.ziggymusic.databinding.FragmentMusicListBinding
 import com.hero.ziggymusic.event.EventBus
 import com.hero.ziggymusic.ext.playMusic
 import com.hero.ziggymusic.service.MusicServiceLauncher
-import com.hero.ziggymusic.view.listener.OnRecyclerItemClickListener
 import com.hero.ziggymusic.view.main.musiclist.viewmodel.MusicListViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-class MusicListFragment : Fragment(),
-    OnRecyclerItemClickListener<MusicModel> {
-
+class MusicListFragment : Fragment() {
     private var _binding: FragmentMusicListBinding? = null
     private val binding get() = _binding!!
 
@@ -48,30 +44,21 @@ class MusicListFragment : Fragment(),
 
         EventBus.getInstance().register(this)
         initRecyclerView(binding.rvMusicList)
-        setupListeners()
     }
 
     private fun initRecyclerView(recyclerView: RecyclerView) {
-        musicListAdapter = MusicListAdapter()
+        musicListAdapter = MusicListAdapter(
+            onItemClick = { music ->
+                playMusic(music.id)
+            },
+            onOptionClick = { music, view ->
+                openAddOrDeleteToFromMyPlaylistOptionMenu(music, view)
+            }
+        )
 
         recyclerView.run {
             layoutManager = LinearLayoutManager(context)
             adapter = musicListAdapter
-        }
-    }
-
-    private fun setupListeners() {
-        musicListAdapter.setOnRecyclerItemClickListener(this)
-    }
-
-    override fun onItemClick(position: Int, view: View, data: MusicModel) {
-        when (view.id) {
-            R.id.ivMusicOptionMenu -> openAddOrDeleteToFromMyPlaylistOptionMenu(data, view)
-
-            else -> {
-                playMusic(data.id)
-                Log.d("onItemClick", "MusicModel: $data, ${data.id}")
-            }
         }
     }
 

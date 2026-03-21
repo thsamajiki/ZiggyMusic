@@ -1,62 +1,66 @@
 package com.hero.ziggymusic.view.main.musiclist
 
-import android.net.Uri
-import android.provider.MediaStore
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
+import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.hero.ziggymusic.database.music.entity.MusicModel
 import com.hero.ziggymusic.databinding.ItemMusicListBinding
-import com.hero.ziggymusic.view.listener.OnRecyclerItemClickListener
-import com.hero.ziggymusic.view.main.BaseAdapter
 
 class MusicListAdapter(
-) : BaseAdapter<MusicListAdapter.MusicListViewHolder, MusicModel>() {
-
-    private val musicList = mutableListOf<MusicModel>()
-
+    private val onItemClick: (MusicModel) -> Unit,
+    private val onOptionClick: (MusicModel, View) -> Unit,
+) : ListAdapter<MusicModel, MusicListAdapter.MusicListViewHolder>(DIFF_CALLBACK) {
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MusicListViewHolder {
-        val binding = ItemMusicListBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+        val binding = ItemMusicListBinding.inflate(
+            LayoutInflater.from(parent.context),
+            parent,
+            false
+        )
 
-        return MusicListViewHolder(binding, getOnRecyclerItemClickListener()!!)
+        return MusicListViewHolder(binding)
     }
 
     override fun onBindViewHolder(holder: MusicListViewHolder, position: Int) {
-        val musicItem = musicList[position]
-        holder.setMusic(musicItem)
-    }
-
-    override fun getItemCount(): Int {
-        return musicList.size
-    }
-
-    fun setMusicList(musicData: List<MusicModel>) {
-        musicList.clear()
-        musicList.addAll(musicData)
-        notifyDataSetChanged()
+        holder.bind(
+            getItem(position),
+            onItemClick,
+            onOptionClick
+        )
     }
 
     class MusicListViewHolder(
         private val binding: ItemMusicListBinding,
-        private val itemClickListener: OnRecyclerItemClickListener<MusicModel>
-    ) :
-        RecyclerView.ViewHolder(binding.root) {
-
-        fun setMusic(musicItem: MusicModel) {
+    ) : RecyclerView.ViewHolder(binding.root) {
+        fun bind(
+            musicItem: MusicModel,
+            onItemClick: (MusicModel) -> Unit,
+            onOptionClick: (MusicModel, View) -> Unit,
+        ) {
             binding.music = musicItem
             binding.executePendingBindings()
 
-            binding.ivMusicOptionMenu.setOnClickListener {
-                itemClickListener.onItemClick(absoluteAdapterPosition, it, musicItem)
+            binding.root.setOnClickListener {
+                onItemClick(musicItem)
             }
 
-            itemView.setOnClickListener {
-                itemClickListener.onItemClick(absoluteAdapterPosition, it, musicItem)
+            binding.ivMusicOptionMenu.setOnClickListener { view ->
+                onOptionClick(musicItem, view)
             }
         }
+    }
 
-        private fun getMusicFileUri(musicItem: MusicModel): Uri {
-            return Uri.withAppendedPath(MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI, musicItem.id)
+    companion object {
+        private val DIFF_CALLBACK = object : DiffUtil.ItemCallback<MusicModel>() {
+            override fun areItemsTheSame(oldItem: MusicModel, newItem: MusicModel): Boolean {
+                return oldItem.id == newItem.id
+            }
+
+            override fun areContentsTheSame(oldItem: MusicModel, newItem: MusicModel): Boolean {
+                return oldItem == newItem
+            }
         }
     }
 }
