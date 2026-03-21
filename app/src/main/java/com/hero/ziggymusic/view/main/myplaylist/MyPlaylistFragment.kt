@@ -16,24 +16,17 @@ import com.hero.ziggymusic.databinding.FragmentMyPlaylistBinding
 import com.hero.ziggymusic.event.EventBus
 import com.hero.ziggymusic.ext.playMusic
 import com.hero.ziggymusic.service.MusicServiceLauncher
-import com.hero.ziggymusic.view.listener.OnRecyclerItemClickListener
 import com.hero.ziggymusic.view.main.myplaylist.viewmodel.MyPlaylistViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-class MyPlaylistFragment : Fragment(),
-    OnRecyclerItemClickListener<MusicModel> {
-
+class MyPlaylistFragment : Fragment() {
     private var _binding: FragmentMyPlaylistBinding? = null
     private val binding get() = _binding!!
 
     private val viewModel by viewModels<MyPlaylistViewModel>()
 
     private lateinit var myPlayListAdapter: MyPlaylistAdapter
-
-    companion object {
-        fun newInstance() = MyPlaylistFragment()
-    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -51,27 +44,21 @@ class MyPlaylistFragment : Fragment(),
 
         EventBus.getInstance().register(this)
         initRecyclerView(binding.rvMyPlayList)
-        setupListeners()
     }
 
     private fun initRecyclerView(recyclerView: RecyclerView) {
-        myPlayListAdapter = MyPlaylistAdapter()
+        myPlayListAdapter = MyPlaylistAdapter(
+            onItemClick = { music ->
+                playMusic(music.id)
+            },
+            onOptionClick = { music, view ->
+                openDeleteFromMyPlayListOptionMenu(music, view)
+            }
+        )
 
         recyclerView.run {
             layoutManager = LinearLayoutManager(context)
             adapter = myPlayListAdapter
-        }
-    }
-
-    private fun setupListeners() {
-        myPlayListAdapter.setOnRecyclerItemClickListener(this)
-    }
-
-    override fun onItemClick(position: Int, view: View, data: MusicModel) {
-        when (view.id) {
-            R.id.ivMusicOptionMenu -> openDeleteFromMyPlayListOptionMenu(data, view)
-
-            else -> playMusic(data.id)
         }
     }
 
@@ -105,5 +92,9 @@ class MyPlaylistFragment : Fragment(),
         _binding = null
         EventBus.getInstance().unregister(this)
         super.onDestroyView()
+    }
+
+    companion object {
+        fun newInstance() = MyPlaylistFragment()
     }
 }
