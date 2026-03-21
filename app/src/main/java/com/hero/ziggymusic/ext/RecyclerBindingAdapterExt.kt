@@ -11,7 +11,7 @@ fun RecyclerView.setMusicListItems(items: List<MusicModel>?) {
     items ?: return
 
     val adapter = this.adapter as? MusicListAdapter
-    adapter?.setMusicList(items)
+    adapter?.submitList(items)
 }
 
 @BindingAdapter("myPlaylistItems")
@@ -19,5 +19,5 @@ fun RecyclerView.setMyPlaylistItems(items: List<MusicModel>?) {
     items ?: return
 
     val adapter = this.adapter as? MyPlaylistAdapter
-    adapter?.setMusicList(items)
+    adapter?.submitList(items)
 }
