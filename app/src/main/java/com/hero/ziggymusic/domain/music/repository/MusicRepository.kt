@@ -6,6 +6,8 @@ import com.hero.ziggymusic.database.music.entity.MusicModel
 interface MusicRepository {
     suspend fun loadMusics()
 
+    suspend fun getMusicCount(): Int
+
     suspend fun getMusic(key: String): MusicModel?
 
     fun getAllMusic(): LiveData<List<MusicModel>>

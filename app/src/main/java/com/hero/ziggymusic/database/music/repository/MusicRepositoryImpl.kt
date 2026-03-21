@@ -9,9 +9,12 @@ import javax.inject.Inject
 class MusicRepositoryImpl @Inject constructor(
     private val musicLocalDataSource: MusicLocalDataSource
 ) : MusicRepository {
-
     override suspend fun loadMusics() {
         return musicLocalDataSource.loadMusics()
+    }
+
+    override suspend fun getMusicCount(): Int {
+        return musicLocalDataSource.getMusicCount()
     }
 
     override suspend fun getMusic(key: String): MusicModel? {
