@@ -17,7 +17,6 @@ class MusicListViewModel @Inject constructor(
     application: Application,
     private val musicRepository : MusicRepository
 ) : AndroidViewModel(application) {
-
     private val myPlaylist = musicRepository.getMyPlaylistMusics()
     private val myPlaylistObserver: (List<MusicModel>) -> Unit = {
 
@@ -25,14 +24,15 @@ class MusicListViewModel @Inject constructor(
 
     val allMusics = musicRepository.getAllMusic()
 
-    private val _emptyStateMessage =
-        MutableLiveData(getApplication<Application>().getString(R.string.no_music_found))
+    private val _emptyStateMessage = MutableLiveData("")
     val emptyStateMessage: LiveData<String>
         get() = _emptyStateMessage
 
     init {
         viewModelScope.launch {
-            musicRepository.loadMusics()
+            if (musicRepository.getMusicCount() == 0) {
+                musicRepository.loadMusics()
+            }
         }
         // Observer 는 항상 활성 상태로 간주되므로 항상 수정 관련 알림을 받는다.
         myPlaylist.observeForever(myPlaylistObserver)
