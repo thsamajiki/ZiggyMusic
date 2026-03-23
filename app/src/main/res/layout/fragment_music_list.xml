@@ -24,11 +24,10 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:visibility="@{viewModel.allMusics.size() == 0 ? View.GONE : View.VISIBLE}"
+            android:visibility="gone"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:musicListItems="@{viewModel.allMusics}"
             tools:listitem="@layout/item_music_list" />
 
         <TextView
@@ -39,7 +38,7 @@
             android:textColor="@color/white"
             android:textSize="@dimen/small_text_size"
             android:textStyle="bold"
-            android:visibility="@{viewModel.allMusics.size() == 0 ? View.VISIBLE : View.INVISIBLE}"
+            android:visibility="gone"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
