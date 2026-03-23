@@ -28,7 +28,7 @@ class MusicListFragment : Fragment() {
     private var _binding: FragmentMusicListBinding? = null
     private val binding get() = _binding!!
 
-    private val musicListViewModel by viewModels<MusicListViewModel>()
+    private val vm by viewModels<MusicListViewModel>()
 
     private lateinit var musicListAdapter: MusicListAdapter
 
@@ -38,7 +38,7 @@ class MusicListFragment : Fragment() {
     ): View {
         _binding = DataBindingUtil.inflate(inflater, R.layout.fragment_music_list, container, false)
         binding.lifecycleOwner = viewLifecycleOwner
-        binding.viewModel = musicListViewModel
+        binding.viewModel = vm
 
         return binding.root
     }
@@ -68,7 +68,7 @@ class MusicListFragment : Fragment() {
     }
 
     private fun collectUiState() {
-        musicListViewModel.uiState.observe(viewLifecycleOwner) { state ->
+        vm.uiState.observe(viewLifecycleOwner) { state ->
             when (state) {
                 is MusicListUiState.Idle -> {
                     binding.rvMusicList.isVisible = false
@@ -95,7 +95,7 @@ class MusicListFragment : Fragment() {
             }
         }
 
-        musicListViewModel.toastEvent.observe(viewLifecycleOwner) { event ->
+        vm.toastEvent.observe(viewLifecycleOwner) { event ->
             event.getContentIfNotHandled()?.let { message ->
                 Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
             }
@@ -109,7 +109,7 @@ class MusicListFragment : Fragment() {
 
     private fun openAddOrDeleteToFromMyPlaylistOptionMenu(data: MusicModel, anchorView: View) {
         val popupMenu = PopupMenu(requireActivity(), anchorView)
-        val menuId: Int = if (musicListViewModel.isContainedInMyPlayList(data.id)) {
+        val menuId: Int = if (vm.isContainedInMyPlayList(data.id)) {
             R.menu.menu_delete_music_from_myplaylist_option
         } else {
             R.menu.menu_add_music_to_my_playlist_option
@@ -130,12 +130,12 @@ class MusicListFragment : Fragment() {
 
     private fun addMusicToMyPlaylist(musicModel: MusicModel) {
         // Local DB에 저장한다.
-        musicListViewModel.addMusicToMyPlaylist(musicModel)
+        vm.addMusicToMyPlaylist(musicModel)
     }
 
     private fun deleteMusicFromMyPlayList(musicModel: MusicModel) {
         // Local DB에 저장한다.
-        musicListViewModel.deleteMusicFromMyPlaylist(musicModel)
+        vm.deleteMusicFromMyPlaylist(musicModel)
     }
 
     override fun onDestroyView() {
