@@ -24,7 +24,7 @@ class MyPlaylistFragment : Fragment() {
     private var _binding: FragmentMyPlaylistBinding? = null
     private val binding get() = _binding!!
 
-    private val viewModel by viewModels<MyPlaylistViewModel>()
+    private val vm by viewModels<MyPlaylistViewModel>()
 
     private lateinit var myPlayListAdapter: MyPlaylistAdapter
 
@@ -34,7 +34,7 @@ class MyPlaylistFragment : Fragment() {
     ): View {
         _binding = DataBindingUtil.inflate(inflater, R.layout.fragment_my_playlist, container, false)
         binding.lifecycleOwner = viewLifecycleOwner
-        binding.viewModel = viewModel
+        binding.viewModel = vm
 
         return binding.root
     }
@@ -85,7 +85,7 @@ class MyPlaylistFragment : Fragment() {
     }
 
     private fun deleteMusicFromMyPlayList(musicModel: MusicModel) {
-        viewModel.deleteMusicFromMyPlaylist(musicModel)
+        vm.deleteMusicFromMyPlaylist(musicModel)
     }
 
     override fun onDestroyView() {
