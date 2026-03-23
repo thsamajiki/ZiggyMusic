@@ -7,6 +7,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
 import androidx.lifecycle.viewModelScope
 import com.hero.ziggymusic.R
+import com.hero.ziggymusic.common.SingleEvent
 import com.hero.ziggymusic.database.music.entity.MusicModel
 import com.hero.ziggymusic.domain.music.repository.MusicRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -40,8 +41,8 @@ class MusicListViewModel @Inject constructor(
     val emptyStateMessage: LiveData<String>
         get() = _emptyStateMessage
 
-    private val _toastEvent = MutableLiveData<Event<String>>()
-    val toastEvent: LiveData<Event<String>>
+    private val _toastEvent = MutableLiveData<SingleEvent<String>>()
+    val toastEvent: LiveData<SingleEvent<String>>
         get() = _toastEvent
 
     private var isInitialized = false
@@ -80,7 +81,7 @@ class MusicListViewModel @Inject constructor(
                 }
             }.onFailure {
                 isInitialized = true
-                _toastEvent.value = Event(getApplication<Application>().getString(R.string.load_music_failed))
+                _toastEvent.value = SingleEvent(getApplication<Application>().getString(R.string.load_music_failed))
                 _uiState.value = MusicListUiState.Error
             }
         }
@@ -106,19 +107,5 @@ class MusicListViewModel @Inject constructor(
         allMusics.removeObserver(allMusicsObserver)
         myPlaylist.removeObserver(myPlaylistObserver)
         super.onCleared()
-    }
-}
-
-class Event<out T>(private val content: T) {
-
-    private var hasBeenHandled = false
-
-    fun getContentIfNotHandled(): T? {
-        return if (hasBeenHandled) {
-            null
-        } else {
-            hasBeenHandled = true
-            content
-        }
     }
 }
