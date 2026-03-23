@@ -86,6 +86,18 @@ class MusicListFragment : Fragment() {
                     binding.rvMusicList.isVisible = false
                     binding.tvNothingFound.isVisible = true
                 }
+
+                is MusicListUiState.Error -> {
+                    Log.e("MusicListFragment", "음원 목록 불러오기 실패")
+                    musicListAdapter.submitList(emptyList())
+                    binding.rvMusicList.isVisible = false
+                }
+            }
+        }
+
+        musicListViewModel.toastEvent.observe(viewLifecycleOwner) { event ->
+            event.getContentIfNotHandled()?.let { message ->
+                Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
             }
         }
     }
