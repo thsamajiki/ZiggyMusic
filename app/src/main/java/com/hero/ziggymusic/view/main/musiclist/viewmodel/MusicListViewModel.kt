@@ -17,6 +17,7 @@ sealed class MusicListUiState {
     object Idle : MusicListUiState()
     data class Content(val data: List<MusicModel>) : MusicListUiState()
     object Empty : MusicListUiState()
+    object Error : MusicListUiState()
 }
 
 @HiltViewModel
@@ -38,6 +39,10 @@ class MusicListViewModel @Inject constructor(
     private val _emptyStateMessage = MutableLiveData("")
     val emptyStateMessage: LiveData<String>
         get() = _emptyStateMessage
+
+    private val _toastEvent = MutableLiveData<Event<String>>()
+    val toastEvent: LiveData<Event<String>>
+        get() = _toastEvent
 
     private var isInitialized = false
 
@@ -74,6 +79,9 @@ class MusicListViewModel @Inject constructor(
                     _uiState.value = MusicListUiState.Content(musics)
                 }
             }.onFailure {
+                isInitialized = true
+                _toastEvent.value = Event(getApplication<Application>().getString(R.string.load_music_failed))
+                _uiState.value = MusicListUiState.Error
             }
         }
     }
@@ -98,5 +106,19 @@ class MusicListViewModel @Inject constructor(
         allMusics.removeObserver(allMusicsObserver)
         myPlaylist.removeObserver(myPlaylistObserver)
         super.onCleared()
+    }
+}
+
+class Event<out T>(private val content: T) {
+
+    private var hasBeenHandled = false
+
+    fun getContentIfNotHandled(): T? {
+        return if (hasBeenHandled) {
+            null
+        } else {
+            hasBeenHandled = true
+            content
+        }
     }
 }
