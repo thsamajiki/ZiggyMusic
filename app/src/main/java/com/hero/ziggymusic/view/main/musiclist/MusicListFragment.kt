@@ -134,7 +134,7 @@ class MusicListFragment : Fragment() {
     }
 
     private fun deleteMusicFromMyPlayList(musicModel: MusicModel) {
-        // Local DB에 저장한다.
+        // Local DB에서 삭제한다.
         vm.deleteMusicFromMyPlaylist(musicModel)
     }
 
