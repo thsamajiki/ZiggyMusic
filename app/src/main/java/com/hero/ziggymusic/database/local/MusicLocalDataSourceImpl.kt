@@ -15,7 +15,7 @@ class MusicLocalDataSourceImpl @Inject constructor(
     private val musicFileDao: MusicFileDao,
     private val playlistMusicDao: PlaylistMusicDao,
 ) : MusicLocalDataSource {
-    override suspend fun loadMusics() {
+    override suspend fun loadMusics() = withContext(Dispatchers.IO) {
         val musicListUri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
 
         // 2. 가져올 데이터 컬럼을 정의
