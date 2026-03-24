@@ -31,19 +31,27 @@ class PlayerController(
             }
         }
 
+    private var isBottomSheetCallbackAdded = false
+
     init {
         lifecycleOwner.lifecycle.addObserver(this)
     }
 
     fun startPlayer(initialMusicId: String = "") {
-        fragmentManager.commit {
-            add(
-                fragmentContainer.id,
-                PlayerFragment.newInstance(initialMusicId),
-                PlayerFragment.TAG
-            )
+        if (playerFragment == null) {
+            fragmentManager.commit {
+                add(
+                    fragmentContainer.id,
+                    PlayerFragment.newInstance(initialMusicId),
+                    PlayerFragment.TAG
+                )
+            }
         }
-        bottomSheetBehavior.addBottomSheetCallback(callback)
+
+        if (!isBottomSheetCallbackAdded) {
+            bottomSheetBehavior.addBottomSheetCallback(callback)
+            isBottomSheetCallbackAdded = true
+        }
     }
 
     fun changeMusic(musicId: String) {
