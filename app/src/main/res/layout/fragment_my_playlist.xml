@@ -8,7 +8,7 @@
         <import type="android.view.View" />
 
         <variable
-            name="viewModel"
+            name="vm"
             type="com.hero.ziggymusic.view.main.myplaylist.viewmodel.MyPlaylistViewModel" />
     </data>
 
@@ -22,11 +22,12 @@
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/rvMyPlayList"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="0dp"
             android:orientation="vertical"
             android:visibility="gone"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             tools:listitem="@layout/item_my_playlist" />
 
@@ -34,7 +35,7 @@
             android:id="@+id/tvNothingFound"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@{viewModel.emptyStateMessage}"
+            android:text="@{vm.emptyStateMessage}"
             android:textColor="@color/white"
             android:textSize="@dimen/small_text_size"
             android:textStyle="bold"
