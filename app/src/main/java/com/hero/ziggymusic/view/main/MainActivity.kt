@@ -146,6 +146,28 @@ class MainActivity : AppCompatActivity(),
         super.onStart()
     }
 
+    override fun onResume() {
+        super.onResume()
+
+        val audioPermissionGranted = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            ContextCompat.checkSelfPermission(
+                this,
+                Manifest.permission.READ_MEDIA_AUDIO
+            ) == PackageManager.PERMISSION_GRANTED
+        } else {
+            ContextCompat.checkSelfPermission(
+                this,
+                Manifest.permission.READ_EXTERNAL_STORAGE
+            ) == PackageManager.PERMISSION_GRANTED
+        }
+
+        if (audioPermissionGranted) {
+            playerController.startPlayer(
+                playbackStateStore.loadLastPlayedId(PlaybackContentType.MUSIC).orEmpty()
+            )
+        }
+    }
+
     private fun initViewModel() {
         with(vm) {
             lifecycleScope.launch {
