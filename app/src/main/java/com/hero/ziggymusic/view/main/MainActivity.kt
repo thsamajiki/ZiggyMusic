@@ -64,6 +64,15 @@ class MainActivity : AppCompatActivity(),
     private lateinit var playerController: PlayerController
     private val playbackStateStore by lazy { PlaybackStateStore(this) }
 
+    private val playerListener = object : Player.Listener {
+        // 미디어 아이템이 바뀔 때
+        override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
+            super.onMediaItemTransition(mediaItem, reason)
+            val newMusicKey: String = mediaItem?.mediaId ?: return
+            playerModel.changedMusic(newMusicKey)
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -189,15 +198,8 @@ class MainActivity : AppCompatActivity(),
 
     // 미니 플레이어에서 사용하는 버튼에 리스너 세팅
     private fun setPlayerListener() {
-        player.addListener(object : Player.Listener {
-            // 미디어 아이템이 바뀔 때
-            override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
-                super.onMediaItemTransition(mediaItem, reason)
-
-                val newMusicKey: String = mediaItem?.mediaId ?: return
-                playerModel.changedMusic(newMusicKey)
-            }
-        })
+        player.removeListener(playerListener)
+        player.addListener(playerListener)
     }
 
     // 서비스를 시작하는 메서드
