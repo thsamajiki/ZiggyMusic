@@ -37,7 +37,7 @@ class MyPlaylistFragment : Fragment() {
     ): View {
         _binding = DataBindingUtil.inflate(inflater, R.layout.fragment_my_playlist, container, false)
         binding.lifecycleOwner = viewLifecycleOwner
-        binding.viewModel = vm
+        binding.vm = vm
 
         return binding.root
     }
