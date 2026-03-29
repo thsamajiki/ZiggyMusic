@@ -32,37 +32,46 @@
 
         <Constraint
             android:id="@+id/tvSongTitle"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="@dimen/space_xs"
-            motion:layout_constrainedWidth="true"
-            motion:layout_constraintBottom_toTopOf="@id/tvSongArtist"
-            motion:layout_constraintEnd_toStartOf="@id/ivPlayPause"
-            motion:layout_constraintHorizontal_bias="0"
+            android:layout_marginEnd="@dimen/space_xs"
+            android:ellipsize="end"
+            android:gravity="start|center_vertical"
+            android:maxLines="1"
+            android:textAlignment="viewStart"
             motion:layout_constraintStart_toEndOf="@id/ivAlbumArt"
-            motion:layout_constraintTop_toTopOf="@id/ivAlbumArt">
+            motion:layout_constraintEnd_toStartOf="@id/ivPlayPause"
+            motion:layout_constraintTop_toTopOf="@id/ivAlbumArt"
+            motion:layout_constraintBottom_toTopOf="@id/tvSongArtist"
+            motion:layout_constraintHorizontal_bias="0">
 
             <CustomAttribute
                 motion:attributeName="textSize"
-                motion:customFloatValue="14" />
+                motion:customFloatValue="12" />
 
         </Constraint>
 
         <Constraint
             android:id="@+id/tvSongArtist"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="@dimen/space_xs"
-            motion:layout_constrainedWidth="true"
-            motion:layout_constraintBottom_toBottomOf="@id/ivAlbumArt"
-            motion:layout_constraintEnd_toStartOf="@id/ivPlayPause"
-            motion:layout_constraintHorizontal_bias="0"
+            android:layout_marginEnd="@dimen/space_xs"
+            android:layout_marginTop="@dimen/space_xxs"
+            android:ellipsize="end"
+            android:gravity="start|center_vertical"
+            android:maxLines="1"
+            android:textAlignment="viewStart"
             motion:layout_constraintStart_toEndOf="@id/ivAlbumArt"
-            motion:layout_constraintTop_toBottomOf="@id/tvSongTitle">
+            motion:layout_constraintEnd_toStartOf="@id/ivPlayPause"
+            motion:layout_constraintTop_toBottomOf="@id/tvSongTitle"
+            motion:layout_constraintBottom_toBottomOf="@id/ivAlbumArt"
+            motion:layout_constraintHorizontal_bias="0">
 
             <CustomAttribute
                 motion:attributeName="textSize"
-                motion:customFloatValue="14" />
+                motion:customFloatValue="10" />
 
         </Constraint>
 
