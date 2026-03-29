@@ -189,6 +189,11 @@ class PlayerFragment : Fragment() {
             binding.constraintLayout,
             playerBottomSheetManager
         )
+
+        binding.constraintLayout.post {
+            if (_binding == null) return@post
+            playerMotionManager.changeState(vm.motionState.value)
+        }
     }
 
     private fun initViewModel() {
