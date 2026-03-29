@@ -58,7 +58,6 @@
         </androidx.appcompat.widget.Toolbar>
 
         <TextView
-            style="@style/Text.ZiggyMusic.Title"
             android:id="@+id/tvSongTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -192,7 +191,6 @@
             tools:progress="40" />
 
         <TextView
-            style="@style/Text.ZiggyMusic.Numeric"
             android:id="@+id/tvCurrentPlayTime"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -205,7 +203,6 @@
             tools:text="00:00" />
 
         <TextView
-            style="@style/Text.ZiggyMusic.Numeric"
             android:id="@+id/tvTotalTime"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
