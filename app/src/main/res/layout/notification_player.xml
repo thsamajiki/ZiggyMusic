@@ -4,23 +4,27 @@
     android:layout_width="match_parent"
     android:layout_height="@dimen/noti_height"
     android:background="@color/dark_black"
-    android:orientation="horizontal">
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:paddingStart="@dimen/space_sm"
+    android:paddingEnd="@dimen/space_sm">
 
     <ImageView
         android:id="@+id/ivNotificationAlbum"
         android:layout_width="@dimen/noti_album_art_size"
         android:layout_height="@dimen/noti_album_art_size"
         android:layout_gravity="center"
-        android:layout_marginStart="@dimen/space_xs"
         android:layout_marginEnd="@dimen/space_14"
         tools:srcCompat="@tools:sample/avatars" />
 
     <LinearLayout
         android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
+        android:layout_height="match_parent"
         android:layout_weight="1"
-        android:orientation="vertical">
+        android:gravity="center_vertical"
+        android:orientation="vertical"
+        android:paddingTop="2dp"
+        android:paddingBottom="2dp">
 
         <TextView
             android:id="@+id/tvNotificationTitle"
@@ -30,9 +34,10 @@
             android:layout_marginTop="@dimen/space_xs"
             android:ellipsize="end"
             android:singleLine="true"
+            android:includeFontPadding="false"
             android:text="@string/current_song_title"
             android:textColor="@color/white"
-            android:textSize="@dimen/body_text_size" />
+            android:textSize="@dimen/small_text_size" />
 
         <TextView
             android:id="@+id/tvNotificationArtist"
@@ -42,34 +47,11 @@
             android:layout_marginBottom="@dimen/space_xs"
             android:ellipsize="end"
             android:singleLine="true"
+            android:includeFontPadding="false"
             android:text="@string/current_song_artist"
             android:textColor="@color/white"
             android:textSize="@dimen/small_text_size" />
 
     </LinearLayout>
-
-    <ImageView
-        android:id="@+id/btnNotificationPrev"
-        android:layout_width="@dimen/noti_btn"
-        android:layout_height="@dimen/noti_btn"
-        android:layout_gravity="center"
-        android:layout_marginStart="@dimen/space_xs"
-        android:src="@drawable/ic_prev_button" />
-
-    <ImageView
-        android:id="@+id/btnNotificationPlay"
-        android:layout_width="@dimen/noti_btn"
-        android:layout_height="@dimen/noti_btn"
-        android:layout_gravity="center"
-        android:layout_marginHorizontal="@dimen/space_15"
-        android:src="@drawable/ic_play_button" />
-
-    <ImageView
-        android:id="@+id/btnNotificationNext"
-        android:layout_width="@dimen/noti_btn"
-        android:layout_height="@dimen/noti_btn"
-        android:layout_gravity="center"
-        android:layout_marginEnd="@dimen/space_13"
-        android:src="@drawable/ic_next_button" />
 
 </LinearLayout>
