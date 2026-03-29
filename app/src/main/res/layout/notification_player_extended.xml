@@ -12,20 +12,21 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/space_xs"
         android:layout_marginBottom="@dimen/space_xs"
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingStart="@dimen/space_sm"
+        android:paddingEnd="@dimen/space_sm">
 
         <ImageView
             android:id="@+id/ivNotificationExtendedAlbum"
             android:layout_width="@dimen/noti_extended_album_art_size"
             android:layout_height="@dimen/noti_extended_album_art_size"
             android:layout_gravity="center_vertical"
-            android:layout_marginHorizontal="@dimen/space_sm"
             tools:srcCompat="@tools:sample/avatars" />
 
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_gravity="center_vertical"
             android:layout_weight="1"
             android:orientation="vertical">
 
