@@ -102,7 +102,6 @@ class MyPlaylistFragment : Fragment() {
 
     private fun playMusic(musicKey: String) {
         requireContext().playMusic(musicKey)
-        MusicServiceLauncher.startOrRefresh(requireContext())
     }
 
     private fun openDeleteFromMyPlayListOptionMenu(data: MusicModel, anchorView: View) {
