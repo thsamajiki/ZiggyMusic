@@ -14,6 +14,8 @@ import android.graphics.ImageDecoder
 import android.net.Uri
 import android.os.Build
 import android.util.Log
+import android.util.LruCache
+import android.view.View
 import android.widget.RemoteViews
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
@@ -52,59 +54,43 @@ class MusicService : MediaLibraryService() {
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
     private var albumArtLoadJob: Job? = null
     private var currentAlbumArtBitmap: Bitmap? = null
+    private var currentAlbumArtMediaId: String? = null
+    private var loadingAlbumArtMediaId: String? = null
+    private val albumArtCache = object : LruCache<String, Bitmap>(20) {}
 
     private val playerListener = object : Player.Listener {
         override fun onIsPlayingChanged(isPlaying: Boolean) {
             if (isExiting) return
+
+            val mediaId = player.currentMediaItem?.mediaId
+            if (mediaId != null && playerModel.currentMusic?.id != mediaId) {
+                playerModel.changedMusic(mediaId)
+            }
+
             updateNotification()
         }
 
         override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
             if (isExiting) return
 
-            currentAlbumArtBitmap = null
-            updateNotification()
-
-            val music = playerModel.currentMusic
-            val albumUri = music?.getAlbumUri()
-
-            albumArtLoadJob?.cancel()
-            albumArtLoadJob = serviceScope.launch {
-                val bitmap = withContext(Dispatchers.IO) {
-                    try {
-                        if (albumUri == null) {
-                            null
-                        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                            val source = ImageDecoder.createSource(contentResolver, albumUri)
-                            ImageDecoder.decodeBitmap(source)
-                        } else {
-                            contentResolver.openInputStream(albumUri)?.use { input ->
-                                BitmapFactory.decodeStream(input)
-                            }
-                        }
-                    } catch (e: Exception) {
-                        Log.e("MusicService", "album art decode failed", e)
-                        null
-                    }
-                }
-
-                if (isExiting) return@launch
-                if (music?.getAlbumUri() != playerModel.currentMusic?.getAlbumUri()) return@launch
-
-                currentAlbumArtBitmap = bitmap
-                updateNotification()
+            val newMediaId = mediaItem?.mediaId
+            if (newMediaId != null) {
+                playerModel.changedMusic(newMediaId)
+            } else {
+                syncCurrentMusicFromPlayer()
             }
+
+            refreshAlbumArt()
         }
     }
 
     private lateinit var mediaLibrarySession: MediaLibrarySession
-    private lateinit var collapsedNotificationView: RemoteViews
-    private lateinit var expandedNotificationView: RemoteViews
 
     override fun onCreate() {
         super.onCreate()
 
         createNotificationChannel()
+
         startForegroundCompat()
         isForegroundStarted = true
         MusicServiceLauncher.onForegroundEntered()
@@ -115,9 +101,8 @@ class MusicService : MediaLibraryService() {
             this,
             player,
             object : MediaLibrarySession.Callback {
-        }).build()
+            }).build()
 
-        // ExoPlayer 상태 변화 감지 리스너 등록
         player.addListener(playerListener)
     }
 
@@ -134,16 +119,11 @@ class MusicService : MediaLibraryService() {
             MusicServiceLauncher.onForegroundEntered()
         }
 
-        if (!::collapsedNotificationView.isInitialized) {
-            collapsedNotificationView = RemoteViews(this.packageName, R.layout.notification_player)
-            expandedNotificationView = RemoteViews(this.packageName, R.layout.notification_player_extended)
-        }
-
         Log.d("MusicServiceAction", "action = ${intent?.action}")
 
         when (intent?.action) {
             PLAY -> {
-                if (!player.isPlaying) {
+                if (!player.playWhenReady) {
                     Log.d("onStartCommand", "PLAY")
                     player.play()
                 }
@@ -151,7 +131,7 @@ class MusicService : MediaLibraryService() {
             }
 
             PAUSE -> {
-                if (player.isPlaying) {
+                if (player.playWhenReady) {
                     Log.d("onStartCommand", "PAUSE")
                     player.pause()
                 }
@@ -161,13 +141,11 @@ class MusicService : MediaLibraryService() {
             SKIP_PREV -> {
                 Log.d("onStartCommand", "SKIP_PREV")
                 player.seekToPrevious()
-                updateNotification()
             }
 
             SKIP_NEXT -> {
                 Log.d("onStartCommand", "SKIP_NEXT")
                 player.seekToNext()
-                updateNotification()
             }
 
             CLOSE -> {
@@ -187,6 +165,8 @@ class MusicService : MediaLibraryService() {
             .setContentTitle("Ziggy Music")
             .setContentText("음악 재생 준비 중")
             .setSmallIcon(R.drawable.ic_music_note)
+            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .setOngoing(true)
             .build()
 
@@ -201,24 +181,83 @@ class MusicService : MediaLibraryService() {
         }
     }
 
-    private fun refreshAlbumArt() {
+    private fun syncCurrentMusicFromPlayer(): MusicModel? {
+        val mediaId = player.currentMediaItem?.mediaId ?: return playerModel.currentMusic
+        playerModel.changedMusic(mediaId)
+        return playerModel.currentMusic
+    }
+
+    private fun updateAlbumArt(mediaId: String?) {
+        albumArtLoadJob?.cancel()
+
+        if (mediaId == null) {
+            loadingAlbumArtMediaId = null
+            currentAlbumArtBitmap = null
+            currentAlbumArtMediaId = null
+            updateNotification()
+            return
+        }
+
+        playerModel.changedMusic(mediaId)
+        val currentMusic = playerModel.currentMusic
+        val albumUri = currentMusic?.getAlbumUri()
+
+        if (albumUri == null) {
+            loadingAlbumArtMediaId = null
+            currentAlbumArtBitmap = null
+            currentAlbumArtMediaId = null
+            updateNotification()
+            return
+        }
+
+        val cachedBitmap = albumArtCache.get(mediaId)
+        if (cachedBitmap != null) {
+            loadingAlbumArtMediaId = null
+            currentAlbumArtBitmap = cachedBitmap
+            currentAlbumArtMediaId = mediaId
+            updateNotification()
+            return
+        }
+
+        loadingAlbumArtMediaId = mediaId
         currentAlbumArtBitmap = null
+        currentAlbumArtMediaId = null
         updateNotification()
 
-        val expectedAlbumUri = playerModel.currentMusic?.getAlbumUri()
-
-        albumArtLoadJob?.cancel()
         albumArtLoadJob = serviceScope.launch {
             val bitmap = withContext(Dispatchers.IO) {
-                decodeAlbumArtForNotification(expectedAlbumUri)
+                decodeAlbumArtForNotification(albumUri)
             }
 
             if (isExiting) return@launch
-            if (expectedAlbumUri != playerModel.currentMusic?.getAlbumUri()) return@launch
 
-            currentAlbumArtBitmap = bitmap
+            val latestMediaId = player.currentMediaItem?.mediaId
+            if (mediaId != latestMediaId) {
+                if (loadingAlbumArtMediaId == mediaId) {
+                    loadingAlbumArtMediaId = null
+                }
+                return@launch
+            }
+
+            loadingAlbumArtMediaId = null
+
+            if (bitmap != null) {
+                albumArtCache.put(mediaId, bitmap)
+                currentAlbumArtBitmap = bitmap
+                currentAlbumArtMediaId = mediaId
+            } else {
+                currentAlbumArtBitmap = null
+                currentAlbumArtMediaId = null
+            }
+
             updateNotification()
         }
+    }
+
+    private fun refreshAlbumArt() {
+        val currentMusic = syncCurrentMusicFromPlayer()
+        val newMediaId = currentMusic?.id ?: player.currentMediaItem?.mediaId
+        updateAlbumArt(newMediaId)
     }
 
     private fun decodeAlbumArtForNotification(albumUri: Uri?): Bitmap? {
@@ -272,7 +311,6 @@ class MusicService : MediaLibraryService() {
         }
     }
 
-    // 앨범 아트 크기 연산
     private fun calculateInSampleSize(
         width: Int,
         height: Int,
@@ -309,8 +347,21 @@ class MusicService : MediaLibraryService() {
                 .build()
         }
 
-        val manager = getSystemService(NotificationManager::class.java)
-        manager.notify(NOTIFICATION_ID, notification)
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                startForeground(
+                    NOTIFICATION_ID,
+                    notification,
+                    ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK
+                )
+            } else {
+                startForeground(NOTIFICATION_ID, notification)
+            }
+        } catch (e: Exception) {
+            Log.e("MusicService", "startForeground로 알림 갱신 실패", e)
+            val manager = getSystemService(NotificationManager::class.java)
+            manager.notify(NOTIFICATION_ID, notification)
+        }
     }
 
     @Subscribe
@@ -331,7 +382,6 @@ class MusicService : MediaLibraryService() {
         }
     }
 
-    // 알림 채널을 생성
     private fun createNotificationChannel() {
         val manager = getSystemService(NotificationManager::class.java)
 
@@ -340,75 +390,98 @@ class MusicService : MediaLibraryService() {
                 CHANNEL_ID,
                 "musicPlayerChannel",
                 NotificationManager.IMPORTANCE_LOW
-            )
+            ).apply {
+                lockscreenVisibility = Notification.VISIBILITY_PUBLIC
+            }
             manager.createNotificationChannel(serviceChannel)
         }
     }
 
-    // 알림을 생성
     private fun createNotification(): Notification {
-        // 각 action 에 해당하는 PendingIntent 생성
+        val collapsedNotificationView =
+            RemoteViews(this.packageName, R.layout.notification_player_collapsed)
+        val expandedNotificationView =
+            RemoteViews(this.packageName, R.layout.notification_player_extended)
+
         val prevIntent = Intent(this, MusicService::class.java).run {
             action = SKIP_PREV
-            PendingIntent.getService(this@MusicService, REQ_CODE_PREV, this, PendingIntent.FLAG_IMMUTABLE)
+            PendingIntent.getService(
+                this@MusicService,
+                REQ_CODE_PREV,
+                this,
+                PendingIntent.FLAG_IMMUTABLE
+            )
         }
         val playIntent = Intent(this, MusicService::class.java).run {
             action = PLAY
-            PendingIntent.getService(this@MusicService, REQ_CODE_PLAY, this, PendingIntent.FLAG_IMMUTABLE)
+            PendingIntent.getService(
+                this@MusicService,
+                REQ_CODE_PLAY,
+                this,
+                PendingIntent.FLAG_IMMUTABLE
+            )
         }
         val pauseIntent = Intent(this, MusicService::class.java).run {
             action = PAUSE
-            PendingIntent.getService(this@MusicService, REQ_CODE_PAUSE, this, PendingIntent.FLAG_IMMUTABLE)
+            PendingIntent.getService(
+                this@MusicService,
+                REQ_CODE_PAUSE,
+                this,
+                PendingIntent.FLAG_IMMUTABLE
+            )
         }
         val nextIntent = Intent(this, MusicService::class.java).run {
             action = SKIP_NEXT
-            PendingIntent.getService(this@MusicService, REQ_CODE_NEXT, this, PendingIntent.FLAG_IMMUTABLE)
+            PendingIntent.getService(
+                this@MusicService,
+                REQ_CODE_NEXT,
+                this,
+                PendingIntent.FLAG_IMMUTABLE
+            )
         }
         val closeIntent = Intent(this, MusicService::class.java).run {
             action = CLOSE
-            PendingIntent.getService(this@MusicService, REQ_CODE_CLOSE, this, PendingIntent.FLAG_IMMUTABLE)
+            PendingIntent.getService(
+                this@MusicService,
+                REQ_CODE_CLOSE,
+                this,
+                PendingIntent.FLAG_IMMUTABLE
+            )
         }
         val notificationTouchIntent = Intent(this, MainActivity::class.java).run {
             addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
-            PendingIntent.getActivity(this@MusicService, REQ_CODE_NOTIFICATION_TOUCH, this, PendingIntent.FLAG_IMMUTABLE)
+            PendingIntent.getActivity(
+                this@MusicService,
+                REQ_CODE_NOTIFICATION_TOUCH,
+                this,
+                PendingIntent.FLAG_IMMUTABLE
+            )
         }
 
-        val isPlaying = player.isPlaying
+        val isPlaying = player.playWhenReady
+        setPlayPauseButtonState(
+            expandedNotificationView = expandedNotificationView,
+            isPlaying = isPlaying,
+            playIntent = playIntent,
+            pauseIntent = pauseIntent
+        )
 
-        // Play/Pause 버튼 이미지와 PendingIntent를 상태에 따라 동적으로 설정
-        setPlayPauseButtonState(isPlaying)
-
-        // setOnClickPendingIntent()를 이용해서 클릭 리스너를 달아준다.
-        collapsedNotificationView.setOnClickPendingIntent(
-            R.id.btnNotificationPrev,
-            prevIntent
-        )
-        collapsedNotificationView.setOnClickPendingIntent(
-            R.id.btnNotificationNext,
-            nextIntent
-        )
-        expandedNotificationView.setOnClickPendingIntent(
-            R.id.btnNotificationExtendedPrev,
-            prevIntent
-        )
-        expandedNotificationView.setOnClickPendingIntent(
-            R.id.btnNotificationExtendedNext,
-            nextIntent
-        )
-        expandedNotificationView.setOnClickPendingIntent(
-            R.id.btnNotificationExtendedClose,
-            closeIntent
-        )
+        expandedNotificationView.setOnClickPendingIntent(R.id.btnNotificationExtendedPrev, prevIntent)
+        expandedNotificationView.setOnClickPendingIntent(R.id.btnNotificationExtendedNext, nextIntent)
+        expandedNotificationView.setOnClickPendingIntent(R.id.btnNotificationExtendedClose, closeIntent)
 
         val currentMusic = playerModel.currentMusic
+        setMusicInNotification(
+            collapsedNotificationView = collapsedNotificationView,
+            expandedNotificationView = expandedNotificationView,
+            music = currentMusic
+        )
 
-        // 알림으로 사용할 레이아웃에 음원 정보를 설정
-        setMusicInNotification(currentMusic)
-
-        // 알림 생성
         return NotificationCompat.Builder(this, CHANNEL_ID)
             .setShowWhen(false)
             .setSmallIcon(R.drawable.ic_music_note)
+            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .setStyle(NotificationCompat.DecoratedCustomViewStyle())
             .setColor(ContextCompat.getColor(this, R.color.dark_black))
             .setColorized(true)
@@ -419,54 +492,98 @@ class MusicService : MediaLibraryService() {
             .build()
     }
 
-    private fun setPlayPauseButtonState(isPlaying: Boolean) {
+    private fun setPlayPauseButtonState(
+        expandedNotificationView: RemoteViews,
+        isPlaying: Boolean,
+        playIntent: PendingIntent,
+        pauseIntent: PendingIntent
+    ) {
         if (isPlaying) {
-            collapsedNotificationView.setImageViewResource(R.id.btnNotificationPlay, R.drawable.ic_pause_button)
-            collapsedNotificationView.setOnClickPendingIntent(R.id.btnNotificationPlay, getPauseIntent())
-            expandedNotificationView.setImageViewResource(R.id.btnNotificationExtendedPlay, R.drawable.ic_pause_button)
-            expandedNotificationView.setOnClickPendingIntent(R.id.btnNotificationExtendedPlay, getPauseIntent())
-        } else {
-            collapsedNotificationView.setImageViewResource(R.id.btnNotificationPlay, R.drawable.ic_play_button)
-            collapsedNotificationView.setOnClickPendingIntent(R.id.btnNotificationPlay, getPlayIntent())
-            expandedNotificationView.setImageViewResource(R.id.btnNotificationExtendedPlay, R.drawable.ic_play_button)
-            expandedNotificationView.setOnClickPendingIntent(R.id.btnNotificationExtendedPlay, getPlayIntent())
-        }
-    }
-
-    private fun getPlayIntent(): PendingIntent {
-        val playIntent = Intent(this, MusicService::class.java).apply { action = PLAY }
-        return PendingIntent.getService(this, REQ_CODE_PLAY, playIntent, PendingIntent.FLAG_IMMUTABLE)
-    }
-    private fun getPauseIntent(): PendingIntent {
-        val pauseIntent = Intent(this, MusicService::class.java).apply { action = PAUSE }
-        return PendingIntent.getService(this, REQ_CODE_PAUSE, pauseIntent, PendingIntent.FLAG_IMMUTABLE)
-    }
-
-    private fun setMusicInNotification(music: MusicModel?) {
-        if (currentAlbumArtBitmap != null) {
-            collapsedNotificationView.setImageViewBitmap(R.id.ivNotificationAlbum, currentAlbumArtBitmap)
-            expandedNotificationView.setImageViewBitmap(
-                R.id.ivNotificationExtendedAlbum,
-                currentAlbumArtBitmap
-            )
-        } else {
-            collapsedNotificationView.setImageViewResource(
-                R.id.ivNotificationAlbum,
-                R.drawable.ic_no_album_image
-            )
             expandedNotificationView.setImageViewResource(
-                R.id.ivNotificationExtendedAlbum,
-                R.drawable.ic_no_album_image
+                R.id.btnNotificationExtendedPlay,
+                R.drawable.ic_pause_button
+            )
+            expandedNotificationView.setOnClickPendingIntent(
+                R.id.btnNotificationExtendedPlay,
+                pauseIntent
+            )
+        } else {
+            expandedNotificationView.setImageViewResource(
+                R.id.btnNotificationExtendedPlay,
+                R.drawable.ic_play_button
+            )
+            expandedNotificationView.setOnClickPendingIntent(
+                R.id.btnNotificationExtendedPlay,
+                playIntent
             )
         }
+    }
 
-        collapsedNotificationView.setTextViewText(R.id.tvNotificationTitle, music?.title)
-        collapsedNotificationView.setTextViewText(R.id.tvNotificationArtist, music?.artist)
-        collapsedNotificationView.setImageViewResource(R.id.btnNotificationPrev, R.drawable.ic_prev_button)
-        collapsedNotificationView.setImageViewResource(R.id.btnNotificationNext, R.drawable.ic_next_button)
+    private fun setMusicInNotification(
+        collapsedNotificationView: RemoteViews,
+        expandedNotificationView: RemoteViews,
+        music: MusicModel?
+    ) {
+        val currentMusicId = music?.id
+        val albumBitmap = if (currentAlbumArtMediaId == currentMusicId) {
+            currentAlbumArtBitmap
+        } else {
+            null
+        }
+        val isAlbumArtLoading = loadingAlbumArtMediaId == currentMusicId
 
-        expandedNotificationView.setTextViewText(R.id.tvNotificationExtendedTitle, music?.title)
-        expandedNotificationView.setTextViewText(R.id.tvNotificationExtendedArtist, music?.artist)
+        when {
+            albumBitmap != null -> {
+                collapsedNotificationView.setViewVisibility(R.id.ivNotificationAlbum, View.VISIBLE)
+                expandedNotificationView.setViewVisibility(R.id.ivNotificationExtendedAlbum, View.VISIBLE)
+
+                collapsedNotificationView.setImageViewBitmap(R.id.ivNotificationAlbum, albumBitmap)
+                expandedNotificationView.setImageViewBitmap(
+                    R.id.ivNotificationExtendedAlbum,
+                    albumBitmap
+                )
+            }
+
+            isAlbumArtLoading -> {
+                collapsedNotificationView.setViewVisibility(R.id.ivNotificationAlbum, View.VISIBLE)
+                expandedNotificationView.setViewVisibility(R.id.ivNotificationExtendedAlbum, View.VISIBLE)
+
+                collapsedNotificationView.setImageViewResource(
+                    R.id.ivNotificationAlbum,
+                    android.R.color.transparent
+                )
+                expandedNotificationView.setImageViewResource(
+                    R.id.ivNotificationExtendedAlbum,
+                    android.R.color.transparent
+                )
+            }
+
+            else -> {
+                collapsedNotificationView.setViewVisibility(R.id.ivNotificationAlbum, View.VISIBLE)
+                expandedNotificationView.setViewVisibility(R.id.ivNotificationExtendedAlbum, View.VISIBLE)
+
+                collapsedNotificationView.setImageViewResource(
+                    R.id.ivNotificationAlbum,
+                    R.drawable.ic_no_album_image
+                )
+                expandedNotificationView.setImageViewResource(
+                    R.id.ivNotificationExtendedAlbum,
+                    R.drawable.ic_no_album_image
+                )
+            }
+        }
+
+        collapsedNotificationView.setTextViewText(R.id.tvNotificationTitle, music?.title ?: "")
+        collapsedNotificationView.setTextViewText(R.id.tvNotificationArtist, music?.artist ?: "")
+
+        expandedNotificationView.setTextViewText(
+            R.id.tvNotificationExtendedTitle,
+            music?.title ?: ""
+        )
+        expandedNotificationView.setTextViewText(
+            R.id.tvNotificationExtendedArtist,
+            music?.artist ?: ""
+        )
         expandedNotificationView.setImageViewResource(
             R.id.btnNotificationExtendedPrev,
             R.drawable.ic_prev_button
@@ -482,51 +599,26 @@ class MusicService : MediaLibraryService() {
     }
 
     override fun onTaskRemoved(rootIntent: Intent?) {
-        // 사용자가 최근 앱 목록에서 앱을 제거한 경우,
-        // 이를 앱 종료 의사로 간주한다.
-        //
-        // 따라서 백그라운드 재생도 함께 중단하고,
-        // Notification 제거 및 Service 종료까지 수행한다.
-        //
-        // 즉, 이 앱은 "최근 앱에서 제거해도 재생 유지" 정책이 아니라
-        // "최근 앱에서 제거하면 앱/재생을 함께 종료" 정책을 따른다.
         exitPlayer()
         super.onTaskRemoved(rootIntent)
     }
 
-    /**
-     * 사용자가 앱 종료 의사를 명시한 경우의 공통 종료 처리.
-     *
-     * - 최근 앱 목록에서 앱 제거
-     * - Notification 닫기 버튼 선택
-     *
-     * 위 경우 재생 중인 음원을 중단하고,
-     * Notification 제거, Task 종료, Service 종료까지 함께 수행한다.
-     */
     private fun exitPlayer() {
         if (isExiting) return
         isExiting = true
 
-        // 종료 중에는 Notification 갱신이 절대 발생하면 안 되므로, 리스너를 먼저 제거
         player.removeListener(playerListener)
-
-        // 자동 재생처럼 보이는 문제를 막기 위해 상태를 확실히 끊는다.
         player.pause()
         player.playWhenReady = false
-
-        // 필요하면 플레이리스트도 끊어준다(원치 않으면 이 줄은 제거 가능)
         player.stop()
         player.clearMediaItems()
 
-        // stopForeground 전에 cancel을 먼저 때려서 "큰뷰/작은뷰 토글" 깜빡임을 방지
         val manager = getSystemService(NotificationManager::class.java)
         manager.cancel(NOTIFICATION_ID)
         stopForeground(STOP_FOREGROUND_REMOVE)
 
         try {
             val am = getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
-            // 현재 프로세스에 속한 task들을 최근 앱 목록에서 제거
-            // (백그라운드에 Activity가 살아있든, task만 남아있든 모두 처리)
             for (task in am.appTasks) {
                 task.finishAndRemoveTask()
             }
@@ -537,7 +629,6 @@ class MusicService : MediaLibraryService() {
         stopSelf()
     }
 
-    // 서비스가 완전히 종료되면
     override fun onDestroy() {
         isForegroundStarted = false
         MusicServiceLauncher.onServiceDestroyed()
@@ -545,17 +636,8 @@ class MusicService : MediaLibraryService() {
         albumArtLoadJob?.cancel()
         serviceScope.cancel()
         currentAlbumArtBitmap = null
+        currentAlbumArtMediaId = null
 
-        // ExoPlayer가 Hilt @Singleton 으로 제공되어
-        // Activity/Fragment/Service가 같은 인스턴스를 공유.
-        //
-        // 여기서 player.release()를 호출하면, 앱을 종료했다가 다시 실행하는 케이스에서
-        // (프로세스는 유지된 채 Activity만 재생성되는 경우가 흔함)
-        // DI가 동일한 ExoPlayer 인스턴스를 재주입하게 되고,
-        // 이미 release 된 player로 인해 "재생/seek/prepare"가 전부 동작하지 않게 됨.
-        //
-        // 서비스가 내려가더라도 프로세스가 살아있는 동안은 player를 release 하지 않음.
-        // 프로세스가 종료되면 시스템이 리소스를 회수하므로 별도 release는 불필요함.
         stopForeground(STOP_FOREGROUND_REMOVE)
 
         val manager = getSystemService(NotificationManager::class.java)
@@ -570,20 +652,20 @@ class MusicService : MediaLibraryService() {
     }
 
     companion object {
-        const val CHANNEL_ID = "MusicChannel" // 알림 채널 ID
-        const val NOTIFICATION_ID = 1 // Foreground 알림 ID
+        const val CHANNEL_ID = "MusicChannel"
+        const val NOTIFICATION_ID = 1
 
-        const val PLAY = "com.hero.ziggymusic.PLAY" // Notification 에서 재생 버튼을 누를 시
-        const val PAUSE = "com.hero.ziggymusic.PAUSE" // Notification 에서 일시 정지 버튼을 누를 시
-        const val SKIP_PREV = "com.hero.ziggymusic.SKIP_PREV" // Notification 에서 이전 곡 버튼을 누를 시
-        const val SKIP_NEXT = "com.hero.ziggymusic.SKIP_NEXT" // Notification 에서 다음 곡 버튼을 누를 시
-        const val CLOSE = "com.hero.ziggymusic.CLOSE" // 닫기 버튼을 누를 시
+        const val PLAY = "com.hero.ziggymusic.PLAY"
+        const val PAUSE = "com.hero.ziggymusic.PAUSE"
+        const val SKIP_PREV = "com.hero.ziggymusic.SKIP_PREV"
+        const val SKIP_NEXT = "com.hero.ziggymusic.SKIP_NEXT"
+        const val CLOSE = "com.hero.ziggymusic.CLOSE"
         const val ACTION_REFRESH_NOTIFICATION = "com.hero.ziggymusic.REFRESH_NOTIFICATION"
+        const val EXTRA_MEDIA_ID = "extra_media_id"
 
         @Volatile
         var isForegroundStarted: Boolean = false
 
-        // PendingIntent Request 코드
         const val REQ_CODE_PREV = 100
         const val REQ_CODE_PLAY = 101
         const val REQ_CODE_PAUSE = 102

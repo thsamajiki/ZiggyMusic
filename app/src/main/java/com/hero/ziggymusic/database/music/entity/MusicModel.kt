@@ -27,12 +27,12 @@ data class MusicModel(
     @ColumnInfo(name = "is_playing")
     val isPlaying: Boolean = false,
 ) : Parcelable {
-
     fun getMusicFileUri(): Uri {
         return Uri.withAppendedPath(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, id)
     }
 
-    fun getAlbumUri(): Uri {
+    fun getAlbumUri(): Uri? {
+        if (albumId.isNullOrBlank()) return null
         return "content://media/external/audio/albumart/${albumId}".toUri()
     }
 }

@@ -1,12 +1,20 @@
 package com.hero.ziggymusic.view.main.musiclist
 
+import android.Manifest
+import android.content.pm.PackageManager
+import android.database.ContentObserver
+import android.os.Build
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
+import android.provider.MediaStore
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.appcompat.widget.PopupMenu
+import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
@@ -18,7 +26,6 @@ import com.hero.ziggymusic.database.music.entity.MusicModel
 import com.hero.ziggymusic.databinding.FragmentMusicListBinding
 import com.hero.ziggymusic.event.EventBus
 import com.hero.ziggymusic.ext.playMusic
-import com.hero.ziggymusic.service.MusicServiceLauncher
 import com.hero.ziggymusic.view.main.musiclist.viewmodel.MusicListUiState
 import com.hero.ziggymusic.view.main.musiclist.viewmodel.MusicListViewModel
 import dagger.hilt.android.AndroidEntryPoint
@@ -31,6 +38,8 @@ class MusicListFragment : Fragment() {
     private val vm by viewModels<MusicListViewModel>()
 
     private lateinit var musicListAdapter: MusicListAdapter
+    private var mediaStoreObserver: ContentObserver? = null
+    private var hasRefreshedAfterPermission = false
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -49,6 +58,26 @@ class MusicListFragment : Fragment() {
         EventBus.getInstance().register(this)
         initRecyclerView(binding.rvMusicList)
         collectUiState()
+    }
+
+    override fun onStart() {
+        super.onStart()
+        registerMediaStoreObserverIfNeeded()
+    }
+
+    override fun onResume() {
+        super.onResume()
+
+        if (hasAudioPermission()) {
+            registerMediaStoreObserverIfNeeded()
+
+            if (!hasRefreshedAfterPermission) {
+                hasRefreshedAfterPermission = true
+                vm.refreshMusicList()
+            }
+        } else {
+            hasRefreshedAfterPermission = false
+        }
     }
 
     private fun initRecyclerView(recyclerView: RecyclerView) {
@@ -102,9 +131,47 @@ class MusicListFragment : Fragment() {
         }
     }
 
+    private fun registerMediaStoreObserverIfNeeded() {
+        if (!hasAudioPermission()) return
+        if (mediaStoreObserver != null) return
+
+        mediaStoreObserver = object : ContentObserver(Handler(Looper.getMainLooper())) {
+            override fun onChange(selfChange: Boolean) {
+                super.onChange(selfChange)
+                vm.refreshMusicList()
+            }
+        }
+
+        requireContext().contentResolver.registerContentObserver(
+            MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
+            true,
+            mediaStoreObserver!!
+        )
+    }
+
+    private fun unregisterMediaStoreObserver() {
+        mediaStoreObserver?.let { observer ->
+            requireContext().contentResolver.unregisterContentObserver(observer)
+        }
+        mediaStoreObserver = null
+    }
+
+    private fun hasAudioPermission(): Boolean {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            ContextCompat.checkSelfPermission(
+                requireContext(),
+                Manifest.permission.READ_MEDIA_AUDIO
+            ) == PackageManager.PERMISSION_GRANTED
+        } else {
+            ContextCompat.checkSelfPermission(
+                requireContext(),
+                Manifest.permission.READ_EXTERNAL_STORAGE
+            ) == PackageManager.PERMISSION_GRANTED
+        }
+    }
+
     private fun playMusic(musicKey: String) {
         requireContext().playMusic(musicKey)
-        MusicServiceLauncher.startOrRefresh(requireContext())
     }
 
     private fun openAddOrDeleteToFromMyPlaylistOptionMenu(data: MusicModel, anchorView: View) {
@@ -136,6 +203,11 @@ class MusicListFragment : Fragment() {
     private fun deleteMusicFromMyPlayList(musicModel: MusicModel) {
         // Local DB에서 삭제한다.
         vm.deleteMusicFromMyPlaylist(musicModel)
+    }
+
+    override fun onStop() {
+        unregisterMediaStoreObserver()
+        super.onStop()
     }
 
     override fun onDestroyView() {
