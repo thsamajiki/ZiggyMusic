@@ -87,6 +87,19 @@ class MusicListViewModel @Inject constructor(
         }
     }
 
+    fun refreshMusicList() {
+        viewModelScope.launch {
+            runCatching {
+                musicRepository.loadMusics()
+            }.onFailure {
+                _toastEvent.value = SingleEvent(
+                    getApplication<Application>().getString(R.string.load_music_failed)
+                )
+                _uiState.value = MusicListUiState.Error
+            }
+        }
+    }
+
     fun addMusicToMyPlaylist(musicModel: MusicModel) {
         viewModelScope.launch {
             musicRepository.addMusicToMyPlaylist(musicModel)
