@@ -58,7 +58,7 @@
     <dimen name="layout_volume_padding">60dp</dimen>
 
     <!-- Notification -->
-    <dimen name="noti_height">60dp</dimen>
+    <dimen name="noti_height">56dp</dimen>
     <dimen name="noti_extended_height">156dp</dimen>
     <dimen name="noti_album_art_size">42dp</dimen>
     <dimen name="noti_extended_album_art_size">60dp</dimen>
