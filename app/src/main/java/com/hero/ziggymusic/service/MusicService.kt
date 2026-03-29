@@ -399,7 +399,7 @@ class MusicService : MediaLibraryService() {
 
     private fun createNotification(): Notification {
         val collapsedNotificationView =
-            RemoteViews(this.packageName, R.layout.notification_player)
+            RemoteViews(this.packageName, R.layout.notification_player_collapsed)
         val expandedNotificationView =
             RemoteViews(this.packageName, R.layout.notification_player_extended)
 
