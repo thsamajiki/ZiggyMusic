@@ -1,6 +1,7 @@
 package com.hero.ziggymusic.view.main.player
 
 import androidx.constraintlayout.motion.widget.MotionLayout
+import androidx.core.view.doOnLayout
 import com.hero.ziggymusic.R
 
 class PlayerMotionManager(
@@ -20,17 +21,21 @@ class PlayerMotionManager(
     }
 
     private fun collapse() {
-        motionLayout.setTransition(R.id.expandedToCollapsed)
-        motionLayout.progress = 0f
-        motionLayout.transitionToEnd()
+        motionLayout.doOnLayout {
+            motionLayout.setTransition(R.id.expandedToCollapsed)
+            motionLayout.progress = 0f
+            motionLayout.transitionToEnd()
+        }
 
         bottomSheetManager.collapse()
     }
 
     private fun expand() {
-        motionLayout.setTransition(R.id.collapsedToExpanded)
-        motionLayout.progress = 0f
-        motionLayout.transitionToEnd()
+        motionLayout.doOnLayout {
+            motionLayout.setTransition(R.id.collapsedToExpanded)
+            motionLayout.progress = 0f
+            motionLayout.transitionToEnd()
+        }
 
         bottomSheetManager.expand()
     }
