@@ -148,10 +148,6 @@ class MusicService : MediaLibraryService() {
                 player.seekToNext()
             }
 
-            CLOSE -> {
-                exitPlayer()
-            }
-
             ACTION_REFRESH_NOTIFICATION, null -> {
                 refreshAlbumArt()
             }
@@ -439,15 +435,6 @@ class MusicService : MediaLibraryService() {
                 PendingIntent.FLAG_IMMUTABLE
             )
         }
-        val closeIntent = Intent(this, MusicService::class.java).run {
-            action = CLOSE
-            PendingIntent.getService(
-                this@MusicService,
-                REQ_CODE_CLOSE,
-                this,
-                PendingIntent.FLAG_IMMUTABLE
-            )
-        }
         val notificationTouchIntent = Intent(this, MainActivity::class.java).run {
             addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
             PendingIntent.getActivity(
@@ -468,7 +455,6 @@ class MusicService : MediaLibraryService() {
 
         expandedNotificationView.setOnClickPendingIntent(R.id.btnNotificationExtendedPrev, prevIntent)
         expandedNotificationView.setOnClickPendingIntent(R.id.btnNotificationExtendedNext, nextIntent)
-        expandedNotificationView.setOnClickPendingIntent(R.id.btnNotificationExtendedClose, closeIntent)
 
         val currentMusic = playerModel.currentMusic
         setMusicInNotification(
@@ -592,10 +578,6 @@ class MusicService : MediaLibraryService() {
             R.id.btnNotificationExtendedNext,
             R.drawable.ic_next_button
         )
-        expandedNotificationView.setImageViewResource(
-            R.id.btnNotificationExtendedClose,
-            R.drawable.ic_white_close
-        )
     }
 
     override fun onTaskRemoved(rootIntent: Intent?) {
@@ -659,7 +641,6 @@ class MusicService : MediaLibraryService() {
         const val PAUSE = "com.hero.ziggymusic.PAUSE"
         const val SKIP_PREV = "com.hero.ziggymusic.SKIP_PREV"
         const val SKIP_NEXT = "com.hero.ziggymusic.SKIP_NEXT"
-        const val CLOSE = "com.hero.ziggymusic.CLOSE"
         const val ACTION_REFRESH_NOTIFICATION = "com.hero.ziggymusic.REFRESH_NOTIFICATION"
         const val EXTRA_MEDIA_ID = "extra_media_id"
 
