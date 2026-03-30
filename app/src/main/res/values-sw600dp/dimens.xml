@@ -64,7 +64,6 @@
     <dimen name="noti_extended_album_art_size">66dp</dimen>
     <dimen name="noti_btn">40dp</dimen>
     <dimen name="noti_extended_btn">66dp</dimen>
-    <dimen name="noti_extended_close">27dp</dimen>
 
     <!-- System -->
     <dimen name="status_bar_height">28dp</dimen>

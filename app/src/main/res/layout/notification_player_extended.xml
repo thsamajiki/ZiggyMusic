@@ -58,15 +58,6 @@
 
         </LinearLayout>
 
-        <ImageView
-            android:id="@+id/btnNotificationExtendedClose"
-            android:layout_width="@dimen/noti_extended_close"
-            android:layout_height="@dimen/noti_extended_close"
-            android:layout_gravity="center_vertical"
-            android:layout_marginEnd="@dimen/space_xl"
-            android:src="@drawable/ic_white_close"
-            app:imageView_duration="200" />
-
     </LinearLayout>
 
     <LinearLayout
