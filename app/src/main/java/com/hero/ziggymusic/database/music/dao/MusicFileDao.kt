@@ -21,6 +21,9 @@ interface MusicFileDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAll(musicList: List<MusicModel>)
 
+    @Query("DELETE FROM music_table")
+    suspend fun clearAll()
+
     @Delete
     fun deleteMusic(musicModel: MusicModel)
 }

@@ -3,6 +3,8 @@ package com.hero.ziggymusic.database.local
 import android.app.Application
 import android.provider.MediaStore
 import androidx.lifecycle.LiveData
+import androidx.room.withTransaction
+import com.hero.ziggymusic.database.AppMusicDatabase
 import com.hero.ziggymusic.database.music.dao.MusicFileDao
 import com.hero.ziggymusic.database.music.dao.PlaylistMusicDao
 import com.hero.ziggymusic.database.music.entity.MusicModel
@@ -12,6 +14,7 @@ import javax.inject.Inject
 
 class MusicLocalDataSourceImpl @Inject constructor(
     private val application: Application,
+    private val appMusicDatabase: AppMusicDatabase,
     private val musicFileDao: MusicFileDao,
     private val playlistMusicDao: PlaylistMusicDao,
 ) : MusicLocalDataSource {
@@ -62,7 +65,10 @@ class MusicLocalDataSourceImpl @Inject constructor(
             }
         }
 
-        musicFileDao.insertAll(musicList)
+        appMusicDatabase.withTransaction {
+            musicFileDao.clearAll()
+            musicFileDao.insertAll(musicList)
+        }
     }
 
     override suspend fun getMusicCount(): Int = withContext(Dispatchers.IO) {
