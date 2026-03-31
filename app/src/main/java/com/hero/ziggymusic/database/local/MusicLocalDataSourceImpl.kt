@@ -62,7 +62,7 @@ class MusicLocalDataSourceImpl @Inject constructor(
             }
         }
 
-        musicFileDao.insertAll(musicList)
+        musicFileDao.replaceAll(musicList)
     }
 
     override suspend fun getMusicCount(): Int = withContext(Dispatchers.IO) {
