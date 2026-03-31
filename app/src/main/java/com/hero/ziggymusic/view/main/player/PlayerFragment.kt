@@ -716,14 +716,27 @@ class PlayerFragment : Fragment() {
 
                 if (areBitmapsEqual(volumeBitmap, muteBitmap)) {
                     val maxVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
+
+                    if (maxVolume <= 0) {
+                        binding.ivVolume.setImageResource(R.drawable.ic_mute)
+                        currentVolume = 0
+                        binding.sbVolume.max = 0
+                        binding.sbVolume.progress = 0
+                        return@setOnClickListener
+                    }
+
                     val restoredVolume = previousVolume.coerceIn(1, maxVolume)
 
                     binding.ivVolume.setImageResource(R.drawable.ic_volume)
                     currentVolume = restoredVolume
+                    binding.sbVolume.max = maxVolume
                     audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, restoredVolume, 0)
                     binding.sbVolume.progress = restoredVolume
                 } else {
-                    val currentSystemVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
+                    val currentSystemVolume =
+                        audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
+                    val maxVolume =
+                        audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
 
                     if (currentSystemVolume > 0) {
                         previousVolume = currentSystemVolume
@@ -731,6 +744,7 @@ class PlayerFragment : Fragment() {
 
                     binding.ivVolume.setImageResource(R.drawable.ic_mute)
                     currentVolume = 0
+                    binding.sbVolume.max = maxVolume.coerceAtLeast(0)
                     audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, 0, 0)
                     binding.sbVolume.progress = 0
                 }
