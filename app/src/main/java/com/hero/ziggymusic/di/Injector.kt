@@ -22,6 +22,7 @@ object Injector {
         MusicRepositoryImpl(
             MusicLocalDataSourceImpl(
                 ZiggyMusicApp.Companion.getInstance(),
+                AppMusicDatabase.Companion.getInstance(ZiggyMusicApp.Companion.getInstance()),
                 AppMusicDatabase.Companion.getInstance(ZiggyMusicApp.Companion.getInstance())
                     .musicFileDao(),
                 AppMyPlaylistDatabase.Companion.getInstance(ZiggyMusicApp.Companion.getInstance())
