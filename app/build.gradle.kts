@@ -1,3 +1,4 @@
+import com.android.build.api.dsl.ApplicationExtension
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import java.util.Properties
 
@@ -10,14 +11,14 @@ plugins {
     alias(libs.plugins.devtools.ksp)
 }
 
-android {
+extensions.configure<ApplicationExtension> {
     namespace = "com.hero.ziggymusic"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.hero.ziggymusic"
         minSdk = 26
-        targetSdk = 35
+        targetSdk = 36
         versionCode = 1
         versionName = "1.0"
 
@@ -106,7 +107,6 @@ dependencies {
     implementation(libs.androidx.recyclerview)
     implementation(libs.material)
 
-    implementation(libs.gson)
     implementation(libs.lifecycle.viewmodel.compose.android)
 
     testImplementation(libs.junit)
