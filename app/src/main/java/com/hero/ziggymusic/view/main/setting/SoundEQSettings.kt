@@ -5,12 +5,27 @@ import android.media.audiofx.BassBoost
 import android.media.audiofx.Equalizer
 import android.media.audiofx.PresetReverb
 import android.media.audiofx.Virtualizer
+import androidx.core.content.edit
 import androidx.core.graphics.toColorInt
 import com.hero.ziggymusic.audio.AudioProcessorChainController
+import com.hero.ziggymusic.view.main.setting.SettingFragment.Companion.KEY_BASS
 import com.hero.ziggymusic.view.main.setting.SettingFragment.Companion.KEY_HEAD_TRACKING_ENABLED
 import com.hero.ziggymusic.view.main.setting.SettingFragment.Companion.KEY_SPATIAL_ENABLED
+import com.hero.ziggymusic.view.main.setting.SettingFragment.Companion.KEY_VIRTUALIZER
 
 object SoundEQSettings {
+    var equalizer: Equalizer? = null
+        private set
+    var bassBoost: BassBoost? = null
+        private set
+    var virtualizer: Virtualizer? = null
+        private set
+    var reverb: PresetReverb? = null
+        private set
+
+    var mainColor: Int = "#00ffee".toColorInt()
+        private set
+
     private val bandGainsDb = FloatArray(5)
 
     /**
@@ -19,10 +34,89 @@ object SoundEQSettings {
      * @param mediaSession media session을 나타내는 정수값.
      */
     fun init(mediaSession: Int) {
-        SettingFragment.equalizer = Equalizer(1, mediaSession)
-        SettingFragment.bassBoost = BassBoost(1, mediaSession)
-        SettingFragment.virtualizer = Virtualizer(1, mediaSession)
-        SettingFragment.reverb = PresetReverb(1, mediaSession)
+        release()
+
+        runCatching { Equalizer(1, mediaSession) }.onSuccess { equalizer = it }
+        runCatching { BassBoost(1, mediaSession) }.onSuccess { bassBoost = it }
+        runCatching { Virtualizer(1, mediaSession) }.onSuccess { virtualizer = it }
+        runCatching { PresetReverb(1, mediaSession) }.onSuccess { reverb = it }
+    }
+
+    fun setEnabledFromPrefs(prefs: SharedPreferences) {
+        val enabled = prefs.getBoolean("ENABLED", false)
+        val reverbPreset = prefs.getInt("REVERB", 0)
+        val bassProgress = prefs.getInt(KEY_BASS, 0)
+        val virtualizerProgress = prefs.getInt(KEY_VIRTUALIZER, 0)
+
+        equalizer?.enabled = enabled
+        reverb?.enabled = enabled && reverbPreset != 0
+        bassBoost?.enabled = enabled && bassProgress > 0
+        virtualizer?.enabled = enabled && virtualizerProgress > 0
+    }
+
+    fun applyBassStrength(progress: Int, prefs: SharedPreferences? = null) {
+        prefs?.edit { putInt(KEY_BASS, progress) }
+
+        bassBoost?.let { effect ->
+            if (effect.strengthSupported) {
+                effect.setStrength((progress * 15).toShort())
+            }
+        }
+
+        prefs?.let { setEnabledFromPrefs(it) }
+    }
+
+    fun applyVirtualizerStrength(progress: Int, prefs: SharedPreferences? = null) {
+        prefs?.edit { putInt(KEY_VIRTUALIZER, progress) }
+
+        virtualizer?.let { effect ->
+            if (effect.strengthSupported) {
+                effect.setStrength((progress * 15).toShort())
+            }
+        }
+
+        prefs?.let { setEnabledFromPrefs(it) }
+    }
+
+    fun applyReverbPreset(position: Int, prefs: SharedPreferences? = null) {
+        prefs?.edit { putInt("REVERB", position) }
+        reverb?.preset = position.toShort()
+        prefs?.let { setEnabledFromPrefs(it) }
+    }
+
+    fun applyEqualizerBandLevel(
+        bandIndex: Int,
+        level: Short,
+    ) {
+        equalizer?.setBandLevel(bandIndex.toShort(), level)
+    }
+
+    fun useEqualizerPreset(presetIndex: Int) {
+        equalizer?.usePreset(presetIndex.toShort())
+    }
+
+    fun getBandLevel(bandIndex: Int): Short? {
+        return equalizer?.getBandLevel(bandIndex.toShort())
+    }
+
+    fun getCenterFreq(bandIndex: Int): Int? {
+        return equalizer?.getCenterFreq(bandIndex.toShort())
+    }
+
+    fun getBandLevelRange(): ShortArray? {
+        return equalizer?.bandLevelRange
+    }
+
+    fun getNumberOfBands(): Int {
+        return equalizer?.numberOfBands?.toInt() ?: 0
+    }
+
+    fun getNumberOfPresets(): Int {
+        return equalizer?.numberOfPresets?.toInt() ?: 0
+    }
+
+    fun getPresetName(index: Int): String? {
+        return equalizer?.getPresetName(index.toShort())
     }
 
     fun setBandGain(bandIndex: Int, gainDb: Float) {
@@ -88,6 +182,11 @@ object SoundEQSettings {
             val gainDb = mapEqProgressToDb(progress, eqMaxFromUi)
             setBandGain(bandIndex, gainDb)
         }
+
+        applyBassStrength(prefs.getInt(KEY_BASS, 0), null)
+        applyVirtualizerStrength(prefs.getInt(KEY_VIRTUALIZER, 0), null)
+        applyReverbPreset(prefs.getInt("REVERB", 0), null)
+        setEnabledFromPrefs(prefs)
     }
 
     private fun mapEqProgressToDb(progress: Int, max: Int): Float {
@@ -96,16 +195,15 @@ object SoundEQSettings {
         return (normalized * 24.0f) - 12.0f
     }
 
-    /**
-     * SoundEQ UI의 main color를 설정.
-     *
-     * @param color "#RRGGBB" or "#AARRGGBB" 형식의 color string.
-     */
-    fun setColor(color: String) {
-        try {
-            SettingFragment.mainColor = color.toColorInt()
-        } catch (_: Exception) {
-            // Handle parsing exceptions
-        }
+    fun release() {
+        runCatching { equalizer?.release() }
+        runCatching { bassBoost?.release() }
+        runCatching { virtualizer?.release() }
+        runCatching { reverb?.release() }
+
+        equalizer = null
+        bassBoost = null
+        virtualizer = null
+        reverb = null
     }
 }
