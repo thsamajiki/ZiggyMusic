@@ -1,83 +1,91 @@
 package com.hero.ziggymusic.view.main.setting
 
-import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Canvas
 import android.util.AttributeSet
 import android.view.MotionEvent
-import android.widget.SeekBar
 import androidx.appcompat.widget.AppCompatSeekBar
+import androidx.appcompat.R
 
-class SoundEQVerticalSeekbar(
-    context: Context
-): AppCompatSeekBar(context) {
-    var shouldChange = false
-    var bandIndex: Int = 0
+class SoundEQVerticalSeekbar @JvmOverloads constructor(
+    context: Context,
+    attrs: AttributeSet? = null,
+    defStyleAttr: Int = R.attr.seekBarStyle,
+) : AppCompatSeekBar(context, attrs, defStyleAttr) {
+    var isTrackingTouch: Boolean = false
+        private set
 
-    constructor(context: Context, attrs: AttributeSet) : this(context)
-    constructor(context: Context, attrs: AttributeSet, defStyleAttr: Int) : this(context)
-
-    init {
-        // vertical seekbar value to dB mapping example: progress 0..100 -> -12dB..+12dB
-        max = 100
-        progress = 50
-        setOnSeekBarChangeListener(object : OnSeekBarChangeListener {
-            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
-                if (!fromUser) return
-                val gainDb = (progress - 50) * (12.0f / 50.0f)
-                SoundEQSettings.setBandGain(bandIndex, gainDb)
-            }
-            override fun onStartTrackingTouch(seekBar: SeekBar?) {}
-            override fun onStopTrackingTouch(seekBar: SeekBar?) {}
-        })
-    }
-
-    override fun onSizeChanged(width: Int, height: Int, oldWidth: Int, oldHeight: Int) {
-        super.onSizeChanged(height, width, oldHeight, oldWidth)
-    }
-
-    @Synchronized
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
         super.onMeasure(heightMeasureSpec, widthMeasureSpec)
         setMeasuredDimension(measuredHeight, measuredWidth)
     }
 
-    @Synchronized
+    override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
+        super.onSizeChanged(h, w, oldh, oldw)
+    }
+
     override fun onDraw(canvas: Canvas) {
-        canvas.rotate(-90.0F)
-        canvas.translate(-height.toFloat(), 0F)
+        canvas.rotate(-90f)
+        canvas.translate(-height.toFloat(), 0f)
         super.onDraw(canvas)
     }
 
-    fun updateThumb() {
-        onSizeChanged(width, height, 0, 0)
-    }
-
-    @SuppressLint("ClickableViewAccessibility")
     override fun onTouchEvent(event: MotionEvent): Boolean {
-        if (!isEnabled) { return false }
-        shouldChange = true
+        if (!isEnabled) return false
 
-        when (event.action) {
-            MotionEvent.ACTION_DOWN,
-            MotionEvent.ACTION_MOVE,
-            MotionEvent.ACTION_UP -> {
+        when (event.actionMasked) {
+            MotionEvent.ACTION_DOWN -> {
                 parent?.requestDisallowInterceptTouchEvent(true)
-                progress = max - (max * event.y / height).toInt()
-                onSizeChanged(width, height, 0, 0)
+                isTrackingTouch = true
+                updateProgressFromTouch(event.y)
+                performClick()
+                return true
             }
+
+            MotionEvent.ACTION_MOVE -> {
+                isTrackingTouch = true
+                updateProgressFromTouch(event.y)
+                return true
+            }
+
+            MotionEvent.ACTION_UP -> {
+                updateProgressFromTouch(event.y)
+                parent?.requestDisallowInterceptTouchEvent(false)
+                isTrackingTouch = false
+                return true
+            }
+
             MotionEvent.ACTION_CANCEL -> {
                 parent?.requestDisallowInterceptTouchEvent(false)
+                isTrackingTouch = false
+                return true
             }
         }
 
-        shouldChange = true
+        return super.onTouchEvent(event)
+    }
+
+    override fun performClick(): Boolean {
+        super.performClick()
         return true
     }
 
-    @Synchronized
-    override fun setProgress(progress: Int) {
-        super.setProgress(progress)
-        shouldChange = false
+    fun refreshThumbState() {
+        refreshDrawableState()
+        invalidate()
+    }
+
+    private fun updateProgressFromTouch(y: Float) {
+        if (height <= 0 || max <= 0) return
+
+        val progressFromTouch = max - (max * y / height).toInt()
+        val newProgress = progressFromTouch.coerceIn(0, max)
+
+        super.setProgress(newProgress)
+
+        // 세로 SeekBar에서는 progress 변경 후 내부 drawable bounds 갱신이 필요할 수 있음
+        onSizeChanged(width, height, 0, 0)
+
+        invalidate()
     }
 }
