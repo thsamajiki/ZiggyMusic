@@ -29,7 +29,7 @@ import com.hero.ziggymusic.database.music.entity.PlayerModel
 import com.hero.ziggymusic.databinding.ActivityMainBinding
 import com.hero.ziggymusic.event.Event
 import com.hero.ziggymusic.event.EventBus
-import com.hero.ziggymusic.view.main.setting.SoundEQSettings
+import com.hero.ziggymusic.view.main.setting.AudioEffectManager
 import com.hero.ziggymusic.view.main.setting.SettingFragment
 import com.squareup.otto.Subscribe
 import dagger.hilt.android.AndroidEntryPoint
@@ -468,12 +468,12 @@ class MainActivity : AppCompatActivity(),
     @OptIn(UnstableApi::class)
     private fun initSoundEQSettings() {
         if (player.audioSessionId != 0) {
-            SoundEQSettings.init(player.audioSessionId)
+            AudioEffectManager.init(player.audioSessionId)
         } else {
             player.addListener(object : Player.Listener {
                 override fun onAudioSessionIdChanged(audioSessionId: Int) {
                     if (audioSessionId != 0) {
-                        SoundEQSettings.init(audioSessionId)
+                        AudioEffectManager.init(audioSessionId)
                         player.removeListener(this)
                     }
                 }

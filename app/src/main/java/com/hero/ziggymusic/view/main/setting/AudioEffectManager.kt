@@ -13,7 +13,7 @@ import com.hero.ziggymusic.view.main.setting.SettingFragment.Companion.KEY_HEAD_
 import com.hero.ziggymusic.view.main.setting.SettingFragment.Companion.KEY_SPATIAL_ENABLED
 import com.hero.ziggymusic.view.main.setting.SettingFragment.Companion.KEY_VIRTUALIZER
 
-object SoundEQSettings {
+object AudioEffectManager {
     var equalizer: Equalizer? = null
         private set
     var bassBoost: BassBoost? = null

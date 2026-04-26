@@ -23,8 +23,8 @@ import androidx.core.content.edit
 import com.hero.ziggymusic.audio.HeadTracker
 import com.hero.ziggymusic.audio.PlayerAudioGraph
 import com.hero.ziggymusic.audio.SpatializerSupport
-import com.hero.ziggymusic.view.main.setting.SoundEQSettings.equalizer
-import com.hero.ziggymusic.view.main.setting.SoundEQSettings.mainColor
+import com.hero.ziggymusic.view.main.setting.AudioEffectManager.equalizer
+import com.hero.ziggymusic.view.main.setting.AudioEffectManager.mainColor
 
 class SettingFragment : Fragment() {
     private var _binding: FragmentSettingBinding? = null
@@ -85,8 +85,8 @@ class SettingFragment : Fragment() {
 
         // 2. 초기 적용: 네이티브에 현재 prefs 반영
         runCatching {
-            SoundEQSettings.setSpatialEnabled(spatialEnabled)
-            SoundEQSettings.setHeadTrackingEnabled(spatialEnabled && headEnabled)
+            AudioEffectManager.setSpatialEnabled(spatialEnabled)
+            AudioEffectManager.setHeadTrackingEnabled(spatialEnabled && headEnabled)
 
             if (spatialEnabled && headEnabled) {
                 PlayerAudioGraph.setHeadTrackingActive(true, true)
@@ -102,7 +102,7 @@ class SettingFragment : Fragment() {
             val isHeadTrackingOn = binding.swHeadTracking.isChecked
 
             if (isSpatialOn && isHeadTrackingOn) {
-                SoundEQSettings.setHeadTrackingYaw(yawDeg)
+                AudioEffectManager.setHeadTrackingYaw(yawDeg)
             }
         }
 
@@ -113,7 +113,7 @@ class SettingFragment : Fragment() {
             val isSpatialOn = binding.swSpatialAudio.isChecked
             val shouldTrack = isSpatialOn && isChecked
 
-            SoundEQSettings.setHeadTrackingEnabled(shouldTrack)
+            AudioEffectManager.setHeadTrackingEnabled(shouldTrack)
 
             // JNI Controller로 센서값 주입
             PlayerAudioGraph.setHeadTrackingActive(shouldTrack, shouldTrack)
@@ -132,12 +132,12 @@ class SettingFragment : Fragment() {
                 if (!isChecked) putBoolean(KEY_HEAD_TRACKING_ENABLED, false)
             }
 
-            SoundEQSettings.setSpatialEnabled(isChecked)
+            AudioEffectManager.setSpatialEnabled(isChecked)
 
             if (!isChecked) {
                 // spatial off -> 강제 head off, 리스너는 유지(한 번만 설정)
                 binding.swHeadTracking.isChecked = false
-                SoundEQSettings.setHeadTrackingEnabled(false)
+                AudioEffectManager.setHeadTrackingEnabled(false)
                 PlayerAudioGraph.setHeadTrackingActive(
                     spatialEnabled = false,
                     headTrackingEnabled = false
@@ -146,7 +146,7 @@ class SettingFragment : Fragment() {
             } else {
                 // spatial on: 기존 head 상태가 on이면 시작, head 스위치는 활성화
                 val shouldTrack = binding.swHeadTracking.isChecked
-                SoundEQSettings.setHeadTrackingEnabled(shouldTrack)
+                AudioEffectManager.setHeadTrackingEnabled(shouldTrack)
                 PlayerAudioGraph.setHeadTrackingActive(shouldTrack, shouldTrack)
 
                 if (shouldTrack) {
@@ -174,18 +174,18 @@ class SettingFragment : Fragment() {
 
     private fun initSetting() {
         prefs = requireContext().getSharedPreferences("SettingFragment", 0)
-        SoundEQSettings.setEnabledFromPrefs(prefs)
+        AudioEffectManager.setEnabledFromPrefs(prefs)
     }
 
     private fun initPresets(min: Int) {
-        val noOfPresets = SoundEQSettings.getNumberOfPresets()
+        val noOfPresets = AudioEffectManager.getNumberOfPresets()
         if (noOfPresets <= 0) return
 
         val presets = arrayOfNulls<String>(noOfPresets + 1)
         presets[0] = "Custom"
 
         for (i in 0 until noOfPresets) {
-            presets[i + 1] = SoundEQSettings.getPresetName(i)
+            presets[i + 1] = AudioEffectManager.getPresetName(i)
         }
 
         val spinnerAdapter: ArrayAdapter<String?> = ArrayAdapter(
@@ -209,16 +209,15 @@ class SettingFragment : Fragment() {
                         prefs.edit { putInt("PRESET", position) }
 
                         if (position != 0) {
-                            SoundEQSettings.useEqualizerPreset(position - 1)
+                            AudioEffectManager.useEqualizerPreset(position - 1)
 
                             for (i in seekbarIds.indices) {
                                 val seekbar =
                                     requireActivity().findViewById<SoundEQVerticalSeekbar>(seekbarIds[i])
-                                seekbar.shouldChange = false
                                 seekbar.progress = 1
                                 seekbar.progress =
-                                    (SoundEQSettings.getBandLevel(i)?.toInt() ?: 0) - min
-                                seekbar.updateThumb()
+                                    (AudioEffectManager.getBandLevel(i)?.toInt() ?: 0) - min
+                                seekbar.refreshThumbState()
                             }
                         }
                     }
@@ -229,8 +228,8 @@ class SettingFragment : Fragment() {
     }
 
     private fun initEqualizer() {
-        val equalizer = SoundEQSettings.equalizer ?: return
-        val bandLevelRange = SoundEQSettings.getBandLevelRange() ?: return
+        val equalizer = AudioEffectManager.equalizer ?: return
+        val bandLevelRange = AudioEffectManager.getBandLevelRange() ?: return
         val max = bandLevelRange[1].toInt()
         val min = bandLevelRange[0].toInt()
         var uiMaxForNative = 0
@@ -239,7 +238,7 @@ class SettingFragment : Fragment() {
         binding.tvSeekbar.removeAllViews()
         binding.seekbarContainer.removeAllViews()
 
-        val numberOfBands = SoundEQSettings.getNumberOfBands()
+        val numberOfBands = AudioEffectManager.getNumberOfBands()
 
         for (index in 0 until numberOfBands) {
             val verticalSeekbar = SoundEQVerticalSeekbar(requireContext())
@@ -260,7 +259,7 @@ class SettingFragment : Fragment() {
 
             verticalSeekbar.progress = prefs.getInt(
                 index.toString(),
-                (SoundEQSettings.getBandLevel(index)?.toInt() ?: 0) - min
+                (AudioEffectManager.getBandLevel(index)?.toInt() ?: 0) - min
             )
 
             verticalSeekbar.setOnSeekBarChangeListener(object :
@@ -269,13 +268,13 @@ class SettingFragment : Fragment() {
                 progress: Int,
                 fromUser: Boolean,
                 ) {
-                    if (!verticalSeekbar.shouldChange) return
+                    if (!verticalSeekbar.isTrackingTouch) return
 
                     binding.spinnerPreset.setSelection(0)
                     prefs.edit { putInt(seekBar.tag.toString(), progress) }
 
-                    if (SoundEQSettings.equalizer?.enabled == true) {
-                        SoundEQSettings.applyEqualizerBandLevel(
+                    if (AudioEffectManager.equalizer?.enabled == true) {
+                        AudioEffectManager.applyEqualizerBandLevel(
                             bandIndex = seekBar.tag as Int,
                             level = (progress + min).toShort()
                         )
@@ -286,7 +285,7 @@ class SettingFragment : Fragment() {
                         progress = progress,
                         max = seekBar.max
                     )
-                    SoundEQSettings.setBandGain(bandIndex, gainDb)
+                    AudioEffectManager.setBandGain(bandIndex, gainDb)
                 }
 
                 override fun onStartTrackingTouch(seekBar: SeekBar) = Unit
@@ -297,7 +296,7 @@ class SettingFragment : Fragment() {
                 TableRow.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1.0f)
             verticalSeekbar.layoutParams = layoutParams
 
-            val centerFreq = SoundEQSettings.getCenterFreq(index) ?: 0
+            val centerFreq = AudioEffectManager.getCenterFreq(index) ?: 0
             val title = if (centerFreq > 1000000) {
                 "${centerFreq / 1000000} kHz"
             } else {
@@ -325,11 +324,11 @@ class SettingFragment : Fragment() {
                 progress = verticalSeekbar.progress,
                 max = verticalSeekbar.max
             )
-            SoundEQSettings.setBandGain(index, initialGainDb)
+            AudioEffectManager.setBandGain(index, initialGainDb)
         }
 
         runCatching {
-            SoundEQSettings.applySettingsFromPrefs(prefs, eqMaxFromUi = uiMaxForNative)
+            AudioEffectManager.applySettingsFromPrefs(prefs, eqMaxFromUi = uiMaxForNative)
         }
 
         initPresets(min)
@@ -366,8 +365,8 @@ class SettingFragment : Fragment() {
                 position: Int,
                 id: Long,
             ) {
-                if (SoundEQSettings.reverb != null) {
-                    SoundEQSettings.applyReverbPreset(position, prefs)
+                if (AudioEffectManager.reverb != null) {
+                    AudioEffectManager.applyReverbPreset(position, prefs)
                 }
             }
 
@@ -378,15 +377,15 @@ class SettingFragment : Fragment() {
     private fun initBassSeekBar(settings: SharedPreferences) {
         val bassProgress = settings.getInt("BASS", 0)
 
-        SoundEQSettings.applyBassStrength(bassProgress)
+        AudioEffectManager.applyBassStrength(bassProgress)
 
-        binding.sbBass.progressDrawable.setTint(SoundEQSettings.mainColor)
-        binding.sbBass.thumb.setTint(SoundEQSettings.mainColor)
+        binding.sbBass.progressDrawable.setTint(AudioEffectManager.mainColor)
+        binding.sbBass.thumb.setTint(AudioEffectManager.mainColor)
         binding.sbBass.progress = bassProgress
 
         binding.sbBass.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar, progress: Int, fromUser: Boolean) {
-                SoundEQSettings.applyBassStrength(progress, prefs)
+                AudioEffectManager.applyBassStrength(progress, prefs)
             }
 
             override fun onStartTrackingTouch(seekBar: SeekBar) = Unit
@@ -397,15 +396,15 @@ class SettingFragment : Fragment() {
     private fun initVirtualizerSeekbar() {
         val virtualizerProgress = prefs.getInt("VIRTUALIZER", 0)
 
-        SoundEQSettings.applyVirtualizerStrength(virtualizerProgress)
+        AudioEffectManager.applyVirtualizerStrength(virtualizerProgress)
 
-        binding.sbVirtualizer.progressDrawable.setTint(SoundEQSettings.mainColor)
-        binding.sbVirtualizer.thumb.setTint(SoundEQSettings.mainColor)
+        binding.sbVirtualizer.progressDrawable.setTint(AudioEffectManager.mainColor)
+        binding.sbVirtualizer.thumb.setTint(AudioEffectManager.mainColor)
         binding.sbVirtualizer.progress = virtualizerProgress
 
         binding.sbVirtualizer.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar, progress: Int, fromUser: Boolean) {
-                SoundEQSettings.applyVirtualizerStrength(progress, prefs)
+                AudioEffectManager.applyVirtualizerStrength(progress, prefs)
             }
 
             override fun onStartTrackingTouch(seekBar: SeekBar) = Unit
