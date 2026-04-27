@@ -142,30 +142,17 @@ class MainActivity : AppCompatActivity(),
     }
 
     override fun onStart() {
-        musicServiceStart()
-
         super.onStart()
     }
 
     override fun onResume() {
         super.onResume()
 
-        val audioPermissionGranted = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            ContextCompat.checkSelfPermission(
-                this,
-                Manifest.permission.READ_MEDIA_AUDIO
-            ) == PackageManager.PERMISSION_GRANTED
-        } else {
-            ContextCompat.checkSelfPermission(
-                this,
-                Manifest.permission.READ_EXTERNAL_STORAGE
-            ) == PackageManager.PERMISSION_GRANTED
-        }
-
-        if (audioPermissionGranted) {
+        if (hasAudioPermission()) {
             playerController.startPlayer(
                 playbackStateStore.loadLastPlayedId(PlaybackContentType.MUSIC).orEmpty()
             )
+            startMusicServiceIfNotificationAllowed()
         }
     }
 
@@ -198,7 +185,11 @@ class MainActivity : AppCompatActivity(),
 
     fun playMusic(musicId: String) {
         playerController.changeMusic(musicId)
-        MusicServiceLauncher.dispatchAction(this, MusicService.ACTION_REFRESH_NOTIFICATION, musicId)
+        MusicServiceLauncher.dispatchAction(
+            context = this,
+            action = MusicService.ACTION_REFRESH_NOTIFICATION,
+            mediaId = musicId
+        )
     }
 
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
@@ -227,15 +218,24 @@ class MainActivity : AppCompatActivity(),
     }
 
     // 서비스를 시작하는 메서드
-    private fun musicServiceStart() {
-        MusicServiceLauncher.startOrRefresh(this)
+    private fun refreshMusicServiceIfRunning() {
+        MusicServiceLauncher.refreshIfRunning(this)
+    }
+
+    private fun startMusicServiceIfNotificationAllowed() {
+        if (!hasNotificationPermission()) return
+
+        MusicServiceLauncher.dispatchAction(
+            context = this,
+            action = MusicService.ACTION_REFRESH_NOTIFICATION
+        )
     }
 
     @Subscribe
     fun doEvent(event: Event) {
         when(event.getEvent()) {
             "PLAY_NEW_MUSIC" -> { // 새로운 음원이 재생
-                musicServiceStart()
+                refreshMusicServiceIfRunning()
             }
             "PLAY", "PAUSE" -> { // 재생(기존 음원), 일시 정지
                 Log.d("MainActivity", "doEvent - PLAY PAUSE: ${player.isPlaying}")
@@ -244,7 +244,7 @@ class MainActivity : AppCompatActivity(),
                 } else {
                     player.play()
                 }
-                musicServiceStart()
+                refreshMusicServiceIfRunning()
             }
             "SKIP_PREV" -> { // Notification 에서 이전 곡 버튼을 누를 시
                 Log.d("MainActivity", "doEvent - SKIP_PREV: ${player.isPlaying}")
@@ -264,7 +264,7 @@ class MainActivity : AppCompatActivity(),
                 }
 
                 setPlayerListener()
-                musicServiceStart()
+                refreshMusicServiceIfRunning()
             }
             "SKIP_NEXT" -> { // Notification 에서 다음 곡 버튼을 누를 시
                 Log.d("MainActivity", "doEvent - SKIP_NEXT: ${player.isPlaying}")
@@ -277,7 +277,7 @@ class MainActivity : AppCompatActivity(),
                     seekTo(nextIndex, 0)
                 }
                 setPlayerListener()
-                musicServiceStart()
+                refreshMusicServiceIfRunning()
             }
         }
     }
@@ -306,19 +306,20 @@ class MainActivity : AppCompatActivity(),
     private fun requestPermissions() {
         val needs = mutableListOf<String>()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            if (checkSelfPermission(Manifest.permission.READ_MEDIA_AUDIO) != PackageManager.PERMISSION_GRANTED) {
+            if (!hasAudioPermission()) {
                 needs += Manifest.permission.READ_MEDIA_AUDIO
             }
-            if (checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+            if (!hasNotificationPermission()) {
                 needs += Manifest.permission.POST_NOTIFICATIONS
             }
         } else {
-            if (checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+            if (!hasAudioPermission()) {
                 needs += Manifest.permission.READ_EXTERNAL_STORAGE
             }
         }
         if (needs.isEmpty()) {
             playerController.startPlayer(playbackStateStore.loadLastPlayedId(PlaybackContentType.MUSIC).orEmpty())
+            startMusicServiceIfNotificationAllowed()
         } else {
             permissionLauncher.launch(needs.toTypedArray())
         }
@@ -326,16 +327,9 @@ class MainActivity : AppCompatActivity(),
 
     private val permissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
-    ) { result ->
-        val audioGranted = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU)
-            result[Manifest.permission.READ_MEDIA_AUDIO] == true
-        else
-            result[Manifest.permission.READ_EXTERNAL_STORAGE] == true
-
-        val notifGranted = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU)
-            result[Manifest.permission.POST_NOTIFICATIONS] == true
-        else
-            true
+    ) { _ ->
+        val audioGranted = hasAudioPermission()
+        val notifGranted = hasNotificationPermission()
 
         if (!audioGranted) {
             // 오디오 권한 미허용
@@ -350,6 +344,7 @@ class MainActivity : AppCompatActivity(),
 
         // 오디오 권한 허용됨 -> 핵심 기능 시작
         playerController.startPlayer(playbackStateStore.loadLastPlayedId(PlaybackContentType.MUSIC).orEmpty())
+        startMusicServiceIfNotificationAllowed()
 
         // 알림 권한 선택적 처리
         if (!notifGranted) {
@@ -425,6 +420,24 @@ class MainActivity : AppCompatActivity(),
             }
             .setNegativeButton("닫기", null)
             .show()
+    }
+
+    private fun hasAudioPermission(): Boolean {
+        val permission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            Manifest.permission.READ_MEDIA_AUDIO
+        } else {
+            Manifest.permission.READ_EXTERNAL_STORAGE
+        }
+
+        return ContextCompat.checkSelfPermission(this, permission) == PackageManager.PERMISSION_GRANTED
+    }
+
+    private fun hasNotificationPermission(): Boolean {
+        return Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU ||
+                ContextCompat.checkSelfPermission(
+                    this,
+                    Manifest.permission.POST_NOTIFICATIONS
+                ) == PackageManager.PERMISSION_GRANTED
     }
 
     // 앱 세부 설정 화면 이동
