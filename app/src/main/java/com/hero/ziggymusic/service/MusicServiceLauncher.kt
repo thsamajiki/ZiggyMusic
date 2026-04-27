@@ -8,14 +8,25 @@ object MusicServiceLauncher {
     @Volatile
     private var isStartRequested: Boolean = false
 
-    fun startOrRefresh(context: Context) {
-        dispatchAction(context, MusicService.ACTION_REFRESH_NOTIFICATION)
+    fun refreshIfRunning(
+        context: Context,
+        mediaId: String? = null
+    ) {
+        if (!MusicService.isForegroundStarted) return
+
+        dispatchAction(
+            context = context,
+            action = MusicService.ACTION_REFRESH_NOTIFICATION,
+            mediaId = mediaId,
+            startIfNeeded = false
+        )
     }
 
     fun dispatchAction(
         context: Context,
         action: String,
-        mediaId: String? = null
+        mediaId: String? = null,
+        startIfNeeded: Boolean = true
     ) {
         val appContext = context.applicationContext
         val intent = Intent(appContext, MusicService::class.java).apply {
@@ -25,9 +36,9 @@ object MusicServiceLauncher {
             }
         }
 
-        if (MusicService.isForegroundStarted || isStartRequested) {
+        if (MusicService.isForegroundStarted) {
             appContext.startService(intent)
-        } else {
+        } else if (startIfNeeded && !isStartRequested) {
             isStartRequested = true
             ContextCompat.startForegroundService(appContext, intent)
         }
