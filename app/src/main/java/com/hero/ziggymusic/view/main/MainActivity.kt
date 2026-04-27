@@ -40,7 +40,7 @@ import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import com.hero.ziggymusic.service.MusicService
-import com.hero.ziggymusic.service.MusicServiceLauncher
+import com.hero.ziggymusic.service.MusicServiceController
 import com.hero.ziggymusic.view.main.model.MainTitle
 import com.hero.ziggymusic.view.main.musiclist.MusicListFragment
 import com.hero.ziggymusic.view.main.myplaylist.MyPlaylistFragment
@@ -185,7 +185,7 @@ class MainActivity : AppCompatActivity(),
 
     fun playMusic(musicId: String) {
         playerController.changeMusic(musicId)
-        MusicServiceLauncher.dispatchAction(
+        MusicServiceController.dispatchAction(
             context = this,
             action = MusicService.ACTION_REFRESH_NOTIFICATION,
             mediaId = musicId
@@ -219,13 +219,13 @@ class MainActivity : AppCompatActivity(),
 
     // 서비스를 시작하는 메서드
     private fun refreshMusicServiceIfRunning() {
-        MusicServiceLauncher.refreshIfRunning(this)
+        MusicServiceController.refreshIfRunning(this)
     }
 
     private fun startMusicServiceIfNotificationAllowed() {
         if (!hasNotificationPermission()) return
 
-        MusicServiceLauncher.dispatchAction(
+        MusicServiceController.dispatchAction(
             context = this,
             action = MusicService.ACTION_REFRESH_NOTIFICATION
         )

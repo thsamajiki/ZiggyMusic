@@ -4,7 +4,7 @@ import android.content.Context
 import android.content.Intent
 import androidx.core.content.ContextCompat
 
-object MusicServiceLauncher {
+object MusicServiceController {
     fun refreshIfRunning(
         context: Context,
         mediaId: String? = null
