@@ -149,7 +149,10 @@ class MusicService : MediaLibraryService() {
             }
 
             ACTION_REFRESH_NOTIFICATION, null -> {
-                refreshAlbumArt()
+                val mediaId = intent?.getStringExtra(EXTRA_MEDIA_ID)
+                    ?: player.currentMediaItem?.mediaId
+
+                updateAlbumArt(mediaId)
             }
         }
 
