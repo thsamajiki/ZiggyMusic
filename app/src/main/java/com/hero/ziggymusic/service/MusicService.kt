@@ -92,8 +92,7 @@ class MusicService : MediaLibraryService() {
         createNotificationChannel()
 
         startForegroundCompat()
-        isForegroundStarted = true
-        MusicServiceLauncher.onForegroundEntered()
+        MusicServiceState.onForegroundEntered()
 
         EventBus.getInstance().register(this)
 
@@ -113,10 +112,9 @@ class MusicService : MediaLibraryService() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         super.onStartCommand(intent, flags, startId)
 
-        if (!isForegroundStarted) {
+        if (!MusicServiceState.isForegroundStarted) {
             startForegroundCompat()
-            isForegroundStarted = true
-            MusicServiceLauncher.onForegroundEntered()
+            MusicServiceState.onForegroundEntered()
         }
 
         Log.d("MusicServiceAction", "action = ${intent?.action}")
@@ -332,7 +330,7 @@ class MusicService : MediaLibraryService() {
     }
 
     private fun updateNotification() {
-        if (isExiting || !isForegroundStarted) return
+        if (isExiting || !MusicServiceState.isForegroundStarted) return
 
         val notification = try {
             createNotification()
@@ -615,8 +613,7 @@ class MusicService : MediaLibraryService() {
     }
 
     override fun onDestroy() {
-        isForegroundStarted = false
-        MusicServiceLauncher.onServiceDestroyed()
+        MusicServiceState.reset()
 
         albumArtLoadJob?.cancel()
         serviceScope.cancel()
@@ -646,9 +643,6 @@ class MusicService : MediaLibraryService() {
         const val SKIP_NEXT = "com.hero.ziggymusic.SKIP_NEXT"
         const val ACTION_REFRESH_NOTIFICATION = "com.hero.ziggymusic.REFRESH_NOTIFICATION"
         const val EXTRA_MEDIA_ID = "extra_media_id"
-
-        @Volatile
-        var isForegroundStarted: Boolean = false
 
         const val REQ_CODE_PREV = 100
         const val REQ_CODE_PLAY = 101
