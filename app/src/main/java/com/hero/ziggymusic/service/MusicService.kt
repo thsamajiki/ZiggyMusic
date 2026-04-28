@@ -15,6 +15,7 @@ import android.net.Uri
 import android.os.Build
 import android.util.Log
 import android.util.LruCache
+import android.view.KeyEvent
 import android.view.View
 import android.widget.RemoteViews
 import androidx.core.app.NotificationCompat
@@ -27,11 +28,8 @@ import androidx.media3.session.MediaSession
 import com.hero.ziggymusic.R
 import com.hero.ziggymusic.database.music.entity.MusicModel
 import com.hero.ziggymusic.database.music.entity.PlayerModel
-import com.hero.ziggymusic.event.Event
-import com.hero.ziggymusic.event.EventBus
 import com.hero.ziggymusic.view.main.MainActivity
 import javax.inject.Inject
-import com.squareup.otto.Subscribe
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -94,8 +92,6 @@ class MusicService : MediaLibraryService() {
         startForegroundCompat()
         MusicServiceState.onForegroundEntered()
 
-        EventBus.getInstance().register(this)
-
         mediaLibrarySession = MediaLibrarySession.Builder(
             this,
             player,
@@ -120,32 +116,6 @@ class MusicService : MediaLibraryService() {
         Log.d("MusicServiceAction", "action = ${intent?.action}")
 
         when (intent?.action) {
-            PLAY -> {
-                if (!player.playWhenReady) {
-                    Log.d("onStartCommand", "PLAY")
-                    player.play()
-                }
-                updateNotification()
-            }
-
-            PAUSE -> {
-                if (player.playWhenReady) {
-                    Log.d("onStartCommand", "PAUSE")
-                    player.pause()
-                }
-                updateNotification()
-            }
-
-            SKIP_PREV -> {
-                Log.d("onStartCommand", "SKIP_PREV")
-                player.seekToPrevious()
-            }
-
-            SKIP_NEXT -> {
-                Log.d("onStartCommand", "SKIP_NEXT")
-                player.seekToNext()
-            }
-
             ACTION_REFRESH_NOTIFICATION, null -> {
                 val mediaId = intent?.getStringExtra(EXTRA_MEDIA_ID)
                     ?: player.currentMediaItem?.mediaId
@@ -345,37 +315,12 @@ class MusicService : MediaLibraryService() {
         }
 
         try {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                startForeground(
-                    NOTIFICATION_ID,
-                    notification,
-                    ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK
-                )
-            } else {
-                startForeground(NOTIFICATION_ID, notification)
-            }
-        } catch (e: Exception) {
-            Log.e("MusicService", "startForeground로 알림 갱신 실패", e)
             val manager = getSystemService(NotificationManager::class.java)
             manager.notify(NOTIFICATION_ID, notification)
-        }
-    }
-
-    @Subscribe
-    fun onEvent(event: Event) {
-        when (event.getEvent()) {
-            "PLAY" -> {
-                player.play()
-            }
-            "PAUSE" -> {
-                player.pause()
-            }
-            "SKIP_PREV" -> {
-                player.seekToPrevious()
-            }
-            "SKIP_NEXT" -> {
-                player.seekToNext()
-            }
+        } catch (e: Exception) {
+            Log.e("MusicService", "Notification 갱신 실패", e)
+            val manager = getSystemService(NotificationManager::class.java)
+            manager.notify(NOTIFICATION_ID, notification)
         }
     }
 
@@ -400,42 +345,10 @@ class MusicService : MediaLibraryService() {
         val expandedNotificationView =
             RemoteViews(this.packageName, R.layout.notification_player_extended)
 
-        val prevIntent = Intent(this, MusicService::class.java).run {
-            action = SKIP_PREV
-            PendingIntent.getService(
-                this@MusicService,
-                REQ_CODE_PREV,
-                this,
-                PendingIntent.FLAG_IMMUTABLE
-            )
-        }
-        val playIntent = Intent(this, MusicService::class.java).run {
-            action = PLAY
-            PendingIntent.getService(
-                this@MusicService,
-                REQ_CODE_PLAY,
-                this,
-                PendingIntent.FLAG_IMMUTABLE
-            )
-        }
-        val pauseIntent = Intent(this, MusicService::class.java).run {
-            action = PAUSE
-            PendingIntent.getService(
-                this@MusicService,
-                REQ_CODE_PAUSE,
-                this,
-                PendingIntent.FLAG_IMMUTABLE
-            )
-        }
-        val nextIntent = Intent(this, MusicService::class.java).run {
-            action = SKIP_NEXT
-            PendingIntent.getService(
-                this@MusicService,
-                REQ_CODE_NEXT,
-                this,
-                PendingIntent.FLAG_IMMUTABLE
-            )
-        }
+        val prevIntent = mediaButtonPendingIntent(KeyEvent.KEYCODE_MEDIA_PREVIOUS, REQ_CODE_PREV)
+        val playIntent = mediaButtonPendingIntent(KeyEvent.KEYCODE_MEDIA_PLAY, REQ_CODE_PLAY)
+        val pauseIntent = mediaButtonPendingIntent(KeyEvent.KEYCODE_MEDIA_PAUSE, REQ_CODE_PAUSE)
+        val nextIntent = mediaButtonPendingIntent(KeyEvent.KEYCODE_MEDIA_NEXT, REQ_CODE_NEXT)
         val notificationTouchIntent = Intent(this, MainActivity::class.java).run {
             addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
             PendingIntent.getActivity(
@@ -477,6 +390,23 @@ class MusicService : MediaLibraryService() {
             .setContentIntent(notificationTouchIntent)
             .setOngoing(true)
             .build()
+    }
+
+    private fun mediaButtonPendingIntent(keyCode: Int, requestCode: Int): PendingIntent {
+        val intent = Intent(Intent.ACTION_MEDIA_BUTTON).apply {
+            setClass(this@MusicService, MusicMediaButtonReceiver::class.java)
+            putExtra(
+                Intent.EXTRA_KEY_EVENT,
+                KeyEvent(KeyEvent.ACTION_DOWN, keyCode)
+            )
+        }
+
+        return PendingIntent.getBroadcast(
+            this,
+            requestCode,
+            intent,
+            PendingIntent.FLAG_IMMUTABLE
+        )
     }
 
     private fun setPlayPauseButtonState(
@@ -629,7 +559,6 @@ class MusicService : MediaLibraryService() {
             mediaLibrarySession.release()
         }
 
-        EventBus.getInstance().unregister(this)
         super.onDestroy()
     }
 
@@ -637,10 +566,6 @@ class MusicService : MediaLibraryService() {
         const val CHANNEL_ID = "MusicChannel"
         const val NOTIFICATION_ID = 1
 
-        const val PLAY = "com.hero.ziggymusic.PLAY"
-        const val PAUSE = "com.hero.ziggymusic.PAUSE"
-        const val SKIP_PREV = "com.hero.ziggymusic.SKIP_PREV"
-        const val SKIP_NEXT = "com.hero.ziggymusic.SKIP_NEXT"
         const val ACTION_REFRESH_NOTIFICATION = "com.hero.ziggymusic.REFRESH_NOTIFICATION"
         const val EXTRA_MEDIA_ID = "extra_media_id"
 
