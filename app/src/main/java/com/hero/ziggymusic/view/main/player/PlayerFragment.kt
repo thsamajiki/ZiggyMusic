@@ -31,6 +31,7 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.MediaItem
+import androidx.media3.common.MediaMetadata
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.DefaultDataSource
@@ -638,6 +639,14 @@ class PlayerFragment : Fragment() {
             val mediaItem = MediaItem.Builder()
                 .setMediaId(music.id)
                 .setUri(musicFileUri)
+                .setMediaMetadata(
+                    MediaMetadata.Builder()
+                        .setTitle(music.title)
+                        .setArtist(music.artist)
+                        .setAlbumTitle(music.album)
+                        .setArtworkUri(music.getAlbumUri())
+                        .build()
+                )
                 .build()
 
             ProgressiveMediaSource.Factory(defaultDataSourceFactory) // 미디어 정보를 가져오는 클래스
