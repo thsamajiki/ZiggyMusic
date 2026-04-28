@@ -11,10 +11,12 @@ import android.content.pm.ServiceInfo
 import android.os.Build
 import android.util.Log
 import android.view.KeyEvent
+import androidx.annotation.OptIn
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
+import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.session.MediaLibraryService
 import androidx.media3.session.MediaSession
@@ -166,6 +168,7 @@ class MusicService : MediaLibraryService() {
         }
     }
 
+    @OptIn(UnstableApi::class)
     private fun createNotification(): Notification {
         val prevIntent = mediaButtonPendingIntent(KeyEvent.KEYCODE_MEDIA_PREVIOUS, REQ_CODE_PREV)
         val playIntent = mediaButtonPendingIntent(KeyEvent.KEYCODE_MEDIA_PLAY, REQ_CODE_PLAY)
