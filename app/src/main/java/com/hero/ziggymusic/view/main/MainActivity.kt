@@ -7,7 +7,6 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
-import android.util.Log
 import android.view.MenuItem
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
@@ -27,11 +26,8 @@ import com.google.android.material.navigation.NavigationBarView
 import com.hero.ziggymusic.R
 import com.hero.ziggymusic.database.music.entity.PlayerModel
 import com.hero.ziggymusic.databinding.ActivityMainBinding
-import com.hero.ziggymusic.event.Event
-import com.hero.ziggymusic.event.EventBus
 import com.hero.ziggymusic.view.main.setting.AudioEffectManager
 import com.hero.ziggymusic.view.main.setting.SettingFragment
-import com.squareup.otto.Subscribe
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -90,8 +86,6 @@ class MainActivity : AppCompatActivity(),
         initSoundEQSettings()
         initListeners()
         requestPermissions()
-
-        EventBus.getInstance().register(this)
     }
 
     private fun initPlayerController() {
@@ -211,17 +205,6 @@ class MainActivity : AppCompatActivity(),
         return true
     }
 
-    // 미니 플레이어에서 사용하는 버튼에 리스너 세팅
-    private fun setPlayerListener() {
-        player.removeListener(playerListener)
-        player.addListener(playerListener)
-    }
-
-    // 서비스를 시작하는 메서드
-    private fun refreshMusicServiceIfRunning() {
-        MusicServiceController.refreshIfRunning(this)
-    }
-
     private fun startMusicServiceIfNotificationAllowed() {
         if (!hasNotificationPermission()) return
 
@@ -229,57 +212,6 @@ class MainActivity : AppCompatActivity(),
             context = this,
             action = MusicService.ACTION_REFRESH_NOTIFICATION
         )
-    }
-
-    @Subscribe
-    fun doEvent(event: Event) {
-        when(event.getEvent()) {
-            "PLAY_NEW_MUSIC" -> { // 새로운 음원이 재생
-                refreshMusicServiceIfRunning()
-            }
-            "PLAY", "PAUSE" -> { // 재생(기존 음원), 일시 정지
-                Log.d("MainActivity", "doEvent - PLAY PAUSE: ${player.isPlaying}")
-                if (player.isPlaying) {
-                    player.pause()
-                } else {
-                    player.play()
-                }
-                refreshMusicServiceIfRunning()
-            }
-            "SKIP_PREV" -> { // Notification 에서 이전 곡 버튼을 누를 시
-                Log.d("MainActivity", "doEvent - SKIP_PREV: ${player.isPlaying}")
-                player.run {
-                    val prevIndex = if (currentMediaItemIndex - 1 in 0 until mediaItemCount) {
-                        currentMediaItemIndex - 1
-                    } else {
-                        // 전 곡 반복 재생 모드에서 0번 트랙에서 뒤로 갈 때 마지막 트랙으로 이동
-                        if (player.repeatMode == Player.REPEAT_MODE_ALL) {
-                            mediaItemCount - 1
-                        } else {
-                            0
-                        }
-                    }
-
-                    seekTo(prevIndex, 0)
-                }
-
-                setPlayerListener()
-                refreshMusicServiceIfRunning()
-            }
-            "SKIP_NEXT" -> { // Notification 에서 다음 곡 버튼을 누를 시
-                Log.d("MainActivity", "doEvent - SKIP_NEXT: ${player.isPlaying}")
-                player.run {
-                    val nextIndex = if (currentMediaItemIndex + 1 in 0 until mediaItemCount) {
-                        currentMediaItemIndex + 1
-                    } else {
-                        0
-                    }
-                    seekTo(nextIndex, 0)
-                }
-                setPlayerListener()
-                refreshMusicServiceIfRunning()
-            }
-        }
     }
 
     private fun initStatusBarColor() {
@@ -494,9 +426,4 @@ class MainActivity : AppCompatActivity(),
         }
     }
 
-    override fun onDestroy() {
-        EventBus.getInstance().unregister(this)
-
-        super.onDestroy()
-    }
 }
