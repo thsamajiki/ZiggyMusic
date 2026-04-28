@@ -7,7 +7,6 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
-import android.util.Log
 import android.view.MenuItem
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
@@ -27,11 +26,8 @@ import com.google.android.material.navigation.NavigationBarView
 import com.hero.ziggymusic.R
 import com.hero.ziggymusic.database.music.entity.PlayerModel
 import com.hero.ziggymusic.databinding.ActivityMainBinding
-import com.hero.ziggymusic.event.Event
-import com.hero.ziggymusic.event.EventBus
 import com.hero.ziggymusic.view.main.setting.AudioEffectManager
 import com.hero.ziggymusic.view.main.setting.SettingFragment
-import com.squareup.otto.Subscribe
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -40,7 +36,7 @@ import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import com.hero.ziggymusic.service.MusicService
-import com.hero.ziggymusic.service.MusicServiceLauncher
+import com.hero.ziggymusic.service.MusicServiceController
 import com.hero.ziggymusic.view.main.model.MainTitle
 import com.hero.ziggymusic.view.main.musiclist.MusicListFragment
 import com.hero.ziggymusic.view.main.myplaylist.MyPlaylistFragment
@@ -90,8 +86,6 @@ class MainActivity : AppCompatActivity(),
         initSoundEQSettings()
         initListeners()
         requestPermissions()
-
-        EventBus.getInstance().register(this)
     }
 
     private fun initPlayerController() {
@@ -142,30 +136,17 @@ class MainActivity : AppCompatActivity(),
     }
 
     override fun onStart() {
-        musicServiceStart()
-
         super.onStart()
     }
 
     override fun onResume() {
         super.onResume()
 
-        val audioPermissionGranted = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            ContextCompat.checkSelfPermission(
-                this,
-                Manifest.permission.READ_MEDIA_AUDIO
-            ) == PackageManager.PERMISSION_GRANTED
-        } else {
-            ContextCompat.checkSelfPermission(
-                this,
-                Manifest.permission.READ_EXTERNAL_STORAGE
-            ) == PackageManager.PERMISSION_GRANTED
-        }
-
-        if (audioPermissionGranted) {
+        if (hasAudioPermission()) {
             playerController.startPlayer(
                 playbackStateStore.loadLastPlayedId(PlaybackContentType.MUSIC).orEmpty()
             )
+            startMusicServiceIfNotificationAllowed()
         }
     }
 
@@ -198,7 +179,11 @@ class MainActivity : AppCompatActivity(),
 
     fun playMusic(musicId: String) {
         playerController.changeMusic(musicId)
-        MusicServiceLauncher.dispatchAction(this, MusicService.ACTION_REFRESH_NOTIFICATION, musicId)
+        MusicServiceController.dispatchAction(
+            context = this,
+            action = MusicService.ACTION_REFRESH_NOTIFICATION,
+            mediaId = musicId
+        )
     }
 
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
@@ -220,66 +205,13 @@ class MainActivity : AppCompatActivity(),
         return true
     }
 
-    // 미니 플레이어에서 사용하는 버튼에 리스너 세팅
-    private fun setPlayerListener() {
-        player.removeListener(playerListener)
-        player.addListener(playerListener)
-    }
+    private fun startMusicServiceIfNotificationAllowed() {
+        if (!hasNotificationPermission()) return
 
-    // 서비스를 시작하는 메서드
-    private fun musicServiceStart() {
-        MusicServiceLauncher.startOrRefresh(this)
-    }
-
-    @Subscribe
-    fun doEvent(event: Event) {
-        when(event.getEvent()) {
-            "PLAY_NEW_MUSIC" -> { // 새로운 음원이 재생
-                musicServiceStart()
-            }
-            "PLAY", "PAUSE" -> { // 재생(기존 음원), 일시 정지
-                Log.d("MainActivity", "doEvent - PLAY PAUSE: ${player.isPlaying}")
-                if (player.isPlaying) {
-                    player.pause()
-                } else {
-                    player.play()
-                }
-                musicServiceStart()
-            }
-            "SKIP_PREV" -> { // Notification 에서 이전 곡 버튼을 누를 시
-                Log.d("MainActivity", "doEvent - SKIP_PREV: ${player.isPlaying}")
-                player.run {
-                    val prevIndex = if (currentMediaItemIndex - 1 in 0 until mediaItemCount) {
-                        currentMediaItemIndex - 1
-                    } else {
-                        // 전 곡 반복 재생 모드에서 0번 트랙에서 뒤로 갈 때 마지막 트랙으로 이동
-                        if (player.repeatMode == Player.REPEAT_MODE_ALL) {
-                            mediaItemCount - 1
-                        } else {
-                            0
-                        }
-                    }
-
-                    seekTo(prevIndex, 0)
-                }
-
-                setPlayerListener()
-                musicServiceStart()
-            }
-            "SKIP_NEXT" -> { // Notification 에서 다음 곡 버튼을 누를 시
-                Log.d("MainActivity", "doEvent - SKIP_NEXT: ${player.isPlaying}")
-                player.run {
-                    val nextIndex = if (currentMediaItemIndex + 1 in 0 until mediaItemCount) {
-                        currentMediaItemIndex + 1
-                    } else {
-                        0
-                    }
-                    seekTo(nextIndex, 0)
-                }
-                setPlayerListener()
-                musicServiceStart()
-            }
-        }
+        MusicServiceController.dispatchAction(
+            context = this,
+            action = MusicService.ACTION_REFRESH_NOTIFICATION
+        )
     }
 
     private fun initStatusBarColor() {
@@ -306,19 +238,20 @@ class MainActivity : AppCompatActivity(),
     private fun requestPermissions() {
         val needs = mutableListOf<String>()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            if (checkSelfPermission(Manifest.permission.READ_MEDIA_AUDIO) != PackageManager.PERMISSION_GRANTED) {
+            if (!hasAudioPermission()) {
                 needs += Manifest.permission.READ_MEDIA_AUDIO
             }
-            if (checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+            if (!hasNotificationPermission()) {
                 needs += Manifest.permission.POST_NOTIFICATIONS
             }
         } else {
-            if (checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+            if (!hasAudioPermission()) {
                 needs += Manifest.permission.READ_EXTERNAL_STORAGE
             }
         }
         if (needs.isEmpty()) {
             playerController.startPlayer(playbackStateStore.loadLastPlayedId(PlaybackContentType.MUSIC).orEmpty())
+            startMusicServiceIfNotificationAllowed()
         } else {
             permissionLauncher.launch(needs.toTypedArray())
         }
@@ -326,16 +259,9 @@ class MainActivity : AppCompatActivity(),
 
     private val permissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
-    ) { result ->
-        val audioGranted = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU)
-            result[Manifest.permission.READ_MEDIA_AUDIO] == true
-        else
-            result[Manifest.permission.READ_EXTERNAL_STORAGE] == true
-
-        val notifGranted = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU)
-            result[Manifest.permission.POST_NOTIFICATIONS] == true
-        else
-            true
+    ) { _ ->
+        val audioGranted = hasAudioPermission()
+        val notifGranted = hasNotificationPermission()
 
         if (!audioGranted) {
             // 오디오 권한 미허용
@@ -350,6 +276,7 @@ class MainActivity : AppCompatActivity(),
 
         // 오디오 권한 허용됨 -> 핵심 기능 시작
         playerController.startPlayer(playbackStateStore.loadLastPlayedId(PlaybackContentType.MUSIC).orEmpty())
+        startMusicServiceIfNotificationAllowed()
 
         // 알림 권한 선택적 처리
         if (!notifGranted) {
@@ -427,6 +354,24 @@ class MainActivity : AppCompatActivity(),
             .show()
     }
 
+    private fun hasAudioPermission(): Boolean {
+        val permission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            Manifest.permission.READ_MEDIA_AUDIO
+        } else {
+            Manifest.permission.READ_EXTERNAL_STORAGE
+        }
+
+        return ContextCompat.checkSelfPermission(this, permission) == PackageManager.PERMISSION_GRANTED
+    }
+
+    private fun hasNotificationPermission(): Boolean {
+        return Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU ||
+                ContextCompat.checkSelfPermission(
+                    this,
+                    Manifest.permission.POST_NOTIFICATIONS
+                ) == PackageManager.PERMISSION_GRANTED
+    }
+
     // 앱 세부 설정 화면 이동
     private fun openAppSettings() {
         val intent = Intent(
@@ -481,9 +426,4 @@ class MainActivity : AppCompatActivity(),
         }
     }
 
-    override fun onDestroy() {
-        EventBus.getInstance().unregister(this)
-
-        super.onDestroy()
-    }
 }

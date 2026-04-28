@@ -4,18 +4,26 @@ import android.content.Context
 import android.content.Intent
 import androidx.core.content.ContextCompat
 
-object MusicServiceLauncher {
-    @Volatile
-    private var isStartRequested: Boolean = false
+object MusicServiceController {
+    fun refreshIfRunning(
+        context: Context,
+        mediaId: String? = null
+    ) {
+        if (!MusicServiceState.isForegroundStarted) return
 
-    fun startOrRefresh(context: Context) {
-        dispatchAction(context, MusicService.ACTION_REFRESH_NOTIFICATION)
+        dispatchAction(
+            context = context,
+            action = MusicService.ACTION_REFRESH_NOTIFICATION,
+            mediaId = mediaId,
+            startIfNeeded = false
+        )
     }
 
     fun dispatchAction(
         context: Context,
         action: String,
-        mediaId: String? = null
+        mediaId: String? = null,
+        startIfNeeded: Boolean = true
     ) {
         val appContext = context.applicationContext
         val intent = Intent(appContext, MusicService::class.java).apply {
@@ -25,19 +33,10 @@ object MusicServiceLauncher {
             }
         }
 
-        if (MusicService.isForegroundStarted || isStartRequested) {
+        if (MusicServiceState.isForegroundStarted) {
             appContext.startService(intent)
-        } else {
-            isStartRequested = true
+        } else if (startIfNeeded && MusicServiceState.markStartRequested()) {
             ContextCompat.startForegroundService(appContext, intent)
         }
-    }
-
-    fun onForegroundEntered() {
-        isStartRequested = false
-    }
-
-    fun onServiceDestroyed() {
-        isStartRequested = false
     }
 }

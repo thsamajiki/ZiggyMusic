@@ -31,6 +31,7 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.MediaItem
+import androidx.media3.common.MediaMetadata
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.DefaultDataSource
@@ -45,10 +46,6 @@ import com.hero.ziggymusic.R
 import com.hero.ziggymusic.database.music.entity.MusicModel
 import com.hero.ziggymusic.database.music.entity.PlayerModel
 import com.hero.ziggymusic.databinding.FragmentPlayerBinding
-import com.hero.ziggymusic.service.MusicService.Companion.PLAY
-import com.hero.ziggymusic.service.MusicService.Companion.PAUSE
-import com.hero.ziggymusic.service.MusicService.Companion.SKIP_PREV
-import com.hero.ziggymusic.service.MusicService.Companion.SKIP_NEXT
 import com.hero.ziggymusic.view.main.player.viewmodel.PlayerViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
@@ -62,7 +59,7 @@ import androidx.fragment.app.activityViewModels
 import com.bumptech.glide.load.DataSource
 import com.bumptech.glide.load.engine.GlideException
 import com.bumptech.glide.request.RequestListener
-import com.hero.ziggymusic.service.MusicServiceLauncher
+import com.hero.ziggymusic.service.MusicMediaControllerConnector
 import com.hero.ziggymusic.view.main.player.model.LastPlayedMedia
 
 @AndroidEntryPoint
@@ -89,6 +86,7 @@ class PlayerFragment : Fragment() {
 
     private lateinit var playerMotionManager: PlayerMotionManager
     private lateinit var playerBottomSheetManager: PlayerBottomSheetManager
+    private lateinit var mediaControllerConnector: MusicMediaControllerConnector
     private var albumGradientManager: MusicAlbumArtGradientManager? = null
     private var latestAlbumBitmap: Bitmap? = null
 
@@ -129,6 +127,7 @@ class PlayerFragment : Fragment() {
         binding.music = playerModel.currentMusic
         binding.executePendingBindings()
 
+        initMediaController()
         initAudioManager()
         initPlayView()
         initPlayControlButtons()
@@ -142,6 +141,13 @@ class PlayerFragment : Fragment() {
         audioManager = requireContext().getSystemService(Context.AUDIO_SERVICE) as AudioManager
         currentVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
         previousVolume = currentVolume
+    }
+
+    private fun initMediaController() {
+        mediaControllerConnector = MusicMediaControllerConnector(requireContext())
+        viewLifecycleOwner.lifecycleScope.launch {
+            mediaControllerConnector.connect()
+        }
     }
 
     private fun initListeners() {
@@ -334,25 +340,33 @@ class PlayerFragment : Fragment() {
     }
 
     private fun initPlayControlButtons() {
-        // 재생 or 일시정지 버튼
         binding.ivPlayPause.setOnClickListener {
-            val action =
-                if (player.isPlaying) PAUSE
-                else PLAY
-            sendServiceAction(action)
+            viewLifecycleOwner.lifecycleScope.launch {
+                mediaControllerConnector.withController { controller ->
+                    if (player.isPlaying) {
+                        controller.pause()
+                    } else {
+                        controller.play()
+                    }
+                }
+            }
         }
 
         binding.ivNext.setOnClickListener {
-            sendServiceAction(SKIP_NEXT)
+            viewLifecycleOwner.lifecycleScope.launch {
+                mediaControllerConnector.withController { controller ->
+                    controller.seekToNext()
+                }
+            }
         }
 
         binding.ivPrevious.setOnClickListener {
-            sendServiceAction(SKIP_PREV)
+            viewLifecycleOwner.lifecycleScope.launch {
+                mediaControllerConnector.withController { controller ->
+                    controller.seekToPrevious()
+                }
+            }
         }
-    }
-
-    private fun sendServiceAction(action: String) {
-        MusicServiceLauncher.dispatchAction(requireContext(), action)
     }
 
     private fun initPlayView() {
@@ -625,6 +639,14 @@ class PlayerFragment : Fragment() {
             val mediaItem = MediaItem.Builder()
                 .setMediaId(music.id)
                 .setUri(musicFileUri)
+                .setMediaMetadata(
+                    MediaMetadata.Builder()
+                        .setTitle(music.title)
+                        .setArtist(music.artist)
+                        .setAlbumTitle(music.album)
+                        .setArtworkUri(music.getAlbumUri())
+                        .build()
+                )
                 .build()
 
             ProgressiveMediaSource.Factory(defaultDataSourceFactory) // 미디어 정보를 가져오는 클래스
@@ -930,6 +952,7 @@ class PlayerFragment : Fragment() {
 
         // 앨범 그라데이션 매니저 해제
         albumGradientManager = null
+        mediaControllerConnector.release()
 
         _binding = null
         super.onDestroyView()
