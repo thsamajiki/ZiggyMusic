@@ -26,26 +26,19 @@
 
 # Keep enough metadata for libraries that inspect annotations, generic
 # signatures, or Kotlin declarations at runtime, plus useful release stack
-# traces after minification.
+# traces with original source file names and line numbers after minification.
 -keepattributes Signature,*Annotation*,InnerClasses,EnclosingMethod,SourceFile,LineNumberTable
 -keep class kotlin.Metadata { *; }
-
--renamesourcefileattribute SourceFile
 
 # JNI native method names are resolved from the Java/Kotlin package, class,
 # and method names when RegisterNatives is not used. These two classes are
 # exported from app/src/main/cpp with Java_com_hero_... symbols, so their
 # binary names and native methods must not be obfuscated.
--keep class com.hero.ziggymusic.audio.AudioProcessorChainController {
+-keepclasseswithmembernames,includedescriptorclasses class com.hero.ziggymusic.audio.AudioProcessorChainController {
     native <methods>;
 }
 
--keep class com.hero.ziggymusic.audio.BufferAddressHelper {
-    native <methods>;
-}
-
-# General safety net for future JNI entry points.
--keepclasseswithmembernames,includedescriptorclasses class * {
+-keepclasseswithmembernames,includedescriptorclasses class com.hero.ziggymusic.audio.BufferAddressHelper {
     native <methods>;
 }
 
