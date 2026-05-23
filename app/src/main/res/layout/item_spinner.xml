@@ -9,5 +9,4 @@
     android:paddingVertical="5dp"
     android:singleLine="true"
     android:textAlignment="inherit"
-    android:textColor="@color/white"
-    android:textSize="@dimen/small_text_size" />
+    android:textAppearance="@style/TextAppearance.ZiggyMusic.White.Caption" />
