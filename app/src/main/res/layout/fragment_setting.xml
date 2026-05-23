@@ -26,10 +26,9 @@
                     android:id="@+id/tvPreset"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
+                    android:textAppearance="@style/TextAppearance.ZiggyMusic.White.Caption"
                     android:layout_marginStart="@dimen/space_xxxl"
                     android:text="@string/preset"
-                    android:textColor="@color/white"
-                    android:textSize="@dimen/small_text_size"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />
@@ -75,10 +74,9 @@
                     android:id="@+id/tvReverb"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
+                    android:textAppearance="@style/TextAppearance.ZiggyMusic.White.Caption"
                     android:layout_marginStart="@dimen/space_xxxl"
                     android:text="@string/reverb"
-                    android:textColor="@color/white"
-                    android:textSize="@dimen/small_text_size"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />
@@ -110,10 +108,9 @@
                     android:id="@+id/tvBass"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:textAppearance="@style/TextAppearance.ZiggyMusic.White.Caption"
                     android:layout_marginStart="@dimen/space_xxxl"
                     android:text="@string/bass"
-                    android:textColor="@color/white"
-                    android:textSize="@dimen/small_text_size"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />
 
@@ -136,9 +133,8 @@
                     android:layout_height="wrap_content"
                     android:layout_marginStart="@dimen/space_xxxl"
                     android:layout_marginTop="@dimen/space_xl"
+                    android:textAppearance="@style/TextAppearance.ZiggyMusic.White.Caption"
                     android:text="@string/_3d_virtualizer"
-                    android:textColor="@color/white"
-                    android:textSize="@dimen/small_text_size"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@id/sbBass" />
 
@@ -168,9 +164,8 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="@dimen/space_xxxl"
+                        android:textAppearance="@style/TextAppearance.ZiggyMusic.White.Caption"
                         android:text="@string/spatial_audio"
-                        android:textColor="@color/white"
-                        android:textSize="@dimen/small_text_size"
                         app:layout_constraintBottom_toBottomOf="parent"
                         app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toTopOf="parent" />
@@ -198,9 +193,8 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="@dimen/space_xxxl"
+                        android:textAppearance="@style/TextAppearance.ZiggyMusic.LightGray.Sub"
                         android:text="@string/head_tracking"
-                        android:textColor="@color/light_gray"
-                        android:textSize="@dimen/sub_text_size"
                         app:layout_constraintBottom_toBottomOf="parent"
                         app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toTopOf="parent" />
