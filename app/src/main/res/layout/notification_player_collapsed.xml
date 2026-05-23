@@ -27,7 +27,7 @@
         android:paddingBottom="2dp">
 
         <TextView
-            android:id="@+id/tvNotificationTitle"
+            android:id="@+id/tvNotificationCollapsedTitle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/space_xs"
@@ -38,7 +38,7 @@
             android:textAppearance="@style/TextAppearance.ZiggyMusic.Notification.Title.Small" />
 
         <TextView
-            android:id="@+id/tvNotificationArtist"
+            android:id="@+id/tvNotificationCollapsedArtist"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="@dimen/space_xs"
