@@ -20,6 +20,8 @@
         <item name="colorOnSecondary">@color/black</item>
 
         <item name="android:statusBarColor">@color/dark_black</item>
+        <item name="android:windowBackground">@color/dark_black</item>
+        <item name="android:windowDisablePreview">true</item>
     </style>
 
     <style name="SpinnerDivideStyle" parent="android:style/Widget.ListView.DropDown">
