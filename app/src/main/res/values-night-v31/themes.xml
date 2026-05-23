@@ -1,8 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Base application theme -->
+    <!-- Android 12+ night application theme -->
     <style name="Theme.ZiggyMusic" parent="Theme.MaterialComponents.DayNight.NoActionBar">
         <item name="windowNoTitle">true</item>
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowContentOverlay">@null</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/ic_splash_transparent</item>
 
         <!-- Default text style -->
         <item name="android:fontFamily">@font/pretendard</item>
@@ -20,19 +23,5 @@
         <item name="colorOnSecondary">@color/black</item>
 
         <item name="android:statusBarColor">@color/dark_black</item>
-    </style>
-
-    <style name="SpinnerDivideStyle" parent="android:style/Widget.ListView.DropDown">
-        <item name="android:divider">@color/white</item>
-        <item name="android:dividerHeight">1dp</item>
-    </style>
-
-    <style name="Widget.My.Spinner" parent="Widget.AppCompat.Spinner">
-        <item name="android:overlapAnchor">false</item>
-        <item name="overlapAnchor">false</item>
-        <item name="android:spinnerMode">dropdown</item>
-        <item name="android:dropDownWidth">wrap_content</item>
-        <item name="android:background">@drawable/bg_spinner</item>
-        <item name="android:dropDownListViewStyle">@style/SpinnerDivideStyle</item>
     </style>
 </resources>
