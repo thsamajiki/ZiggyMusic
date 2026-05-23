@@ -35,7 +35,7 @@
             android:id="@+id/tvNothingFound"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textAppearance="@style/TextAppearance.ZiggyMusic.White.Caption.Bold"
+            android:textAppearance="@style/TextAppearance.ZiggyMusic.White.Caption.SemiBold"
             android:text="@{vm.emptyStateMessage}"
             android:visibility="gone"
             app:layout_constraintBottom_toBottomOf="parent"
