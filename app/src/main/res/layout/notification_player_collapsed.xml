@@ -27,8 +27,7 @@
         android:paddingBottom="2dp">
 
         <TextView
-            android:id="@+id/tvNotificationTitle"
-            style="@style/TextAppearance.Compat.Notification.Title"
+            android:id="@+id/tvNotificationCollapsedTitle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/space_xs"
@@ -36,12 +35,10 @@
             android:singleLine="true"
             android:includeFontPadding="false"
             android:text="@string/current_song_title"
-            android:textColor="@color/white"
-            android:textSize="@dimen/small_text_size" />
+            android:textAppearance="@style/TextAppearance.ZiggyMusic.Notification.Title.Small" />
 
         <TextView
-            android:id="@+id/tvNotificationArtist"
-            style="@style/TextAppearance.Compat.Notification"
+            android:id="@+id/tvNotificationCollapsedArtist"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="@dimen/space_xs"
@@ -49,8 +46,7 @@
             android:singleLine="true"
             android:includeFontPadding="false"
             android:text="@string/current_song_artist"
-            android:textColor="@color/white"
-            android:textSize="@dimen/small_text_size" />
+            android:textAppearance="@style/TextAppearance.ZiggyMusic.Notification.Body.Small" />
 
     </LinearLayout>
 

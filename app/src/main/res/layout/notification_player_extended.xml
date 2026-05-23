@@ -32,15 +32,13 @@
 
             <TextView
                 android:id="@+id/tvNotificationExtendedTitle"
-                style="@style/TextAppearance.Compat.Notification.Title"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="@dimen/space_sm"
                 android:layout_marginEnd="@dimen/space_xl"
                 android:ellipsize="end"
                 android:singleLine="true"
-                android:textColor="@color/white"
-                android:textSize="@dimen/body_text_size"
+                android:textAppearance="@style/TextAppearance.ZiggyMusic.Notification.Title.Body"
                 tools:text="Title" />
 
             <TextView
@@ -52,8 +50,7 @@
                 android:layout_marginEnd="@dimen/space_xl"
                 android:ellipsize="end"
                 android:singleLine="true"
-                android:textColor="@color/white"
-                android:textSize="@dimen/small_text_size"
+                android:textAppearance="@style/TextAppearance.ZiggyMusic.Notification.Body.Small"
                 tools:text="Artist" />
 
         </LinearLayout>
