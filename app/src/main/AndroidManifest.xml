@@ -32,8 +32,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.ZiggyMusic"
-        tools:targetApi="31"
-        tools:ignore="LockedOrientationActivity">
+        tools:targetApi="31">
 
         <service
             android:name=".service.MusicService"
@@ -54,10 +53,13 @@
             </intent-filter>
         </receiver>
 
+        <!-- MainActivity is currently phone-portrait only; keep the lint suppression scoped here. -->
         <activity
             android:name=".view.main.MainActivity"
+            android:exported="true"
             android:screenOrientation="portrait"
-            android:exported="true">
+            android:theme="@style/Theme.ZiggyMusic.Launcher"
+            tools:ignore="DiscouragedApi,LockedOrientationActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
