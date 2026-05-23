@@ -33,7 +33,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.ZiggyMusic"
         tools:targetApi="31"
-        tools:ignore="LockedOrientationActivity">
+        tools:ignore="DiscouragedApi,LockedOrientationActivity">
 
         <service
             android:name=".service.MusicService"
