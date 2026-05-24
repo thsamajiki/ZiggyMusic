@@ -278,15 +278,15 @@ class MusicService : MediaLibraryService() {
         override fun getAvailableCommands(): Player.Commands {
             return super.getAvailableCommands()
                 .buildUpon()
-                .addIf(Player.COMMAND_SEEK_TO_NEXT_MEDIA_ITEM, shouldMoveFromLastTrackToFirstTrack())
-                .addIf(Player.COMMAND_SEEK_TO_NEXT, shouldMoveFromLastTrackToFirstTrack())
+                .addIf(COMMAND_SEEK_TO_NEXT_MEDIA_ITEM, shouldMoveFromLastTrackToFirstTrack())
+                .addIf(COMMAND_SEEK_TO_NEXT, shouldMoveFromLastTrackToFirstTrack())
                 .build()
         }
 
         override fun isCommandAvailable(command: Int): Boolean {
             return when (command) {
-                Player.COMMAND_SEEK_TO_NEXT_MEDIA_ITEM,
-                Player.COMMAND_SEEK_TO_NEXT -> shouldMoveFromLastTrackToFirstTrack() || super.isCommandAvailable(command)
+                COMMAND_SEEK_TO_NEXT_MEDIA_ITEM,
+                COMMAND_SEEK_TO_NEXT -> shouldMoveFromLastTrackToFirstTrack() || super.isCommandAvailable(command)
                 else -> super.isCommandAvailable(command)
             }
         }
@@ -309,7 +309,7 @@ class MusicService : MediaLibraryService() {
             this.action = action
         }
 
-        return PendingIntent.getService(
+        return PendingIntent.getForegroundService(
             this,
             requestCode,
             intent,
