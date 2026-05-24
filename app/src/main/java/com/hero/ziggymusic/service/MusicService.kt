@@ -190,7 +190,7 @@ class MusicService : MediaLibraryService() {
     private fun createNotificationOrFallback(): Notification = try {
         createNotification()
     } catch (e: Exception) {
-        Log.e("MusicService", "updateNotification() 실패, 기본 알림으로 대체", e)
+        Log.e("MusicService", "createNotification() 실패, 기본 알림으로 대체", e)
         NotificationCompat.Builder(this, CHANNEL_ID)
             .setContentTitle("Ziggy Music")
             .setContentText("음악 재생 중")
