@@ -60,6 +60,7 @@ import com.bumptech.glide.load.DataSource
 import com.bumptech.glide.load.engine.GlideException
 import com.bumptech.glide.request.RequestListener
 import com.hero.ziggymusic.service.MusicMediaControllerConnector
+import com.hero.ziggymusic.service.MusicServiceController
 import com.hero.ziggymusic.view.main.player.model.LastPlayedMedia
 
 @AndroidEntryPoint
@@ -353,6 +354,14 @@ class PlayerFragment : Fragment() {
         }
 
         binding.ivNext.setOnClickListener {
+            if (moveToFirstTrack()) {
+                MusicServiceController.refreshIfRunning(
+                    context = requireContext(),
+                    mediaId = player.currentMediaItem?.mediaId
+                )
+                return@setOnClickListener
+            }
+
             viewLifecycleOwner.lifecycleScope.launch {
                 mediaControllerConnector.withController { controller ->
                     controller.seekToNext()
@@ -367,6 +376,33 @@ class PlayerFragment : Fragment() {
                 }
             }
         }
+    }
+
+    private fun moveToFirstTrack(): Boolean {
+        if (player.repeatMode != Player.REPEAT_MODE_OFF) return false
+        if (player.mediaItemCount <= 0) return false
+        if (player.currentMediaItemIndex != player.mediaItemCount - 1) return false
+
+        player.playWhenReady = false
+        player.seekTo(0, 0)
+        player.pause()
+
+        val firstId = player.getMediaItemAt(0).mediaId
+        playerModel.changedMusic(firstId)
+        playbackStateStore.saveLastPlayedMedia(
+            LastPlayedMedia(
+                type = PlaybackContentType.MUSIC,
+                id = firstId,
+                positionMs = 0L,
+                playWhenReady = false,
+                updatedAtMs = System.currentTimeMillis()
+            )
+        )
+        updatePlayerView(playerModel.currentMusic)
+        updateSeek()
+        syncPlayerUi()
+
+        return true
     }
 
     private fun initPlayView() {
