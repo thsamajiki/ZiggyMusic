@@ -53,7 +53,9 @@
     <dimen name="animation_visualizer">44dp</dimen>
     <dimen name="bluetooth">43dp</dimen>
     <dimen name="player_view_height">104dp</dimen>
-    <dimen name="seekbar_player_height">2dp</dimen>
+    <dimen name="seekbar_player_height">5dp</dimen>
+    <dimen name="player_seekbar_thumb_size">24dp</dimen>
+    <dimen name="player_seekbar_thumb_offset">12dp</dimen>
     <dimen name="seekbar_volume">270dp</dimen>
     <dimen name="layout_volume_padding">56dp</dimen>
 
