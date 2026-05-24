@@ -10,10 +10,10 @@ import android.content.Intent
 import android.content.pm.ServiceInfo
 import android.os.Build
 import android.util.Log
-import android.view.KeyEvent
 import androidx.annotation.OptIn
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
+import androidx.media3.common.ForwardingPlayer
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
@@ -71,13 +71,13 @@ class MusicService : MediaLibraryService() {
 
         mediaLibrarySession = MediaLibrarySession.Builder(
             this,
-            player,
+            MediaSessionControlPlayer(player),
             object : MediaLibrarySession.Callback {
             }).build()
 
         createNotificationChannel()
 
-        startForegroundCompat()
+        startForegroundWithNotification(createNotificationOrFallback())
         MusicServiceState.onForegroundEntered()
 
         player.addListener(playerListener)
@@ -87,17 +87,50 @@ class MusicService : MediaLibraryService() {
         return mediaLibrarySession
     }
 
+    @OptIn(UnstableApi::class)
+    override fun onUpdateNotification(session: MediaSession, startInForegroundRequired: Boolean) {
+        if (isExiting) return
+
+        val notification = createNotificationOrFallback()
+        if (startInForegroundRequired || !MusicServiceState.isForegroundStarted) {
+            startForegroundWithNotification(notification)
+            MusicServiceState.onForegroundEntered()
+        } else {
+            notifyMusicNotification(notification)
+        }
+    }
+
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         super.onStartCommand(intent, flags, startId)
 
         if (!MusicServiceState.isForegroundStarted) {
-            startForegroundCompat()
+            startForegroundWithNotification(createNotificationOrFallback())
             MusicServiceState.onForegroundEntered()
         }
 
         Log.d("MusicServiceAction", "action = ${intent?.action}")
 
         when (intent?.action) {
+            ACTION_PLAY -> {
+                player.play()
+                updateNotification()
+            }
+
+            ACTION_PAUSE -> {
+                player.pause()
+                updateNotification()
+            }
+
+            ACTION_PREVIOUS -> {
+                player.seekToPreviousMediaItem()
+                updateNotification()
+            }
+
+            ACTION_NEXT -> {
+                skipToNextOrMoveToFirstTrack()
+                updateNotification()
+            }
+
             ACTION_REFRESH_NOTIFICATION, null -> {
                 val mediaId = intent?.getStringExtra(EXTRA_MEDIA_ID)
                     ?: player.currentMediaItem?.mediaId
@@ -110,9 +143,7 @@ class MusicService : MediaLibraryService() {
         return START_NOT_STICKY
     }
 
-    private fun startForegroundCompat() {
-        val notification = createNotification()
-
+    private fun startForegroundWithNotification(notification: Notification) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             startForeground(
                 NOTIFICATION_ID,
@@ -130,21 +161,45 @@ class MusicService : MediaLibraryService() {
         return playerModel.currentMusic
     }
 
+    private fun skipToNextOrMoveToFirstTrack() {
+        if (shouldMoveFromLastTrackToFirstTrack()) {
+            player.playWhenReady = false
+            player.seekTo(0, 0)
+            player.pause()
+
+            if (player.mediaItemCount > 0) {
+                playerModel.changedMusic(player.getMediaItemAt(0).mediaId)
+            }
+        } else {
+            player.seekToNextMediaItem()
+        }
+    }
+
+    private fun shouldMoveFromLastTrackToFirstTrack(): Boolean {
+        return player.repeatMode == Player.REPEAT_MODE_OFF &&
+                player.mediaItemCount > 0 &&
+                player.currentMediaItemIndex == player.mediaItemCount - 1
+    }
+
     private fun updateNotification() {
         if (isExiting || !MusicServiceState.isForegroundStarted) return
 
-        val notification = try {
-            createNotification()
-        } catch (e: Exception) {
-            Log.e("MusicService", "updateNotification() 실패, 기본 알림으로 대체", e)
-            NotificationCompat.Builder(this, CHANNEL_ID)
-                .setContentTitle("Ziggy Music")
-                .setContentText("음악 재생 중")
-                .setSmallIcon(R.drawable.ic_music_note)
-                .setOngoing(true)
-                .build()
-        }
+        notifyMusicNotification(createNotificationOrFallback())
+    }
 
+    private fun createNotificationOrFallback(): Notification = try {
+        createNotification()
+    } catch (e: Exception) {
+        Log.e("MusicService", "updateNotification() 실패, 기본 알림으로 대체", e)
+        NotificationCompat.Builder(this, CHANNEL_ID)
+            .setContentTitle("Ziggy Music")
+            .setContentText("음악 재생 중")
+            .setSmallIcon(R.drawable.ic_music_note)
+            .setOngoing(true)
+            .build()
+    }
+
+    private fun notifyMusicNotification(notification: Notification) {
         try {
             val manager = getSystemService(NotificationManager::class.java)
             manager.notify(NOTIFICATION_ID, notification)
@@ -170,21 +225,21 @@ class MusicService : MediaLibraryService() {
 
     @OptIn(UnstableApi::class)
     private fun createNotification(): Notification {
-        val prevIntent = mediaButtonPendingIntent(KeyEvent.KEYCODE_MEDIA_PREVIOUS, REQ_CODE_PREV)
-        val playIntent = mediaButtonPendingIntent(KeyEvent.KEYCODE_MEDIA_PLAY, REQ_CODE_PLAY)
-        val pauseIntent = mediaButtonPendingIntent(KeyEvent.KEYCODE_MEDIA_PAUSE, REQ_CODE_PAUSE)
-        val nextIntent = mediaButtonPendingIntent(KeyEvent.KEYCODE_MEDIA_NEXT, REQ_CODE_NEXT)
+        val prevIntent = serviceActionPendingIntent(ACTION_PREVIOUS, REQ_CODE_PREV)
+        val playIntent = serviceActionPendingIntent(ACTION_PLAY, REQ_CODE_PLAY)
+        val pauseIntent = serviceActionPendingIntent(ACTION_PAUSE, REQ_CODE_PAUSE)
+        val nextIntent = serviceActionPendingIntent(ACTION_NEXT, REQ_CODE_NEXT)
         val notificationTouchIntent = Intent(this, MainActivity::class.java).run {
-            addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+            addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT or Intent.FLAG_ACTIVITY_SINGLE_TOP)
             PendingIntent.getActivity(
                 this@MusicService,
                 REQ_CODE_NOTIFICATION_TOUCH,
                 this,
-                PendingIntent.FLAG_IMMUTABLE
+                PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
             )
         }
 
-        val isPlaying = player.playWhenReady
+        val isPlaying = player.isPlaying
         val currentMusic = playerModel.currentMusic ?: syncCurrentMusicFromPlayer()
         val title = player.currentMediaItem?.mediaMetadata?.title
             ?: currentMusic?.title
@@ -218,20 +273,47 @@ class MusicService : MediaLibraryService() {
             .build()
     }
 
-    private fun mediaButtonPendingIntent(keyCode: Int, requestCode: Int): PendingIntent {
-        val intent = Intent(Intent.ACTION_MEDIA_BUTTON).apply {
-            setClass(this@MusicService, MusicMediaButtonReceiver::class.java)
-            putExtra(
-                Intent.EXTRA_KEY_EVENT,
-                KeyEvent(KeyEvent.ACTION_DOWN, keyCode)
-            )
+    @OptIn(UnstableApi::class)
+    private inner class MediaSessionControlPlayer(delegate: Player) : ForwardingPlayer(delegate) {
+        override fun getAvailableCommands(): Player.Commands {
+            return super.getAvailableCommands()
+                .buildUpon()
+                .addIf(Player.COMMAND_SEEK_TO_NEXT_MEDIA_ITEM, shouldMoveFromLastTrackToFirstTrack())
+                .addIf(Player.COMMAND_SEEK_TO_NEXT, shouldMoveFromLastTrackToFirstTrack())
+                .build()
         }
 
-        return PendingIntent.getBroadcast(
+        override fun isCommandAvailable(command: Int): Boolean {
+            return when (command) {
+                Player.COMMAND_SEEK_TO_NEXT_MEDIA_ITEM,
+                Player.COMMAND_SEEK_TO_NEXT -> shouldMoveFromLastTrackToFirstTrack() || super.isCommandAvailable(command)
+                else -> super.isCommandAvailable(command)
+            }
+        }
+
+        override fun hasNextMediaItem(): Boolean {
+            return shouldMoveFromLastTrackToFirstTrack() || super.hasNextMediaItem()
+        }
+
+        override fun seekToNextMediaItem() {
+            skipToNextOrMoveToFirstTrack()
+        }
+
+        override fun seekToNext() {
+            skipToNextOrMoveToFirstTrack()
+        }
+    }
+
+    private fun serviceActionPendingIntent(action: String, requestCode: Int): PendingIntent {
+        val intent = Intent(this, MusicService::class.java).apply {
+            this.action = action
+        }
+
+        return PendingIntent.getService(
             this,
             requestCode,
             intent,
-            PendingIntent.FLAG_IMMUTABLE
+            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
         )
     }
 
@@ -286,6 +368,10 @@ class MusicService : MediaLibraryService() {
         const val NOTIFICATION_ID = 1
 
         const val ACTION_REFRESH_NOTIFICATION = "com.hero.ziggymusic.REFRESH_NOTIFICATION"
+        const val ACTION_PLAY = "com.hero.ziggymusic.PLAY"
+        const val ACTION_PAUSE = "com.hero.ziggymusic.PAUSE"
+        const val ACTION_PREVIOUS = "com.hero.ziggymusic.PREVIOUS"
+        const val ACTION_NEXT = "com.hero.ziggymusic.NEXT"
         const val EXTRA_MEDIA_ID = "extra_media_id"
 
         const val REQ_CODE_PREV = 100
