@@ -378,7 +378,6 @@ class MusicService : MediaLibraryService() {
         const val REQ_CODE_PLAY = 101
         const val REQ_CODE_PAUSE = 102
         const val REQ_CODE_NEXT = 103
-        const val REQ_CODE_CLOSE = 104
         const val REQ_CODE_NOTIFICATION_TOUCH = 105
     }
 }
