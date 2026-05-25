@@ -101,7 +101,7 @@ class PlayerFragment : Fragment() {
         get() = requireArguments().getString(EXTRA_MUSIC_FILE_ID).orEmpty()
 
     private val updateSeekRunnable = Runnable {
-        updateSeek()
+        updatePlaybackProgress()
     }
 
     private val updateBluetoothRunnable = Runnable {
@@ -399,7 +399,7 @@ class PlayerFragment : Fragment() {
             )
         )
         updatePlayerView(playerModel.currentMusic)
-        updateSeek()
+        updatePlaybackProgress()
         syncPlayerUi()
 
         return true
@@ -466,7 +466,7 @@ class PlayerFragment : Fragment() {
             override fun onPlaybackStateChanged(state: Int) {
                 super.onPlaybackStateChanged(state)
 
-                updateSeek()
+                updatePlaybackProgress()
 
                 // 재생 반복 해제 모드 & 마지막 트랙 재생이 끝났을 때 -> 첫번째 트랙으로 이동 & 일시정지 상태
                 if (player.repeatMode == Player.REPEAT_MODE_OFF &&
@@ -512,7 +512,7 @@ class PlayerFragment : Fragment() {
 
         binding.root.removeCallbacks(updateSeekRunnable)
 
-        updateSeek() // 즉시 1회 갱신하고, 내부에서 다음 주기를 예약
+        updatePlaybackProgress() // 즉시 1회 갱신하고, 내부에서 다음 주기를 예약
     }
 
     private fun stopSeekUpdates() {
@@ -521,7 +521,7 @@ class PlayerFragment : Fragment() {
         binding.root.removeCallbacks(updateSeekRunnable)
     }
 
-    private fun updateSeek() {
+    private fun updatePlaybackProgress() {
         if (_binding == null) return
         val player = this.player
         val duration = if (player.duration >= 0) player.duration else 0 // 전체 음악 길이
