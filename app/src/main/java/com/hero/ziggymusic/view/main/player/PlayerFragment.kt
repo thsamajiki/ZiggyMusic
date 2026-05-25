@@ -153,12 +153,9 @@ class PlayerFragment : Fragment() {
 
     private fun initListeners() {
         binding.root.setOnClickListener {
-            val toggleState = when (vm.motionState.value) {
-                PlayerMotionManager.State.COLLAPSED -> PlayerMotionManager.State.EXPANDED
-                PlayerMotionManager.State.EXPANDED -> PlayerMotionManager.State.COLLAPSED
+            if (vm.motionState.value == PlayerMotionManager.State.COLLAPSED) {
+                vm.changeState(PlayerMotionManager.State.EXPANDED)
             }
-
-            vm.changeState(toggleState)
         }
 
         toggleVolumeIcon()
@@ -188,6 +185,7 @@ class PlayerFragment : Fragment() {
                 }
 
                 override fun onSlide(bottomSheet: View, slideOffset: Float) {
+                    playerMotionManager.updateProgress(slideOffset)
                 }
             }
         )
