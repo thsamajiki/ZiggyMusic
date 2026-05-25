@@ -452,9 +452,14 @@ class PlayerFragment : Fragment() {
                 binding.albumBackground.setBackgroundResource(R.color.dark_black)
 
                 updatePlayerView(playerModel.currentMusic)
+                binding.root.removeCallbacks(updateSeekRunnable)
+                updateSeekUi(duration = 0L, position = 0L)
 
                 // 트랙 전환 시 제목/아티스트/앨범 아트, 재생/일시정지 아이콘 동기화
                 syncPlayerUi()
+                if (player.isPlaying) {
+                    binding.root.postDelayed(updateSeekRunnable, SEEK_UPDATE_AFTER_TRANSITION_MS)
+                }
             }
 
             // 재생, 재생 완료, 버퍼링 상태 ...
@@ -532,26 +537,40 @@ class PlayerFragment : Fragment() {
         view.removeCallbacks(updateSeekRunnable)
 
         if (player.isPlaying) {
-            view.postDelayed(updateSeekRunnable, 1000L)
+            val currentPositionMs = position.coerceAtLeast(0L)
+            val delay = (ONE_SECOND_MS - (currentPositionMs % ONE_SECOND_MS) + SEEK_UPDATE_BOUNDARY_OFFSET_MS)
+                .coerceIn(MIN_SEEK_UPDATE_DELAY_MS, MAX_SEEK_UPDATE_DELAY_MS) // 다음에 updateSeek()를 다시 실행하는데 걸리는 시간 (ms)
+            view.postDelayed(updateSeekRunnable, delay)
         }
     }
 
     private fun updateSeekUi(duration: Long, position: Long) {
-        binding.sbPlayer.max = (duration / 1000).toInt() // 총 길이를 설정. 1000으로 나눠 작게
-        binding.sbPlayer.progress = (position / 1000).toInt() // 동일하게 1000으로 나눠 작게
+        // 재생 시작 직전, 트랙 전환 중에 들어올 수 있는 음수 값을 UI 계산 전에 보정
+        val durationMs = duration.coerceAtLeast(0L)
+        val positionMs = position.coerceAtLeast(0L)
+
+        // 초 경계 근처에서 시간 텍스트가 늦게 바뀌는 느낌을 줄이기 위한 표시용 위치
+        val displayPositionMs = if (durationMs > 0L) {
+            (positionMs + POSITION_DISPLAY_OFFSET_MS).coerceAtMost(durationMs)
+        } else {
+            positionMs
+        }
+
+        binding.sbPlayer.max = (durationMs / ONE_SECOND_MS).toInt() // 총 길이를 설정. 1000으로 나눠 작게
+        binding.sbPlayer.progress = (positionMs / ONE_SECOND_MS).toInt() // 동일하게 1000으로 나눠 작게
 
         binding.tvCurrentPlayTime.text = String.format(
             Locale.KOREA,
             "%02d:%02d",
-            TimeUnit.MINUTES.convert(position, TimeUnit.MILLISECONDS), // 현재 분
-            (position / 1000) % 60 // 분 단위를 제외한 현재 초
+            TimeUnit.MINUTES.convert(displayPositionMs, TimeUnit.MILLISECONDS), // 현재 분
+            (displayPositionMs / ONE_SECOND_MS) % 60 // 분 단위를 제외한 현재 초
         )
 
         binding.tvTotalTime.text = String.format(
             Locale.KOREA,
             "%02d:%02d",
-            TimeUnit.MINUTES.convert(duration, TimeUnit.MILLISECONDS), // 전체 분
-            (duration / 1000) % 60 // 분 단위를 제외한 초
+            TimeUnit.MINUTES.convert(durationMs, TimeUnit.MILLISECONDS), // 전체 분
+            (durationMs / ONE_SECOND_MS) % 60 // 분 단위를 제외한 초
         )
     }
 
@@ -1057,6 +1076,22 @@ class PlayerFragment : Fragment() {
     companion object {
         const val TAG = "PlayerFragment"
         const val EXTRA_MUSIC_FILE_ID: String = "id"
+
+        // 재생 시간 계산의 기본 단위
+        private const val ONE_SECOND_MS = 1_000L
+
+        // 시간 텍스트 표시를 초 경계에 더 가깝게 맞추기 위한 보정값
+        private const val POSITION_DISPLAY_OFFSET_MS = 80L
+
+        // 다음 초가 지난 직후 UI를 갱신하기 위한 지연값
+        private const val SEEK_UPDATE_BOUNDARY_OFFSET_MS = 50L
+
+        // 다음 갱신이 너무 자주 돌거나 1초 넘게 밀리지 않도록 제한하는 범위
+        private const val MIN_SEEK_UPDATE_DELAY_MS = 100L // 아무리 빨라도
+        private const val MAX_SEEK_UPDATE_DELAY_MS = 1_000L // 아무리 늦어도
+
+        // 자동 다음 곡 전환 직후 새 트랙 position을 다시 읽기 전까지 기다리는 시간
+        private const val SEEK_UPDATE_AFTER_TRANSITION_MS = 100L
 
         fun newInstance(musicId: String): PlayerFragment =
             PlayerFragment().apply {
