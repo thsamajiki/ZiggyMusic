@@ -539,7 +539,7 @@ class PlayerFragment : Fragment() {
         if (player.isPlaying) {
             val currentPositionMs = position.coerceAtLeast(0L)
             val delay = (ONE_SECOND_MS - (currentPositionMs % ONE_SECOND_MS) + SEEK_UPDATE_BOUNDARY_OFFSET_MS)
-                .coerceIn(MIN_SEEK_UPDATE_DELAY_MS, MAX_SEEK_UPDATE_DELAY_MS) // 다음에 updateSeek()를 다시 실행하는데 걸리는 시간 (ms)
+                .coerceIn(MIN_SEEK_UPDATE_DELAY_MS, MAX_SEEK_UPDATE_DELAY_MS) // 다음에 updatePlaybackProgress()를 다시 실행하는데 걸리는 시간 (ms)
             view.postDelayed(updateSeekRunnable, delay)
         }
     }
