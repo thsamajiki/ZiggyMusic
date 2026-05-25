@@ -280,7 +280,6 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="@dimen/space_4"
             android:layout_marginTop="@dimen/space_4"
-            android:textAppearance="@style/TextAppearance.ZiggyMusic.White.Caption"
             motion:layout_constraintStart_toStartOf="@id/layoutVolume"
             motion:layout_constraintTop_toBottomOf="@id/layoutVolume" />
 
@@ -290,7 +289,6 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/space_4"
             android:layout_marginEnd="@dimen/space_4"
-            android:textAppearance="@style/TextAppearance.ZiggyMusic.White.Caption"
             motion:layout_constraintEnd_toEndOf="@id/layoutVolume"
             motion:layout_constraintTop_toBottomOf="@id/layoutVolume" />
 

@@ -68,18 +68,13 @@
         <item name="android:textColor">@color/white</item>
     </style>
 
-    <style name="TextAppearance.ZiggyMusic.White.Sub.Bold" parent="TextAppearance.ZiggyMusic.White.Sub">
-        <item name="android:fontFamily">@font/pretendard_bold</item>
-        <item name="fontFamily">@font/pretendard_bold</item>
+    <style name="TextAppearance.ZiggyMusic.PlayerTime" parent="TextAppearance.ZiggyMusic.White.Sub">
+        <!-- 숫자 폭을 일정하게 값 변경 시 폭 흔들림 완화 -->
+        <item name="android:fontFeatureSettings">tnum</item>
     </style>
 
     <style name="TextAppearance.ZiggyMusic.LightGray.Sub" parent="TextAppearance.ZiggyMusic.Sub">
         <item name="android:textColor">@color/light_gray</item>
-    </style>
-
-    <style name="TextAppearance.ZiggyMusic.PlayerTime" parent="TextAppearance.ZiggyMusic.Caption">
-        <item name="android:fontFamily">@font/pretendard_bold</item>
-        <item name="fontFamily">@font/pretendard_bold</item>
     </style>
 
     <style name="TextAppearance.ZiggyMusic.Spatial.DeviceTitle" parent="TextAppearance.ZiggyMusic.Base">
