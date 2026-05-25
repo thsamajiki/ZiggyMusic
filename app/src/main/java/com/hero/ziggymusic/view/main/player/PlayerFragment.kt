@@ -453,7 +453,7 @@ class PlayerFragment : Fragment() {
 
                 updatePlayerView(playerModel.currentMusic)
                 binding.root.removeCallbacks(updateSeekRunnable)
-                updateSeekUi(duration = 0L, position = 0L)
+                updatePlaybackProgressUi(duration = 0L, position = 0L)
 
                 // 트랙 전환 시 제목/아티스트/앨범 아트, 재생/일시정지 아이콘 동기화
                 syncPlayerUi()
@@ -527,7 +527,7 @@ class PlayerFragment : Fragment() {
         val duration = if (player.duration >= 0) player.duration else 0 // 전체 음악 길이
         val position = player.currentPosition
 
-        updateSeekUi(duration, position)
+        updatePlaybackProgressUi(duration, position)
 
         if (player.isPlaying) {
             savePlaybackState(immediate = false)
@@ -544,7 +544,7 @@ class PlayerFragment : Fragment() {
         }
     }
 
-    private fun updateSeekUi(duration: Long, position: Long) {
+    private fun updatePlaybackProgressUi(duration: Long, position: Long) {
         // 재생 시작 직전, 트랙 전환 중에 들어올 수 있는 음수 값을 UI 계산 전에 보정
         val durationMs = duration.coerceAtLeast(0L)
         val positionMs = position.coerceAtLeast(0L)
