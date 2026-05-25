@@ -166,7 +166,7 @@ class PlayerFragment : Fragment() {
     private fun initPlayerManager() {
         playerBottomSheetManager = PlayerBottomSheetManager(
             viewLifecycleOwner.lifecycle,
-            binding.constraintLayout,
+            binding.motionLayout,
             object : BottomSheetCallback() {
                 override fun onStateChanged(bottomSheet: View, newState: Int) {
                     when (newState) {
@@ -191,11 +191,11 @@ class PlayerFragment : Fragment() {
         )
 
         playerMotionManager = PlayerMotionManager(
-            binding.constraintLayout,
+            binding.motionLayout,
             playerBottomSheetManager
         )
 
-        binding.constraintLayout.post {
+        binding.motionLayout.post {
             if (_binding == null) return@post
             playerMotionManager.changeState(vm.motionState.value)
         }
@@ -211,7 +211,7 @@ class PlayerFragment : Fragment() {
                         startSeekUpdates()
 
                         // MotionLayout 배경 제거 -> containerPlayer 배경(그라데이션)이 보이도록 함
-                        binding.constraintLayout.background = null
+                        binding.motionLayout.background = null
 
                         binding.albumBackground.setBackgroundResource(R.color.dark_black)
 
@@ -226,7 +226,7 @@ class PlayerFragment : Fragment() {
                         }
                     } else {
                         // 플레이어가 닫히면(Collapsed) 투명해진 배경을 다시 원래 검은색으로 복구
-                        binding.constraintLayout.setBackgroundResource(R.color.dark_black)
+                        binding.motionLayout.setBackgroundResource(R.color.dark_black)
                         binding.albumBackground.setBackgroundResource(R.color.dark_black)
 
                         stopSeekUpdates()
