@@ -1049,6 +1049,8 @@ class PlayerFragment : Fragment() {
         albumGradientManager = null
         mediaControllerConnector.release()
 
+        lastRenderedMusicId = null // 렌더링 캐시를 초기화
+
         _binding = null
         super.onDestroyView()
     }
