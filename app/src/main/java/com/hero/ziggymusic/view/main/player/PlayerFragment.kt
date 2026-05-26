@@ -21,6 +21,7 @@ import android.os.Handler
 import android.os.Looper
 import android.provider.Settings
 import android.util.Log
+import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -90,6 +91,7 @@ class PlayerFragment : Fragment() {
     private lateinit var mediaControllerConnector: MusicMediaControllerConnector
     private var albumGradientManager: MusicAlbumArtGradientManager? = null
     private var latestAlbumBitmap: Bitmap? = null
+    private var lastRenderedMusicId: String? = null
 
     private lateinit var audioManager: AudioManager
     private var currentVolume: Int = 0  // 현재 볼륨
@@ -107,6 +109,11 @@ class PlayerFragment : Fragment() {
     private val updateBluetoothRunnable = Runnable {
         updateBluetoothIcon()
         scheduleBluetoothUpdate()
+    }
+
+    private val startPlayerTextMarqueeRunnable = Runnable {
+        if (_binding == null || vm.motionState.value != PlayerMotionManager.State.EXPANDED) return@Runnable
+        binding.tvSongTitle.isSelected = true
     }
 
     override fun onCreateView(
@@ -206,6 +213,22 @@ class PlayerFragment : Fragment() {
             vm.motionState
                 .collect { state ->
                     playerMotionManager.changeState(state)
+
+                    binding.tvSongTitle.gravity =
+                        if (state == PlayerMotionManager.State.EXPANDED) {
+                            Gravity.CENTER
+                        } else {
+                            Gravity.START or Gravity.CENTER_VERTICAL
+                        }
+
+                    binding.tvSongArtist.gravity =
+                        if (state == PlayerMotionManager.State.EXPANDED) {
+                            Gravity.CENTER
+                        } else {
+                            Gravity.START or Gravity.CENTER_VERTICAL
+                        }
+
+                    updatePlayerTextMarquee(state)
 
                     if (state == PlayerMotionManager.State.EXPANDED) {
                         startSeekUpdates()
@@ -576,6 +599,10 @@ class PlayerFragment : Fragment() {
         if (_binding == null) return
 
         if (musicModel == null) {
+            lastRenderedMusicId = null
+            binding.root.removeCallbacks(startPlayerTextMarqueeRunnable)
+            binding.tvSongTitle.isSelected = false
+
             // 상태 초기화(필요 시)
             binding.music = null
             binding.executePendingBindings()
@@ -592,12 +619,14 @@ class PlayerFragment : Fragment() {
 
         // XML에서 tvSongTitle/tvSongArtist/tvSongAlbum 및 ivAlbumArt가 DataBinding(@{music.*})로 그려지고 있으므로,
         // music 변수를 갱신하지 않으면 리바인딩 타이밍에 텍스트가 null(또는 빈 문자열)로 덮일 수 있음.
+        if (lastRenderedMusicId == musicModel.id) {
+            return
+        }
+        lastRenderedMusicId = musicModel.id
+
         binding.music = musicModel
         binding.executePendingBindings()
-
-        binding.tvSongTitle.text = musicModel.title
-        binding.tvSongArtist.text = musicModel.artist
-        binding.tvSongAlbum.text = musicModel.album
+        updatePlayerTextMarquee(vm.motionState.value)
 
         latestAlbumBitmap = null
         binding.albumBackground.setBackgroundResource(R.color.dark_black)
@@ -650,6 +679,18 @@ class PlayerFragment : Fragment() {
                 }
             })
             .into(binding.ivAlbumArt)
+    }
+
+    private fun updatePlayerTextMarquee(state: PlayerMotionManager.State) {
+        binding.root.removeCallbacks(startPlayerTextMarqueeRunnable)
+
+        if (state == PlayerMotionManager.State.EXPANDED) {
+            binding.tvSongTitle.isSelected = false
+            // 트랙 정보 반영 직후 레이아웃이 안정된 뒤 marquee를 시작한다.
+            binding.root.postDelayed(startPlayerTextMarqueeRunnable, PLAYER_TEXT_MARQUEE_START_DELAY_MS)
+        } else {
+            binding.tvSongTitle.isSelected = false
+        }
     }
 
     private fun savePlaybackState(immediate: Boolean = false) {
@@ -999,6 +1040,7 @@ class PlayerFragment : Fragment() {
         _binding?.vPlayer?.player = null
         stopSeekUpdates()
         binding.root.removeCallbacks(updateBluetoothRunnable)
+        binding.root.removeCallbacks(startPlayerTextMarqueeRunnable)
 
         // 앨범 비트맵 해제하여 메모리 누수 방지 (Glide에 의해 관리되므로 수동 recycle() 호출은 하지 않음)
         latestAlbumBitmap = null
@@ -1090,6 +1132,8 @@ class PlayerFragment : Fragment() {
 
         // 자동 다음 곡 전환 직후 새 트랙 position을 다시 읽기 전까지 기다리는 시간
         private const val SEEK_UPDATE_AFTER_TRANSITION_MS = 100L
+
+        private const val PLAYER_TEXT_MARQUEE_START_DELAY_MS = 700L
 
         fun newInstance(musicId: String): PlayerFragment =
             PlayerFragment().apply {
