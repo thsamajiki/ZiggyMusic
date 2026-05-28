@@ -8,6 +8,7 @@ import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
 import android.view.MenuItem
+import android.view.WindowManager
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.annotation.OptIn
@@ -387,6 +388,11 @@ class MainActivity : AppCompatActivity(),
     fun setPlayerExpandedMode(isExpanded: Boolean) {
         // 1. Edge-to-Edge 설정
         WindowCompat.setDecorFitsSystemWindows(window, !isExpanded)
+        window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS)
+        window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            window.isStatusBarContrastEnforced = false
+        }
 
         // 2. 상태바 아이콘 색상 설정
         WindowInsetsControllerCompat(window, window.decorView).apply {
@@ -394,8 +400,10 @@ class MainActivity : AppCompatActivity(),
         }
 
         // 3. 배경색 및 Insets 처리
-        window.decorView.setBackgroundColor(ContextCompat.getColor(this, R.color.dark_black))
-        binding.containerPlayer.setBackgroundColor(ContextCompat.getColor(this, R.color.dark_black))
+        val defaultSystemBarColor = ContextCompat.getColor(this, R.color.dark_black)
+        window.statusBarColor = defaultSystemBarColor
+        window.decorView.setBackgroundColor(defaultSystemBarColor)
+        binding.containerPlayer.setBackgroundColor(defaultSystemBarColor)
 
         if (isExpanded) {
             ViewCompat.setOnApplyWindowInsetsListener(binding.containerPlayer) { view, insets ->
