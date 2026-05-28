@@ -236,16 +236,12 @@ class PlayerFragment : Fragment() {
                         // MotionLayout 배경 제거 -> containerPlayer 배경(그라데이션)이 보이도록 함
                         binding.motionLayout.background = null
 
-                        binding.albumBackground.setBackgroundResource(R.color.dark_black)
-
                         if (latestAlbumBitmap != null) {
                             albumGradientManager?.applyGradients(latestAlbumBitmap!!, binding.albumBackground)
                         } else {
                             // 앨범 아트가 없을 때 (리스트에서 클릭하여 진입한 경우 등)
                             // 그라데이션 대신 확실하게 dark_black 배경을 적용하고, 기존 그라데이션 제거
-                            requireActivity().window.decorView.setBackgroundColor(ContextCompat.getColor(requireActivity(), R.color.dark_black))
-                            requireActivity().findViewById<View>(R.id.containerPlayer)
-                                ?.setBackgroundColor(ContextCompat.getColor(requireActivity(), R.color.dark_black))
+                            albumGradientManager?.resetToDarkBackground(binding.albumBackground)
                         }
                     } else {
                         // 플레이어가 닫히면(Collapsed) 투명해진 배경을 다시 원래 검은색으로 복구
@@ -470,7 +466,6 @@ class PlayerFragment : Fragment() {
                 playerModel.changedMusic(newMusicKey)
 
                 latestAlbumBitmap = null
-                binding.albumBackground.setBackgroundResource(R.color.dark_black)
 
                 updatePlayerView(playerModel.currentMusic)
                 binding.root.removeCallbacks(updateSeekRunnable)
@@ -612,7 +607,7 @@ class PlayerFragment : Fragment() {
             binding.tvSongAlbum.text = ""
 
             latestAlbumBitmap = null
-            binding.albumBackground.setBackgroundResource(R.color.dark_black)
+            albumGradientManager?.resetToDarkBackground(binding.albumBackground, animate = true)
             binding.ivAlbumArt.setImageResource(R.drawable.ic_no_album_image)
             return
         }
@@ -629,7 +624,6 @@ class PlayerFragment : Fragment() {
         updatePlayerTextMarquee(vm.motionState.value)
 
         latestAlbumBitmap = null
-        binding.albumBackground.setBackgroundResource(R.color.dark_black)
 
         Glide.with(binding.ivAlbumArt.context)
             .asBitmap()
@@ -648,13 +642,13 @@ class PlayerFragment : Fragment() {
                     // 실패 시 플레이스홀더 설정 및 그라데이션 제거(또는 기본 처리)
                     latestAlbumBitmap = null
 
-                    binding.albumBackground.setBackgroundResource(R.color.dark_black)
-
-                    // 이전 곡이 그라데이션이었다면 여기서 리셋해줘야 StatusBar 뒤쪽도 검은색이 됨.
                     if (vm.motionState.value == PlayerMotionManager.State.EXPANDED) {
-                        requireActivity().window.decorView.setBackgroundColor(ContextCompat.getColor(requireActivity(), R.color.dark_black))
-                        requireActivity().findViewById<View>(R.id.containerPlayer)
-                            ?.setBackgroundColor(ContextCompat.getColor(requireActivity(), R.color.dark_black))
+                        albumGradientManager?.resetToDarkBackground(
+                            binding.albumBackground,
+                            animate = true
+                        )
+                    } else {
+                        binding.albumBackground.setBackgroundResource(R.color.dark_black)
                     }
 
                     return false
