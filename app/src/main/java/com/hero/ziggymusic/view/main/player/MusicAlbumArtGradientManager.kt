@@ -1,18 +1,25 @@
 package com.hero.ziggymusic.view.main.player
 
+import android.animation.ArgbEvaluator
+import android.animation.ValueAnimator
 import android.app.Activity
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Color
+import android.graphics.drawable.Drawable
 import android.graphics.drawable.GradientDrawable
 import android.graphics.drawable.LayerDrawable
+import android.graphics.drawable.TransitionDrawable
+import android.os.Build
 import android.util.Log
 import android.util.TypedValue
 import android.view.View
+import android.view.WindowManager
+import android.view.animation.AccelerateDecelerateInterpolator
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.ColorUtils
-import androidx.palette.graphics.Palette
 import androidx.core.graphics.toColorInt
+import androidx.palette.graphics.Palette
 import com.hero.ziggymusic.R
 import androidx.core.graphics.drawable.toDrawable
 
@@ -22,71 +29,159 @@ class MusicAlbumArtGradientManager(private val context: Context) {
         albumBackground: View,
     ) {
         Palette.from(bitmap).generate { palette ->
-            // 앨범아트에서 주요 컬러 추출 (없으면 fallback)
             val fallbackDominant = "#2B2B2B".toColorInt()
             val dominant = palette?.getDominantColor(fallbackDominant) ?: fallbackDominant
             val vibrant = palette?.getVibrantColor(dominant) ?: dominant
             val muted = palette?.getMutedColor(dominant) ?: dominant
+
             val topColor = darken(vibrant, 0.70f)
             val midColor = darken(muted, 0.55f)
             val bottomColor = darken(dominant, 0.78f)
-            // (1) 세로 스크림: TOP -> BOTTOM
-            val verticalScrim = GradientDrawable(
-                GradientDrawable.Orientation.TOP_BOTTOM,
-                intArrayOf(topColor, midColor, bottomColor)
-            ).apply {
-                alpha = 235
-            }
-            // (2) 라디얼 비네팅: 가운데는 비교적 밝고, 가장자리로 갈수록 어두워짐
-            val vignette = GradientDrawable().apply {
-                gradientType = GradientDrawable.RADIAL_GRADIENT
-                // 가운데는 투명에 가깝게, 바깥은 검정으로
-                colors = intArrayOf(
-                    ColorUtils.setAlphaComponent(Color.BLACK, 0),
-                    ColorUtils.setAlphaComponent(Color.BLACK, 170)
-                )
-                // 중앙 기준 (정중앙 ~ 살짝 상단)
-                setGradientCenter(0.5f, 0.45f)
-                // 반지름
-                gradientRadius = dpToPx(420f)
-            }
-            // (3) 레이어 합성 (스크림 + 비네팅) -> 가장 아래에 검은색 배경 추가
-            val blackBackground =
-                ContextCompat.getColor(context, R.color.dark_black).toDrawable() // 투명 방지용 검은색
-            // 순서 중요: 검은배경 -> 세로 그라데이션 -> 비네팅
-            val layer = LayerDrawable(arrayOf(blackBackground, verticalScrim, vignette))
+            val gradientLayer = createGradientLayer(topColor, midColor, bottomColor)
 
             albumBackground.post {
-                albumBackground.background = null
-                if (context is Activity) {
-                    val containerPlayer = context.findViewById<View>(R.id.containerPlayer)
-                    // 부모 컨테이너에 그라데이션 적용 (상태바 영역까지 덮으려면 window 배경도 설정)
-                    containerPlayer?.background = layer
-                    try {
-                        // stateful drawable로 인한 렌더링/공유 문제를 대부분 해결
-                        val windowBackground = layer.constantState?.newDrawable(context.resources)?.mutate() ?: layer
-                        context.window.setBackgroundDrawable(windowBackground)
-                    } catch (e: Exception) {
-                        Log.w("MusicAlbumArtGradient", "Failed to set window background: ${e.message}")
-                    }
-                } else {
-                    // non-Activity context인 경우 폴백 적용
-                    albumBackground.background = layer
-                    Log.w(
-                        "MusicAlbumArtGradient",
-                        "Context is not Activity; applied gradient to albumBackground"
-                    )
+                val activity = context as? Activity
+                if (activity == null) {
+                    albumBackground.crossfadeTo(gradientLayer)
+                    Log.w(TAG, "Context is not Activity; applied gradient to albumBackground")
+                    return@post
                 }
+
+                albumBackground.background = null
+                activity.findViewById<View>(R.id.containerPlayer)?.crossfadeTo(gradientLayer)
+                activity.crossfadeWindowTo(gradientLayer)
+                activity.animateOpaqueStatusBarTo(topColor)
             }
         }
     }
 
-    private fun darken(color: Int, factor: Float = 0.8f): Int {
-        return ColorUtils.blendARGB(color, Color.BLACK, 1f - factor)
+    fun resetToDarkBackground(albumBackground: View, animate: Boolean = false) {
+        albumBackground.post {
+            val darkColor = ContextCompat.getColor(context, R.color.dark_black)
+            val darkBackground = darkColor.toDrawable()
+
+            val activity = context as? Activity
+            if (activity == null) {
+                if (animate) {
+                    albumBackground.crossfadeTo(darkBackground)
+                } else {
+                    albumBackground.background = darkBackground.newDrawableInstance()
+                }
+                return@post
+            }
+
+            albumBackground.background = null
+            val containerPlayer = activity.findViewById<View>(R.id.containerPlayer)
+            if (animate) {
+                containerPlayer?.crossfadeTo(darkBackground)
+                activity.crossfadeWindowTo(darkBackground)
+                activity.animateOpaqueStatusBarTo(darkColor)
+            } else {
+                containerPlayer?.background = darkBackground.newDrawableInstance()
+                activity.window.setBackgroundDrawable(darkBackground.newDrawableInstance())
+                activity.setOpaqueStatusBarColor(darkColor)
+            }
+        }
     }
 
-    private fun lighten(color: Int, factor: Float = 0.8f): Int {
-        return ColorUtils.blendARGB(color, Color.WHITE, 1f - factor)
+    private fun createGradientLayer(topColor: Int, midColor: Int, bottomColor: Int): Drawable {
+        val blackBackground = ContextCompat.getColor(context, R.color.dark_black).toDrawable()
+        val verticalScrim = GradientDrawable(
+            GradientDrawable.Orientation.TOP_BOTTOM,
+            intArrayOf(topColor, midColor, bottomColor)
+        ).apply {
+            alpha = 235
+        }
+        val vignette = GradientDrawable().apply {
+            gradientType = GradientDrawable.RADIAL_GRADIENT
+            colors = intArrayOf(
+                ColorUtils.setAlphaComponent(Color.BLACK, 0),
+                ColorUtils.setAlphaComponent(Color.BLACK, 170)
+            )
+            setGradientCenter(0.5f, 0.45f)
+            gradientRadius = dpToPx(420f)
+        }
+
+        return LayerDrawable(arrayOf(blackBackground, verticalScrim, vignette))
+    }
+
+    private fun Activity.crossfadeWindowTo(nextBackground: Drawable) {
+        val finalBackground = nextBackground.newDrawableInstance()
+        val transition = TransitionDrawable(
+            arrayOf(
+                window.decorView.background?.newDrawableInstance()
+                    ?: ContextCompat.getColor(context, R.color.dark_black).toDrawable(),
+                finalBackground
+            )
+        ).apply {
+            isCrossFadeEnabled = false
+        }
+
+        window.setBackgroundDrawable(transition)
+        transition.startTransition(BACKGROUND_FADE_DURATION_MS)
+        window.decorView.postDelayed(
+            {
+                window.setBackgroundDrawable(finalBackground)
+            },
+            BACKGROUND_FADE_DURATION_MS.toLong()
+        )
+    }
+
+    private fun Activity.animateOpaqueStatusBarTo(color: Int) {
+        prepareOpaqueStatusBar()
+        ValueAnimator.ofObject(ArgbEvaluator(), window.statusBarColor, color).apply {
+            duration = BACKGROUND_FADE_DURATION_MS.toLong()
+            interpolator = AccelerateDecelerateInterpolator()
+            addUpdateListener { animator ->
+                window.statusBarColor = animator.animatedValue as Int
+            }
+            start()
+        }
+    }
+
+    private fun Activity.setOpaqueStatusBarColor(color: Int) {
+        prepareOpaqueStatusBar()
+        window.statusBarColor = color
+    }
+
+    private fun Activity.prepareOpaqueStatusBar() {
+        window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS)
+        window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            window.isStatusBarContrastEnforced = false
+        }
+    }
+
+    private fun View.crossfadeTo(nextBackground: Drawable) {
+        val finalBackground = nextBackground.newDrawableInstance()
+        val transition = TransitionDrawable(
+            arrayOf(
+                background?.newDrawableInstance()
+                    ?: ContextCompat.getColor(context, R.color.dark_black).toDrawable(),
+                finalBackground
+            )
+        ).apply {
+            isCrossFadeEnabled = false
+        }
+
+        background = transition
+        transition.startTransition(BACKGROUND_FADE_DURATION_MS)
+        postDelayed(
+            {
+                if (background === transition) {
+                    background = finalBackground
+                }
+            },
+            BACKGROUND_FADE_DURATION_MS.toLong()
+        )
+    }
+
+    private fun Drawable.newDrawableInstance(): Drawable {
+        return constantState?.newDrawable(context.resources)?.mutate() ?: mutate()
+    }
+
+    private fun darken(color: Int, factor: Float = 0.8f): Int {
+        return ColorUtils.blendARGB(color, Color.BLACK, 1f - factor)
     }
 
     private fun dpToPx(dp: Float): Float {
@@ -95,5 +190,10 @@ class MusicAlbumArtGradientManager(private val context: Context) {
             dp,
             context.resources.displayMetrics
         )
+    }
+
+    private companion object {
+        const val TAG = "MusicAlbumArtGradient"
+        const val BACKGROUND_FADE_DURATION_MS = 150
     }
 }
