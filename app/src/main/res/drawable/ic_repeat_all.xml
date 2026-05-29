@@ -8,6 +8,14 @@
         android:pathData="M0,0h24v24h-24z"/>
     <path
         android:pathData="M7,7H17V10L21,6L17,2V5H5V11H7V7ZM17,17H7V14L3,18L7,22V19H19V13H17V17Z"
-        android:fillColor="#323232"/>
+        android:fillColor="@android:color/transparent"
+        android:strokeColor="#66000000"
+        android:strokeWidth="1.2"
+        android:strokeLineJoin="round"
+        android:strokeLineCap="round"/>
+    <path
+        android:pathData="M7,7H17V10L21,6L17,2V5H5V11H7V7ZM17,17H7V14L3,18L7,22V19H19V13H17V17Z"
+        android:fillColor="@color/white"
+        android:fillAlpha="0.72"/>
   </group>
 </vector>
