@@ -1,21 +1,32 @@
 package com.hero.ziggymusic.view.main.player
 
 import android.Manifest
-import android.annotation.SuppressLint
+import android.app.Activity
 import android.bluetooth.BluetoothAdapter
-import android.bluetooth.BluetoothGatt
+import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothManager
 import android.bluetooth.BluetoothProfile
+import android.bluetooth.le.ScanResult
+import android.companion.AssociationInfo
+import android.companion.AssociationRequest
+import android.companion.BluetoothDeviceFilter
+import android.companion.CompanionDeviceManager
+import android.content.BroadcastReceiver
 import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
+import android.content.IntentSender
 import android.content.pm.PackageManager
 import android.database.ContentObserver
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
+import android.media.AudioDeviceCallback
 import android.media.AudioDeviceInfo
 import android.media.AudioManager
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -26,6 +37,10 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.SeekBar
+import android.widget.Toast
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.IntentSenderRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.OptIn
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -76,15 +91,15 @@ class PlayerFragment : Fragment() {
     @Inject
     lateinit var player: ExoPlayer
 
-    private var currentMusic: MusicModel? = null // 현재 재생 중인 음원
+    private var currentMusic: MusicModel? = null // ?�재 ?�생 중인 ?�원
     private val playbackStateStore by lazy { PlaybackStateStore(requireContext()) }
 
-    // position 저장 스로틀(너무 자주 prefs write 방지)
+    // position ?�???�로?�(?�무 ?�주 prefs write 방�?)
     private var lastSavedAtMs: Long = 0L
     private var lastSavedPositionMs: Long = -1L
 
-    private val saveIntervalMs = 3_000L   // 3초 간격 저장(현업에서 흔한 수준)
-    private val saveMinDeltaMs = 1_000L   // 위치 1초 이상 변했을 때만 저장
+    private val saveIntervalMs = 3_000L   // 3�?간격 ?�???�업?�서 ?�한 ?��?)
+    private val saveMinDeltaMs = 1_000L   // ?�치 1�??�상 변?�을 ?�만 ?�??
 
     private lateinit var playerMotionManager: PlayerMotionManager
     private lateinit var playerBottomSheetManager: PlayerBottomSheetManager
@@ -94,10 +109,10 @@ class PlayerFragment : Fragment() {
     private var lastRenderedMusicId: String? = null
 
     private lateinit var audioManager: AudioManager
-    private var currentVolume: Int = 0  // 현재 볼륨
-    private var previousVolume: Int = 0 // 이전 볼륨 저장
+    private var currentVolume: Int = 0  // ?�재 볼륨
+    private var previousVolume: Int = 0 // ?�전 볼륨 ?�??
 
-    private var volumeObserver: ContentObserver? = null // 시스템 볼륨 변경 이벤트 옵저버
+    private var volumeObserver: ContentObserver? = null // ?�스??볼륨 변�??�벤???��?�?
 
     private val musicKey: String
         get() = requireArguments().getString(EXTRA_MUSIC_FILE_ID).orEmpty()
@@ -108,8 +123,100 @@ class PlayerFragment : Fragment() {
 
     private val updateBluetoothRunnable = Runnable {
         updateBluetoothIcon()
-        scheduleBluetoothUpdate()
     }
+
+    private val audioDeviceCallback = object : AudioDeviceCallback() {
+        override fun onAudioDevicesAdded(addedDevices: Array<out AudioDeviceInfo>) {
+            if (addedDevices.any { it.isBluetoothOrWiredAudioDevice() }) {
+                updateBluetoothIcon()
+            }
+        }
+
+        override fun onAudioDevicesRemoved(removedDevices: Array<out AudioDeviceInfo>) {
+            if (removedDevices.any { it.isBluetoothOrWiredAudioDevice() }) {
+                updateBluetoothIcon()
+            }
+        }
+    }
+
+    private var isAudioDeviceCallbackRegistered = false
+
+    private val bluetoothPermissionLauncher =
+        registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { grantResults ->
+            if (grantResults.isNotEmpty() && grantResults.values.all { it }) {
+                handleBluetoothClick()
+            } else {
+                showToast("블루?�스 권한???�요?�니??")
+            }
+        }
+
+    private val companionDeviceChooserLauncher: ActivityResultLauncher<IntentSenderRequest> =
+        registerForActivityResult(ActivityResultContracts.StartIntentSenderForResult()) { result ->
+            if (result.resultCode != Activity.RESULT_OK) return@registerForActivityResult
+
+            val selectedDevice = result.data?.extractSelectedBluetoothDevice()
+            if (selectedDevice == null) {
+                showToast("?�택??블루?�스 기기�??�인?????�습?�다.")
+                return@registerForActivityResult
+            }
+
+            requestBluetoothPairing(selectedDevice)
+        }
+
+    private val bluetoothBondStateReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            if (intent?.action != BluetoothDevice.ACTION_BOND_STATE_CHANGED) return
+
+            val device = intent.getBluetoothDeviceExtra(BluetoothDevice.EXTRA_DEVICE) ?: return
+            val pendingAddress = pendingPairingDeviceAddress ?: return
+            if (!isPairingTarget(device, pendingAddress)) return
+
+            val deviceName = getBluetoothDeviceLogName(device)
+            val bondState = intent.getIntExtra(BluetoothDevice.EXTRA_BOND_STATE, BluetoothDevice.ERROR)
+            when (bondState) {
+                BluetoothDevice.BOND_BONDING -> {
+                    Log.d("Bluetooth", "Bluetooth pairing in progress: $deviceName ($pendingAddress)")
+                }
+
+                BluetoothDevice.BOND_BONDED -> {
+                    if (_binding == null) return
+                    binding.bluetooth.setImageResource(R.drawable.ic_airpods)
+                    pendingPairingDeviceAddress = null
+                    showToast("블루?�스 ?�어링이 ?�료?�었?�니??")
+                    Log.d("Bluetooth", "Bluetooth pairing completed: $deviceName ($pendingAddress)")
+                }
+
+                BluetoothDevice.BOND_NONE -> {
+                    pendingPairingDeviceAddress = null
+                    showToast("블루?�스 ?�어링에 ?�패?�습?�다.")
+                    Log.w("Bluetooth", "Bluetooth pairing failed or canceled: $deviceName ($pendingAddress)")
+                    updateBluetoothIcon()
+                }
+            }
+        }
+    }
+
+    private val companionDeviceManagerCallback = object : CompanionDeviceManager.Callback() {
+        override fun onAssociationPending(intentSender: IntentSender) {
+            launchCompanionDeviceChooser(intentSender)
+        }
+
+        @Deprecated("onDeviceFound was renamed to onAssociationPending in API 33.")
+        override fun onDeviceFound(intentSender: IntentSender) {
+            launchCompanionDeviceChooser(intentSender)
+        }
+
+        override fun onFailure(error: CharSequence?) {
+            val errorMessage = error?.toString()
+            if (errorMessage.isCompanionDeviceChooserCancellation()) return
+
+            Log.w("Bluetooth", "Companion device association failed: $errorMessage")
+            showToast("블루?�스 기기 목록??불러?��? 못했?�니??")
+        }
+    }
+
+    private var pendingPairingDeviceAddress: String? = null
+    private var isBluetoothBondStateReceiverRegistered = false
 
     private val startPlayerTextMarqueeRunnable = Runnable {
         if (_binding == null || vm.motionState.value != PlayerMotionManager.State.EXPANDED) return@Runnable
@@ -129,8 +236,8 @@ class PlayerFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // DataBinding 변수(music)가 null이면 리바인딩 타이밍에 제목/아티스트가 빈 값으로 덮이는 간헐적 문제가 발생할 수 있음.
-        // (앨범아트는 ImageView에 이미 로드되어 남아있어서 '텍스트만 사라진 것'처럼 보임)
+        // DataBinding 변??music)가 null?�면 리바?�딩 ?�?�밍???�목/?�티?�트가 �?값으�???��??간헐??문제가 발생?????�음.
+        // (?�범?�트??ImageView???��? 로드?�어 ?�아?�어??'?�스?�만 ?�라�?�?처럼 보임)
         binding.lifecycleOwner = viewLifecycleOwner
         binding.music = playerModel.currentMusic
         binding.executePendingBindings()
@@ -163,6 +270,10 @@ class PlayerFragment : Fragment() {
             if (vm.motionState.value == PlayerMotionManager.State.COLLAPSED) {
                 vm.changeState(PlayerMotionManager.State.EXPANDED)
             }
+        }
+
+        binding.bluetooth.setOnClickListener {
+            handleBluetoothClick()
         }
 
         toggleVolumeIcon()
@@ -233,18 +344,18 @@ class PlayerFragment : Fragment() {
                     if (state == PlayerMotionManager.State.EXPANDED) {
                         startSeekUpdates()
 
-                        // MotionLayout 배경 제거 -> containerPlayer 배경(그라데이션)이 보이도록 함
+                        // MotionLayout 배경 ?�거 -> containerPlayer 배경(그라?�이????보이?�록 ??
                         binding.motionLayout.background = null
 
                         if (latestAlbumBitmap != null) {
                             albumGradientManager?.applyGradients(latestAlbumBitmap!!, binding.albumBackground)
                         } else {
-                            // 앨범 아트가 없을 때 (리스트에서 클릭하여 진입한 경우 등)
-                            // 그라데이션 대신 확실하게 dark_black 배경을 적용하고, 기존 그라데이션 제거
+                            // ?�범 ?�트가 ?�을 ??(리스?�에???�릭?�여 진입??경우 ??
+                            // 그라?�이???�???�실?�게 dark_black 배경???�용?�고, 기존 그라?�이???�거
                             albumGradientManager?.resetToDarkBackground(binding.albumBackground)
                         }
                     } else {
-                        // 플레이어가 닫히면(Collapsed) 투명해진 배경을 다시 원래 검은색으로 복구
+                        // ?�레?�어가 ?�히�?Collapsed) ?�명?�진 배경???�시 ?�래 검?�?�으�?복구
                         binding.motionLayout.setBackgroundResource(R.color.dark_black)
                         binding.albumBackground.setBackgroundResource(R.color.dark_black)
 
@@ -259,19 +370,19 @@ class PlayerFragment : Fragment() {
 
                 playerModel.replaceMusicList(musicList)
 
-                // 현재 ExoPlayer가 재생 중인 곡의 id를 우선 사용
+                // ?�재 ExoPlayer가 ?�생 중인 곡의 id�??�선 ?�용
                 val currentMediaId = player.currentMediaItem?.mediaId
                 val nowMusic = musicList.find { it.id == currentMediaId }
                     ?: musicList.find { it.id == musicKey }
                     ?: musicList.getOrNull(0)
 
-                // PlayerModel, UI 동기화
+                // PlayerModel, UI ?�기??
                 if (nowMusic != null) {
                     playerModel.updateCurrentMusic(nowMusic)
                     updatePlayerView(nowMusic)
                 }
 
-                // 이미 재생 중인 곡이 있으면 playMusic을 다시 호출하지 않음
+                // ?��? ?�생 중인 곡이 ?�으�?playMusic???�시 ?�출?��? ?�음
                 if (player.currentMediaItem == null && nowMusic != null) {
                     playMusic(musicList, nowMusic)
                 }
@@ -428,32 +539,32 @@ class PlayerFragment : Fragment() {
         albumGradientManager = MusicAlbumArtGradientManager(requireActivity())
 
         syncPlayerUi()
-        startSeekUpdates() // 포그라운드 진입 직후 진행바 시작
+        startSeekUpdates() // ?�그?�운??진입 직후 진행�??�작
 
-        // 화면 회전/재진입 등으로 initPlayView()가 여러 번 호출되면, 기존 리스너 위에 새 리스너가 계속 추가되어 콜백이 중복 실행됨 -> 이를 방지
+        // ?�면 ?�전/?�진???�으�?initPlayView()가 ?�러 �??�출?�면, 기존 리스???�에 ??리스?��? 계속 추�??�어 콜백??중복 ?�행??-> ?��? 방�?
         playerListener?.let { player.removeListener(it) }
 
         playerListener = object : Player.Listener {
             override fun onIsPlayingChanged(isPlaying: Boolean) {
                 super.onIsPlayingChanged(isPlaying)
 
-                // 재생 아이콘 및 비주얼라이저 동기화
+                // ?�생 ?�이�?�?비주?�라?��? ?�기??
                 syncPlayerUi()
                 if (isPlaying) {
                     startSeekUpdates()
                 } else {
-                    // 일시정지/정지되는 순간 현재 position 저장
+                    // ?�시?��?/?��??�는 ?�간 ?�재 position ?�??
                     savePlaybackState(immediate = true)
                     stopSeekUpdates()
                 }
             }
 
-            // 미디어 아이템이 바뀔 때
+            // 미디???�이?�이 바�???
             override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
                 super.onMediaItemTransition(mediaItem, reason)
 
                 val newMusicKey: String = mediaItem?.mediaId ?: return
-                // 트랙이 바뀌면 새 트랙의 position=0으로 저장(직후)
+                // ?�랙??바뀌면 ???�랙??position=0?�로 ?�??직후)
                 playbackStateStore.saveLastPlayedMedia(
                     LastPlayedMedia(
                         type = PlaybackContentType.MUSIC,
@@ -471,31 +582,31 @@ class PlayerFragment : Fragment() {
                 binding.root.removeCallbacks(updateSeekRunnable)
                 updatePlaybackProgressUi(duration = 0L, position = 0L)
 
-                // 트랙 전환 시 제목/아티스트/앨범 아트, 재생/일시정지 아이콘 동기화
+                // ?�랙 ?�환 ???�목/?�티?�트/?�범 ?�트, ?�생/?�시?��? ?�이�??�기??
                 syncPlayerUi()
                 if (player.isPlaying) {
                     binding.root.postDelayed(updateSeekRunnable, SEEK_UPDATE_AFTER_TRANSITION_MS)
                 }
             }
 
-            // 재생, 재생 완료, 버퍼링 상태 ...
+            // ?�생, ?�생 ?�료, 버퍼�??�태 ...
             override fun onPlaybackStateChanged(state: Int) {
                 super.onPlaybackStateChanged(state)
 
                 updatePlaybackProgress()
 
-                // 재생 반복 해제 모드 & 마지막 트랙 재생이 끝났을 때 -> 첫번째 트랙으로 이동 & 일시정지 상태
+                // ?�생 반복 ?�제 모드 & 마�?�??�랙 ?�생???�났????-> 첫번�??�랙?�로 ?�동 & ?�시?��? ?�태
                 if (player.repeatMode == Player.REPEAT_MODE_OFF &&
                     player.currentMediaItemIndex == player.mediaItemCount - 1 &&
                     state == Player.STATE_ENDED
                 ) {
-                    // 자동 재생 방지
+                    // ?�동 ?�생 방�?
                     player.playWhenReady = false
 
-                    // 첫 트랙으로 이동
+                    // �??�랙?�로 ?�동
                     player.seekTo(0, 0)
 
-                    // PlayerModel 및 UI 동기화
+                    // PlayerModel �?UI ?�기??
                     if (player.mediaItemCount > 0) {
                         val firstId = player.getMediaItemAt(0).mediaId
                         playerModel.changedMusic(firstId)
@@ -511,11 +622,11 @@ class PlayerFragment : Fragment() {
     }
 
     private fun syncPlayerUi() {
-        if (!isAdded || _binding == null) return // 뷰가 준비되지 않았거나 파괴된 상태면 아무 작업도 하지 않음
+        if (!isAdded || _binding == null) return // 뷰�? 준비되지 ?�았거나 ?�괴???�태�??�무 ?�업???��? ?�음
 
         val isPlaying = player.isPlaying
 
-        // 플레이어가 재생 또는 일시정지 될 때 재생/일시정지 버튼 아이콘 전환하고 애니메이션 재생/정지
+        // ?�레?�어가 ?�생 ?�는 ?�시?��? ?????�생/?�시?��? 버튼 ?�이�??�환?�고 ?�니메이???�생/?��?
         binding.ivPlayPause.setImageResource(
             if (isPlaying) R.drawable.ic_pause_button else R.drawable.ic_play_button
         )
@@ -528,7 +639,7 @@ class PlayerFragment : Fragment() {
 
         binding.root.removeCallbacks(updateSeekRunnable)
 
-        updatePlaybackProgress() // 즉시 1회 갱신하고, 내부에서 다음 주기를 예약
+        updatePlaybackProgress() // 즉시 1??갱신?�고, ?��??�서 ?�음 주기�??�약
     }
 
     private fun stopSeekUpdates() {
@@ -540,7 +651,7 @@ class PlayerFragment : Fragment() {
     private fun updatePlaybackProgress() {
         if (_binding == null) return
         val player = this.player
-        val duration = if (player.duration >= 0) player.duration else 0 // 전체 음악 길이
+        val duration = if (player.duration >= 0) player.duration else 0 // ?�체 ?�악 길이
         val position = player.currentPosition
 
         updatePlaybackProgressUi(duration, position)
@@ -555,38 +666,38 @@ class PlayerFragment : Fragment() {
         if (player.isPlaying) {
             val currentPositionMs = position.coerceAtLeast(0L)
             val delay = (ONE_SECOND_MS - (currentPositionMs % ONE_SECOND_MS) + SEEK_UPDATE_BOUNDARY_OFFSET_MS)
-                .coerceIn(MIN_SEEK_UPDATE_DELAY_MS, MAX_SEEK_UPDATE_DELAY_MS) // 다음에 updatePlaybackProgress()를 다시 실행하는데 걸리는 시간 (ms)
+                .coerceIn(MIN_SEEK_UPDATE_DELAY_MS, MAX_SEEK_UPDATE_DELAY_MS) // ?�음??updatePlaybackProgress()�??�시 ?�행?�는??걸리???�간 (ms)
             view.postDelayed(updateSeekRunnable, delay)
         }
     }
 
     private fun updatePlaybackProgressUi(duration: Long, position: Long) {
-        // 재생 시작 직전, 트랙 전환 중에 들어올 수 있는 음수 값을 UI 계산 전에 보정
+        // ?�생 ?�작 직전, ?�랙 ?�환 중에 ?�어?????�는 ?�수 값을 UI 계산 ?�에 보정
         val durationMs = duration.coerceAtLeast(0L)
         val positionMs = position.coerceAtLeast(0L)
 
-        // 초 경계 근처에서 시간 텍스트가 늦게 바뀌는 느낌을 줄이기 위한 표시용 위치
+        // �?경계 근처?�서 ?�간 ?�스?��? ??�� 바뀌는 ?�낌??줄이�??�한 ?�시???�치
         val displayPositionMs = if (durationMs > 0L) {
             (positionMs + POSITION_DISPLAY_OFFSET_MS).coerceAtMost(durationMs)
         } else {
             positionMs
         }
 
-        binding.sbPlayer.max = (durationMs / ONE_SECOND_MS).toInt() // 총 길이를 설정. 1000으로 나눠 작게
-        binding.sbPlayer.progress = (positionMs / ONE_SECOND_MS).toInt() // 동일하게 1000으로 나눠 작게
+        binding.sbPlayer.max = (durationMs / ONE_SECOND_MS).toInt() // �?길이�??�정. 1000?�로 ?�눠 ?�게
+        binding.sbPlayer.progress = (positionMs / ONE_SECOND_MS).toInt() // ?�일?�게 1000?�로 ?�눠 ?�게
 
         binding.tvCurrentPlayTime.text = String.format(
             Locale.KOREA,
             "%02d:%02d",
-            TimeUnit.MINUTES.convert(displayPositionMs, TimeUnit.MILLISECONDS), // 현재 분
-            (displayPositionMs / ONE_SECOND_MS) % 60 // 분 단위를 제외한 현재 초
+            TimeUnit.MINUTES.convert(displayPositionMs, TimeUnit.MILLISECONDS), // ?�재 �?
+            (displayPositionMs / ONE_SECOND_MS) % 60 // �??�위�??�외???�재 �?
         )
 
         binding.tvTotalTime.text = String.format(
             Locale.KOREA,
             "%02d:%02d",
-            TimeUnit.MINUTES.convert(durationMs, TimeUnit.MILLISECONDS), // 전체 분
-            (durationMs / ONE_SECOND_MS) % 60 // 분 단위를 제외한 초
+            TimeUnit.MINUTES.convert(durationMs, TimeUnit.MILLISECONDS), // ?�체 �?
+            (durationMs / ONE_SECOND_MS) % 60 // �??�위�??�외??�?
         )
     }
 
@@ -598,7 +709,7 @@ class PlayerFragment : Fragment() {
             binding.root.removeCallbacks(startPlayerTextMarqueeRunnable)
             binding.tvSongTitle.isSelected = false
 
-            // 상태 초기화(필요 시)
+            // ?�태 초기???�요 ??
             binding.music = null
             binding.executePendingBindings()
 
@@ -612,8 +723,8 @@ class PlayerFragment : Fragment() {
             return
         }
 
-        // XML에서 tvSongTitle/tvSongArtist/tvSongAlbum 및 ivAlbumArt가 DataBinding(@{music.*})로 그려지고 있으므로,
-        // music 변수를 갱신하지 않으면 리바인딩 타이밍에 텍스트가 null(또는 빈 문자열)로 덮일 수 있음.
+        // XML?�서 tvSongTitle/tvSongArtist/tvSongAlbum �?ivAlbumArt가 DataBinding(@{music.*})�?그려지�??�으므�?
+        // music 변?��? 갱신?��? ?�으�?리바?�딩 ?�?�밍???�스?��? null(?�는 �?문자??�???�� ???�음.
         if (lastRenderedMusicId == musicModel.id) {
             return
         }
@@ -639,7 +750,7 @@ class PlayerFragment : Fragment() {
                     target: com.bumptech.glide.request.target.Target<Bitmap>,
                     isFirstResource: Boolean
                 ): Boolean {
-                    // 실패 시 플레이스홀더 설정 및 그라데이션 제거(또는 기본 처리)
+                    // ?�패 ???�레?�스?�???�정 �?그라?�이???�거(?�는 기본 처리)
                     latestAlbumBitmap = null
 
                     if (vm.motionState.value == PlayerMotionManager.State.EXPANDED) {
@@ -680,7 +791,7 @@ class PlayerFragment : Fragment() {
 
         if (state == PlayerMotionManager.State.EXPANDED) {
             binding.tvSongTitle.isSelected = false
-            // 트랙 정보 반영 직후 레이아웃이 안정된 뒤 marquee를 시작한다.
+            // ?�랙 ?�보 반영 직후 ?�이?�웃???�정????marquee�??�작?�다.
             binding.root.postDelayed(startPlayerTextMarqueeRunnable, PLAYER_TEXT_MARQUEE_START_DELAY_MS)
         } else {
             binding.tvSongTitle.isSelected = false
@@ -737,13 +848,13 @@ class PlayerFragment : Fragment() {
                 )
                 .build()
 
-            ProgressiveMediaSource.Factory(defaultDataSourceFactory) // 미디어 정보를 가져오는 클래스
+            ProgressiveMediaSource.Factory(defaultDataSourceFactory) // 미디???�보�?가?�오???�래??
                 .createMediaSource(mediaItem)
         }
 
         val playIndex = musicList.indexOf(nowPlayMusic)
 
-        // 마지막 저장 상태 로드(있으면 position 복원)
+        // 마�?�??�???�태 로드(?�으�?position 복원)
         val lastPlayed = playbackStateStore.loadLastPlayedMedia()
         val resumePositionMs =
             if (lastPlayed != null &&
@@ -760,7 +871,7 @@ class PlayerFragment : Fragment() {
         player.run {
             setMediaSources(musicMediaItems)
             prepare()
-            seekTo(max(playIndex, 0), resumePositionMs) // 마지막 재생 시간(초)부터 시작
+            seekTo(max(playIndex, 0), resumePositionMs) // 마�?�??�생 ?�간(�?부???�작
         }
     }
 
@@ -784,10 +895,10 @@ class PlayerFragment : Fragment() {
     @OptIn(UnstableApi::class)
     private fun toggleShuffleModeIcon() {
         binding.ivShuffleMode.setOnClickListener {
-            if (player.shuffleModeEnabled) { // 셔플 모드가 On일 때
+            if (player.shuffleModeEnabled) { // ?�플 모드가 On????
                 player.shuffleModeEnabled = false
                 binding.ivShuffleMode.setImageResource(R.drawable.ic_shuffle_off)
-            } else { // 셔플 모드가 Off일 때
+            } else { // ?�플 모드가 Off????
                 player.shuffleModeEnabled = true
                 player.shuffleOrder = ShuffleOrder.DefaultShuffleOrder(vm.musicList.value.orEmpty().size, Random.nextLong())
                 binding.ivShuffleMode.setImageResource(R.drawable.ic_shuffle_on)
@@ -798,15 +909,15 @@ class PlayerFragment : Fragment() {
     private fun toggleRepeatModeIcon() {
         binding.ivRepeatMode.setOnClickListener {
             when (player.repeatMode) {
-                Player.REPEAT_MODE_OFF -> { // 반복 재생 모드 해제 상태일 때
+                Player.REPEAT_MODE_OFF -> { // 반복 ?�생 모드 ?�제 ?�태????
                     player.repeatMode = Player.REPEAT_MODE_ALL
                     binding.ivRepeatMode.setImageResource(R.drawable.ic_repeat_all_on)
                 }
-                Player.REPEAT_MODE_ALL -> { // 전 곡 반복 재생 모드일 때
+                Player.REPEAT_MODE_ALL -> { // ??�?반복 ?�생 모드????
                     player.repeatMode = Player.REPEAT_MODE_ONE
                     binding.ivRepeatMode.setImageResource(R.drawable.ic_repeat_one_on)
                 }
-                else -> { // 한 곡 반복 재생 모드일 때
+                else -> { // ??�?반복 ?�생 모드????
                     player.repeatMode = Player.REPEAT_MODE_OFF
                     binding.ivRepeatMode.setImageResource(R.drawable.ic_repeat_all)
                 }
@@ -862,28 +973,342 @@ class PlayerFragment : Fragment() {
         }
     }
 
-    private fun updateBluetoothIcon() {
+    private fun handleBluetoothClick() {
+        val bluetoothAdapter = getBluetoothAdapter()
+        if (bluetoothAdapter == null) {
+            showToast("??기기??블루?�스�?지?�하지 ?�습?�다.")
+            return
+        }
+
+        val missingPermissions = getMissingBluetoothPermissions()
+        if (missingPermissions.isNotEmpty()) {
+            bluetoothPermissionLauncher.launch(missingPermissions.toTypedArray())
+            return
+        }
+
+        if (!bluetoothAdapter.isEnabled) {
+            showToast("블루?�스�?켜주?�요.")
+            return
+        }
+
+        showBluetoothDeviceChooser()
+    }
+
+    private fun getBluetoothAdapter(): BluetoothAdapter? {
+        return ContextCompat.getSystemService(
+            requireContext(),
+            BluetoothManager::class.java
+        )?.adapter
+    }
+
+    private fun getMissingBluetoothPermissions(): List<String> {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return emptyList()
+
+        return listOf(
+            Manifest.permission.BLUETOOTH_SCAN,
+            Manifest.permission.BLUETOOTH_CONNECT
+        ).filter { permission ->
+            ActivityCompat.checkSelfPermission(requireContext(), permission) !=
+                    PackageManager.PERMISSION_GRANTED
+        }
+    }
+
+    private fun showBluetoothDeviceChooser() {
+        val companionDeviceManager = ContextCompat.getSystemService(
+            requireContext(),
+            CompanionDeviceManager::class.java
+        )
+
+        if (companionDeviceManager == null) {
+            showToast("블루?�스 기기 목록??불러?????�습?�다.")
+            return
+        }
+
+        val requestBuilder = AssociationRequest.Builder()
+            .addDeviceFilter(BluetoothDeviceFilter.Builder().build())
+            .setSingleDevice(false)
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            requestBuilder.setDisplayName("ZiggyMusic")
+        }
+
+        val request = requestBuilder.build()
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            companionDeviceManager.associate(
+                request,
+                ContextCompat.getMainExecutor(requireContext()),
+                companionDeviceManagerCallback
+            )
+        } else {
+            companionDeviceManager.associate(
+                request,
+                companionDeviceManagerCallback,
+                Handler(Looper.getMainLooper())
+            )
+        }
+    }
+
+    private fun launchCompanionDeviceChooser(intentSender: IntentSender) {
+        try {
+            val request = IntentSenderRequest.Builder(intentSender).build()
+            companionDeviceChooserLauncher.launch(request)
+        } catch (e: IntentSender.SendIntentException) {
+            Log.e("Bluetooth", "Failed to launch companion device chooser", e)
+            showToast("블루?�스 기기 목록???��? 못했?�니??")
+        }
+    }
+
+    private fun requestBluetoothPairing(device: BluetoothDevice) {
         if (_binding == null) return
-        Log.d("Bluetooth", "Updating bluetooth icon...")
+
+        if (getMissingBluetoothPermissions().isNotEmpty()) {
+            bluetoothPermissionLauncher.launch(getMissingBluetoothPermissions().toTypedArray())
+            return
+        }
+
+        registerBluetoothBondStateReceiver()
+        val deviceAddress = getBluetoothDeviceAddressIfPermitted(device) ?: run {
+            showToast("블루?�스 기기 ?�보�??�인?????�습?�다.")
+            return
+        }
+
+        pendingPairingDeviceAddress = deviceAddress
+        cancelBluetoothDiscoveryIfPermitted()
+
+        when (getBluetoothBondStateIfPermitted(device)) {
+            null -> {
+                pendingPairingDeviceAddress = null
+                showToast("블루?�스 권한???�요?�니??")
+            }
+
+            BluetoothDevice.BOND_BONDED -> {
+                if (isBluetoothAudioDeviceConnected(audioManager)) {
+                    binding.bluetooth.setImageResource(R.drawable.ic_airpods)
+                } else {
+                    showToast("?��? ?�어링된 기기?�니?? 블루?�스 ?�정?�서 ?�결?�주?�요.")
+                    openBluetoothSettings()
+                    updateBluetoothIcon()
+                }
+                pendingPairingDeviceAddress = null
+                Log.d("Bluetooth", "Bluetooth device is already paired: $deviceAddress")
+            }
+
+            BluetoothDevice.BOND_BONDING -> {
+                Log.d("Bluetooth", "Bluetooth device is already bonding: $deviceAddress")
+            }
+
+            else -> {
+                val pairingStarted = createBluetoothBondIfPermitted(device)
+                Log.d("Bluetooth", "Bluetooth pairing requested: $deviceAddress, started=$pairingStarted")
+                if (!pairingStarted) {
+                    pendingPairingDeviceAddress = null
+                    showToast("블루?�스 ?�어링을 ?�작?��? 못했?�니??")
+                    updateBluetoothIcon()
+                }
+            }
+        }
+    }
+
+    private fun getBluetoothDeviceAddressIfPermitted(device: BluetoothDevice): String? {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S &&
+            ActivityCompat.checkSelfPermission(
+                requireContext(),
+                Manifest.permission.BLUETOOTH_CONNECT
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            return null
+        }
+
+        return try {
+            device.address
+        } catch (e: SecurityException) {
+            Log.w("Bluetooth", "Missing permission while reading bluetooth device address", e)
+            null
+        }
+    }
+
+    private fun getBluetoothDeviceLogName(device: BluetoothDevice): String {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S &&
+            ActivityCompat.checkSelfPermission(
+                requireContext(),
+                Manifest.permission.BLUETOOTH_CONNECT
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            return "Unknown device"
+        }
+
+        return try {
+            device.name ?: "Unknown device"
+        } catch (e: SecurityException) {
+            Log.w("Bluetooth", "Missing permission while reading bluetooth device name", e)
+            "Unknown device"
+        }
+    }
+
+    private fun getBluetoothBondStateIfPermitted(device: BluetoothDevice): Int? {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S &&
+            ActivityCompat.checkSelfPermission(
+                requireContext(),
+                Manifest.permission.BLUETOOTH_CONNECT
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            return null
+        }
+
+        return try {
+            device.bondState
+        } catch (e: SecurityException) {
+            Log.w("Bluetooth", "Missing permission while reading bluetooth bond state", e)
+            null
+        }
+    }
+
+    private fun createBluetoothBondIfPermitted(device: BluetoothDevice): Boolean {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S &&
+            ActivityCompat.checkSelfPermission(
+                requireContext(),
+                Manifest.permission.BLUETOOTH_CONNECT
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            return false
+        }
+
+        return try {
+            device.createBond()
+        } catch (e: SecurityException) {
+            Log.w("Bluetooth", "Missing permission while creating bluetooth bond", e)
+            false
+        }
+    }
+
+    private fun isPairingTarget(device: BluetoothDevice, pendingAddress: String): Boolean {
+        return getBluetoothDeviceAddressIfPermitted(device) == pendingAddress
+    }
+
+    private fun cancelBluetoothDiscoveryIfPermitted() {
+        if (!hasBluetoothScanPermission()) return
 
         try {
-            // AudioManager.getDevices()를 활용하여 블루투스 및 유선 오디오 기기 체크 (Android 6.0 이상)
+            getBluetoothAdapter()?.cancelDiscovery()
+        } catch (e: SecurityException) {
+            Log.w("Bluetooth", "Missing permission while canceling bluetooth discovery", e)
+        }
+    }
+
+    private fun hasBluetoothScanPermission(): Boolean {
+        return Build.VERSION.SDK_INT < Build.VERSION_CODES.S ||
+                ActivityCompat.checkSelfPermission(
+                    requireContext(),
+                    Manifest.permission.BLUETOOTH_SCAN
+                ) == PackageManager.PERMISSION_GRANTED
+    }
+
+    private fun openBluetoothSettings() {
+        runCatching {
+            startActivity(Intent(Settings.ACTION_BLUETOOTH_SETTINGS))
+        }.onFailure { e ->
+            Log.e("Bluetooth", "Failed to open bluetooth settings", e)
+        }
+    }
+
+    private fun registerBluetoothBondStateReceiver() {
+        if (isBluetoothBondStateReceiverRegistered) return
+
+        ContextCompat.registerReceiver(
+            requireContext(),
+            bluetoothBondStateReceiver,
+            IntentFilter(BluetoothDevice.ACTION_BOND_STATE_CHANGED),
+            ContextCompat.RECEIVER_EXPORTED
+        )
+        isBluetoothBondStateReceiverRegistered = true
+    }
+
+    private fun unregisterBluetoothBondStateReceiver() {
+        if (!isBluetoothBondStateReceiverRegistered) return
+
+        requireContext().unregisterReceiver(bluetoothBondStateReceiver)
+        isBluetoothBondStateReceiverRegistered = false
+    }
+
+    private fun Intent.extractSelectedBluetoothDevice(): BluetoothDevice? {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            val associatedDevice = getAssociationInfoExtra(
+                CompanionDeviceManager.EXTRA_ASSOCIATION
+            )?.associatedDevice
+
+            val selectedDevice = associatedDevice?.bluetoothDevice
+                ?: associatedDevice?.bleDevice?.device
+
+            if (selectedDevice != null) return selectedDevice
+        }
+
+        @Suppress("DEPRECATION")
+        val legacyDevice = getBluetoothDeviceExtra(CompanionDeviceManager.EXTRA_DEVICE)
+        if (legacyDevice != null) return legacyDevice
+
+        @Suppress("DEPRECATION")
+        val legacyLeDevice = getBleScanResultExtra(
+            CompanionDeviceManager.EXTRA_DEVICE
+        )?.device
+
+        return legacyLeDevice
+    }
+
+    private fun Intent.getBluetoothDeviceExtra(name: String): BluetoothDevice? {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            getParcelableExtra(name, BluetoothDevice::class.java)
+        } else {
+            @Suppress("DEPRECATION")
+            getParcelableExtra(name)
+        }
+    }
+
+    private fun Intent.getAssociationInfoExtra(name: String): AssociationInfo? {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            getParcelableExtra(name, AssociationInfo::class.java)
+        } else {
+            @Suppress("DEPRECATION")
+            getParcelableExtra(name)
+        }
+    }
+
+    private fun Intent.getBleScanResultExtra(name: String): ScanResult? {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            getParcelableExtra(name, ScanResult::class.java)
+        } else {
+            @Suppress("DEPRECATION")
+            getParcelableExtra(name)
+        }
+    }
+
+    private fun String?.isCompanionDeviceChooserCancellation(): Boolean {
+        if (isNullOrBlank()) return false
+
+        val normalizedMessage = lowercase(Locale.US)
+        return "cancel" in normalizedMessage ||
+                "cancelled" in normalizedMessage ||
+                "canceled" in normalizedMessage
+    }
+
+    private fun showToast(message: String) {
+        context?.let { Toast.makeText(it, message, Toast.LENGTH_SHORT).show() }
+    }
+
+    private fun updateBluetoothIcon() {
+        if (_binding == null) return
+        try {
+            // AudioManager.getDevices()�??�용?�여 블루?�스 �??�선 ?�디??기기 체크 (Android 6.0 ?�상)
             val hasBluetoothDevice = isBluetoothAudioDeviceConnected(audioManager)
             val hasWiredDevice = isWiredAudioDeviceConnected(audioManager)
 
-            Log.d(
-                "Bluetooth",
-                "Audio device detect - Bluetooth: $hasBluetoothDevice, Wired: $hasWiredDevice"
-            )
-
-            // 블루투스 오디오 기기가 연결되어 있고 유선 기기는 없을 때
+            // 블루?�스 ?�디??기기가 ?�결?�어 ?�고 ?�선 기기???�을 ??
             if (hasBluetoothDevice && !hasWiredDevice) {
                 binding.bluetooth.setImageResource(R.drawable.ic_airpods)
-                Log.d("Bluetooth", "Bluetooth audio is active - showing airpods icon")
                 return
             }
 
-            // 블루투스 권한 체크 후 추가 확인
+            // 블루?�스 권한 체크 ??추�? ?�인
             if (ActivityCompat.checkSelfPermission(
                     requireContext(),
                     Manifest.permission.BLUETOOTH_CONNECT
@@ -898,32 +1323,26 @@ class PlayerFragment : Fragment() {
                     val bluetoothAdapter = manager.adapter
 
                     if (bluetoothAdapter?.isEnabled == true) {
-                        // 연결된 블루투스 기기가 있는지 확인
+                        // ?�결??블루?�스 기기가 ?�는지 ?�인
                         val isBluetoothConnected = checkBluetoothConnection(manager)
 
                         if (isBluetoothConnected) {
                             binding.bluetooth.setImageResource(R.drawable.ic_airpods)
-                            Log.d(
-                                "Bluetooth",
-                                "Bluetooth device connected via profile - showing airpods icon"
-                            )
                             return
                         }
                     }
                 }
             }
 
-            // 기본값: 블루투스가 연결되지 않음
+            // 기본�? 블루?�스가 ?�결?��? ?�음
             binding.bluetooth.setImageResource(R.drawable.ic_airplay)
-            Log.d("Bluetooth", "No bluetooth connection detected - showing airplay icon")
-
         } catch (e: Exception) {
             Log.e("Bluetooth", "Error updating bluetooth icon", e)
             binding.bluetooth.setImageResource(R.drawable.ic_airplay)
         }
     }
 
-    @SuppressLint("MissingPermission")
+
     private fun checkBluetoothConnection(bluetoothManager: BluetoothManager): Boolean {
         if (ActivityCompat.checkSelfPermission(
                 requireContext(),
@@ -936,7 +1355,7 @@ class PlayerFragment : Fragment() {
         try {
             val bluetoothAdapter: BluetoothAdapter? = bluetoothManager.adapter
 
-            // 블루투스 profile connections
+            // 블루?�스 profile connections
             val a2dpConnected =
                 bluetoothAdapter?.getProfileConnectionState(BluetoothProfile.A2DP) == BluetoothAdapter.STATE_CONNECTED
             val headsetConnected =
@@ -950,16 +1369,6 @@ class PlayerFragment : Fragment() {
                 return true
             }
 
-            // GATT connections 검사
-            val bluetoothDevices = bluetoothAdapter?.bondedDevices ?: emptySet()
-            bluetoothDevices.forEach { device ->
-                val connectionState =
-                    bluetoothManager.getConnectionState(device, BluetoothGatt.GATT)
-                if (connectionState == BluetoothGatt.STATE_CONNECTED) {
-                    Log.d("Bluetooth", "Connected GATT device found: ${device.name}")
-                    return true
-                }
-            }
         } catch (e: Exception) {
             Log.e("Bluetooth", "Error checking bluetooth connection", e)
         }
@@ -967,7 +1376,7 @@ class PlayerFragment : Fragment() {
         return false
     }
 
-    // AudioDeviceInfo를 이용한 블루투스 오디오 기기 탐지
+    // AudioDeviceInfo�??�용??블루?�스 ?�디??기기 ?��?
     private fun isBluetoothAudioDeviceConnected(audioManager: AudioManager): Boolean {
         val devices = audioManager.getDevices(AudioManager.GET_DEVICES_OUTPUTS)
         for (device in devices) {
@@ -975,16 +1384,16 @@ class PlayerFragment : Fragment() {
                 AudioDeviceInfo.TYPE_BLUETOOTH_A2DP,
                 AudioDeviceInfo.TYPE_BLUETOOTH_SCO,
                     -> {
-                    Log.d("Bluetooth", "Bluetooth output device connected: type=${device.type}")
                     return true
                 }
+                else -> {}
             }
         }
 
         return false
     }
 
-    // AudioDeviceInfo를 이용한 유선 오디오 기기 탐지
+    // AudioDeviceInfo�??�용???�선 ?�디??기기 ?��?
     private fun isWiredAudioDeviceConnected(audioManager: AudioManager): Boolean {
         val devices = audioManager.getDevices(AudioManager.GET_DEVICES_OUTPUTS)
         for (device in devices) {
@@ -992,9 +1401,9 @@ class PlayerFragment : Fragment() {
                 AudioDeviceInfo.TYPE_WIRED_HEADPHONES,
                 AudioDeviceInfo.TYPE_WIRED_HEADSET,
                     -> {
-                    Log.d("Bluetooth", "Wired output device connected: type=${device.type}")
                     return true
                 }
+                else -> {}
             }
         }
 
@@ -1003,15 +1412,16 @@ class PlayerFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
-        // 화면이 다시 보일 때 블루투스 상태 업데이트
+        // ?�면???�시 보일 ??블루?�스 ?�태 ?�데?�트
         if (_binding != null) {
             updateBluetoothIcon()
             scheduleBluetoothUpdate()
         }
+        registerAudioDeviceCallback()
 
-        // 포그라운드 복귀 시 반드시 루프 재시작
+        // ?�그?�운??복�? ??반드??루프 ?�시??
         startSeekUpdates()
-        startVolumeObserver()   // 하드웨어 볼륨 변경 감지 시작
+        startVolumeObserver()   // ?�드?�어 볼륨 변�?감�? ?�작
     }
 
     override fun onStop() {
@@ -1020,30 +1430,33 @@ class PlayerFragment : Fragment() {
         savePlaybackState(immediate = true)
         stopSeekUpdates()
         binding.root.removeCallbacks(updateBluetoothRunnable)
-        stopVolumeObserver()    // 하드웨어 볼륨 변경 감지 중지
+        unregisterAudioDeviceCallback()
+        stopVolumeObserver()    // ?�드?�어 볼륨 변�?감�? 중�?
     }
 
     override fun onDestroyView() {
-        // View 파괴 직전 마지막 상태 저장(안전망)
+        // View ?�괴 직전 마�?�??�태 ?�???�전�?
         savePlaybackState(immediate = true)
-        // 리스너 참조로 인한 메모리/수명 누수 방지
+        // 리스??참조�??�한 메모�??�명 ?�수 방�?
         playerListener?.let { player.removeListener(it) }
         playerListener = null
 
-        // Surface 리소스 누수(Fragment의 View가 파괴된 뒤에도 플레이어가 그 Surface를 붙잡고 있어 해제되지 않는 상황)를 방지하기 위해 뷰에서 플레이어를 분리
+        // Surface 리소???�수(Fragment??View가 ?�괴???�에???�레?�어가 �?Surface�?붙잡�??�어 ?�제?��? ?�는 ?�황)�?방�??�기 ?�해 뷰에???�레?�어�?분리
         _binding?.vPlayer?.player = null
         stopSeekUpdates()
         binding.root.removeCallbacks(updateBluetoothRunnable)
+        unregisterAudioDeviceCallback()
         binding.root.removeCallbacks(startPlayerTextMarqueeRunnable)
+        unregisterBluetoothBondStateReceiver()
 
-        // 앨범 비트맵 해제하여 메모리 누수 방지 (Glide에 의해 관리되므로 수동 recycle() 호출은 하지 않음)
+        // ?�범 비트�??�제?�여 메모�??�수 방�? (Glide???�해 관리되므�??�동 recycle() ?�출?� ?��? ?�음)
         latestAlbumBitmap = null
 
-        // 앨범 그라데이션 매니저 해제
+        // ?�범 그라?�이??매니?� ?�제
         albumGradientManager = null
         mediaControllerConnector.release()
 
-        lastRenderedMusicId = null // 렌더링 캐시를 초기화
+        lastRenderedMusicId = null // ?�더�?캐시�?초기??
 
         _binding = null
         super.onDestroyView()
@@ -1053,9 +1466,36 @@ class PlayerFragment : Fragment() {
         if (_binding == null) return
 
         binding.root.removeCallbacks(updateBluetoothRunnable)
+        binding.root.postDelayed(updateBluetoothRunnable, BLUETOOTH_STATUS_UPDATE_DELAY_MS)
     }
 
-    // 시스템 볼륨 → UI 동기화
+    private fun registerAudioDeviceCallback() {
+        if (isAudioDeviceCallbackRegistered) return
+
+        audioManager.registerAudioDeviceCallback(audioDeviceCallback, Handler(Looper.getMainLooper()))
+        isAudioDeviceCallbackRegistered = true
+    }
+
+    private fun unregisterAudioDeviceCallback() {
+        if (!isAudioDeviceCallbackRegistered) return
+
+        audioManager.unregisterAudioDeviceCallback(audioDeviceCallback)
+        isAudioDeviceCallbackRegistered = false
+    }
+
+    private fun AudioDeviceInfo.isBluetoothOrWiredAudioDevice(): Boolean {
+        return when (type) {
+            AudioDeviceInfo.TYPE_BLUETOOTH_A2DP,
+            AudioDeviceInfo.TYPE_BLUETOOTH_SCO,
+            AudioDeviceInfo.TYPE_WIRED_HEADPHONES,
+            AudioDeviceInfo.TYPE_WIRED_HEADSET,
+                -> true
+
+            else -> false
+        }
+    }
+
+    // ?�스??볼륨 ??UI ?�기??
     private fun updateVolumeFromSystem() {
         if (_binding == null) return
         val max = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
@@ -1070,7 +1510,7 @@ class PlayerFragment : Fragment() {
         )
     }
 
-    // 볼륨 옵저버 등록/해제
+    // 볼륨 ?��?�??�록/?�제
     private fun startVolumeObserver() {
         val resolver = context?.contentResolver
         if (volumeObserver != null) return
@@ -1087,11 +1527,11 @@ class PlayerFragment : Fragment() {
                 true,
                 volumeObserver!!
             )
-            // 등록 직후 1회 동기화
+            // ?�록 직후 1???�기??
             updateVolumeFromSystem()
         } catch (t: Throwable) {
             Log.e(TAG, "Failed to register volumeObserver", t)
-            // 등록 실패 시 누수 방지
+            // ?�록 ?�패 ???�수 방�?
             volumeObserver = null
         }
     }
@@ -1113,23 +1553,24 @@ class PlayerFragment : Fragment() {
         const val TAG = "PlayerFragment"
         const val EXTRA_MUSIC_FILE_ID: String = "id"
 
-        // 재생 시간 계산의 기본 단위
+        // ?�생 ?�간 계산??기본 ?�위
         private const val ONE_SECOND_MS = 1_000L
 
-        // 시간 텍스트 표시를 초 경계에 더 가깝게 맞추기 위한 보정값
+        // ?�간 ?�스???�시�?�?경계????가깝게 맞추�??�한 보정�?
         private const val POSITION_DISPLAY_OFFSET_MS = 80L
 
-        // 다음 초가 지난 직후 UI를 갱신하기 위한 지연값
+        // ?�음 초�? 지??직후 UI�?갱신?�기 ?�한 지?�값
         private const val SEEK_UPDATE_BOUNDARY_OFFSET_MS = 50L
 
-        // 다음 갱신이 너무 자주 돌거나 1초 넘게 밀리지 않도록 제한하는 범위
-        private const val MIN_SEEK_UPDATE_DELAY_MS = 100L // 아무리 빨라도
-        private const val MAX_SEEK_UPDATE_DELAY_MS = 1_000L // 아무리 늦어도
+        // ?�음 갱신???�무 ?�주 ?�거??1�??�게 밀리�? ?�도�??�한?�는 범위
+        private const val MIN_SEEK_UPDATE_DELAY_MS = 100L // ?�무�?빨라??
+        private const val MAX_SEEK_UPDATE_DELAY_MS = 1_000L // ?�무�???��??
 
-        // 자동 다음 곡 전환 직후 새 트랙 position을 다시 읽기 전까지 기다리는 시간
+        // ?�동 ?�음 �??�환 직후 ???�랙 position???�시 ?�기 ?�까지 기다리는 ?�간
         private const val SEEK_UPDATE_AFTER_TRANSITION_MS = 100L
 
         private const val PLAYER_TEXT_MARQUEE_START_DELAY_MS = 700L
+        private const val BLUETOOTH_STATUS_UPDATE_DELAY_MS = 1_000L
 
         fun newInstance(musicId: String): PlayerFragment =
             PlayerFragment().apply {
