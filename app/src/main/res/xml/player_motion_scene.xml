@@ -14,7 +14,7 @@
 
     <ConstraintSet android:id="@+id/collapsed">
         <Constraint
-            android:id="@+id/toolbarNowPlayingTitle"
+            android:id="@+id/playerTopHandleContainer"
             android:visibility="gone" />
 
         <Constraint
@@ -152,11 +152,18 @@
             motion:layout_constraintEnd_toEndOf="parent" />
 
         <Constraint
-            android:id="@+id/toolbarNowPlayingTitle"
+            android:id="@+id/playerTopHandleContainer"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            motion:contentInsetStart="0dp"
             motion:layout_constraintTop_toTopOf="parent" />
+
+        <Constraint
+            android:id="@+id/ivDragHandle"
+            android:layout_width="42dp"
+            android:layout_height="48dp"
+            motion:layout_constraintEnd_toEndOf="@id/playerTopHandleContainer"
+            motion:layout_constraintStart_toStartOf="@id/playerTopHandleContainer"
+            motion:layout_constraintTop_toTopOf="@id/playerTopHandleContainer" />
 
         <Constraint
             android:id="@+id/tvSongTitle"
@@ -173,7 +180,7 @@
             android:text="@string/current_song_title"
             motion:layout_constraintEnd_toEndOf="parent"
             motion:layout_constraintStart_toStartOf="parent"
-            motion:layout_constraintTop_toBottomOf="@id/toolbarNowPlayingTitle">
+            motion:layout_constraintTop_toBottomOf="@id/playerTopHandleContainer">
 
             <CustomAttribute
                 motion:attributeName="textSize"
