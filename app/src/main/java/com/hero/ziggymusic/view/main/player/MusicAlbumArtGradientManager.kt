@@ -39,7 +39,7 @@ class MusicAlbumArtGradientManager(private val context: Context) {
             val midColor = darken(muted, 0.55f)
             val bottomColor = darken(dominant, 0.78f)
             val gradientLayer = createGradientLayer(topColor, midColor, bottomColor)
-            val visualizerColor = createVisualizerColor(vibrant)
+            val visualizerColor = createVisualizerColor(topColor, midColor, bottomColor)
 
             albumBackground.post {
                 onVisualizerColorReady?.invoke(visualizerColor)
@@ -188,13 +188,26 @@ class MusicAlbumArtGradientManager(private val context: Context) {
         return ColorUtils.blendARGB(color, Color.BLACK, 1f - factor)
     }
 
-    private fun createVisualizerColor(color: Int): Int {
+    private fun createVisualizerColor(topColor: Int, midColor: Int, bottomColor: Int): Int {
+        val baseColor = ColorUtils.blendARGB(midColor, topColor, 0.35f)
         val hsl = FloatArray(3)
-        ColorUtils.colorToHSL(color, hsl)
-        hsl[1] = (hsl[1] + 0.2f).coerceAtMost(1f)
-        hsl[2] = (hsl[2] * 0.72f).coerceIn(0.20f, 0.55f)
+        ColorUtils.colorToHSL(baseColor, hsl)
 
-        return ColorUtils.HSLToColor(hsl)
+        hsl[1] = hsl[1].coerceIn(VISUALIZER_MIN_SATURATION, VISUALIZER_MAX_SATURATION)
+        hsl[2] = hsl[2].coerceIn(VISUALIZER_MIN_LIGHTNESS, VISUALIZER_MAX_LIGHTNESS)
+
+        if (isWarmHue(hsl[0])) {
+            hsl[1] *= VISUALIZER_WARM_SATURATION_FACTOR
+            hsl[2] *= VISUALIZER_WARM_LIGHTNESS_FACTOR
+        }
+
+        val tunedColor = ColorUtils.HSLToColor(hsl)
+
+        return ColorUtils.blendARGB(tunedColor, bottomColor, VISUALIZER_BACKGROUND_BLEND_RATIO)
+    }
+
+    private fun isWarmHue(hue: Float): Boolean {
+        return hue <= 45f || hue >= 340f
     }
 
     private fun dpToPx(dp: Float): Float {
@@ -208,5 +221,12 @@ class MusicAlbumArtGradientManager(private val context: Context) {
     private companion object {
         const val TAG = "MusicAlbumArtGradient"
         const val BACKGROUND_FADE_DURATION_MS = 150
+        const val VISUALIZER_MIN_SATURATION = 0.18f
+        const val VISUALIZER_MAX_SATURATION = 0.46f
+        const val VISUALIZER_MIN_LIGHTNESS = 0.28f
+        const val VISUALIZER_MAX_LIGHTNESS = 0.42f
+        const val VISUALIZER_WARM_SATURATION_FACTOR = 0.65f
+        const val VISUALIZER_WARM_LIGHTNESS_FACTOR = 0.88f
+        const val VISUALIZER_BACKGROUND_BLEND_RATIO = 0.22f
     }
 }
