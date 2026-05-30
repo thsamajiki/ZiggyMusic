@@ -647,11 +647,13 @@ class PlayerFragment : Fragment() {
         updatePlayerTextMarquee(vm.motionState.value)
 
         latestAlbumBitmap = null
+        // Decode at expanded size so startup/collapsed loads are not stretched later.
+        val albumArtSize = resources.getDimensionPixelSize(R.dimen.album_art_size_expanded)
 
         Glide.with(binding.ivAlbumArt.context)
             .asBitmap()
             .load(musicModel.getAlbumUri())
-            .override(binding.ivAlbumArt.layoutParams.width, binding.ivAlbumArt.layoutParams.height)
+            .override(albumArtSize, albumArtSize)
             .error(R.drawable.ic_no_album_image)
             .fallback(R.drawable.ic_no_album_image)
             .transform(RoundedCorners(12))
