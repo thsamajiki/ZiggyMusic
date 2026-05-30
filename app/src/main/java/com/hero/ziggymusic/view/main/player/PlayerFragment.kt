@@ -70,6 +70,7 @@ class PlayerFragment : Fragment() {
 
     private var currentMusic: MusicModel? = null // 현재 재생 중인 음원
     private val playbackStateStore by lazy { PlaybackStateStore(requireContext()) }
+    private var visualizerBarColor: Int? = null
 
     // position 저장 쓰로틀링으로 불필요한 prefs write를 줄인다.
     private var lastSavedAtMs: Long = 0L
@@ -240,7 +241,12 @@ class PlayerFragment : Fragment() {
                         binding.motionLayout.background = null
 
                         if (latestAlbumBitmap != null) {
-                            albumGradientManager?.applyGradients(latestAlbumBitmap!!, binding.albumBackground)
+                            albumGradientManager?.applyGradients(
+                                latestAlbumBitmap!!,
+                                binding.albumBackground
+                            ) { visualizerColor ->
+                                updateVisualizerBarColor(visualizerColor)
+                            }
                         } else {
                             // 앨범 아트가 없으면 기본 어두운 배경으로 되돌림
                             // 기존 그라데이션도 함께 제거
@@ -430,6 +436,7 @@ class PlayerFragment : Fragment() {
 
         albumGradientManager = MusicAlbumArtGradientManager(requireActivity())
 
+        resetVisualizerBarColor()
         syncPlayerUi()
         startSeekUpdates() // 포그라운드 진입 직후 진행바를 시작
 
@@ -522,8 +529,20 @@ class PlayerFragment : Fragment() {
         binding.ivPlayPause.setImageResource(
             if (isPlaying) R.drawable.ic_pause_button else R.drawable.ic_play_button
         )
-        if (isPlaying) binding.animationViewVisualizer.playAnimation()
-        else binding.animationViewVisualizer.pauseAnimation()
+        binding.animationViewVisualizer.setPlaying(isPlaying)
+    }
+
+    private fun updateVisualizerBarColor(color: Int) {
+        if (_binding == null) return
+        if (visualizerBarColor == color) return
+
+        visualizerBarColor = color
+        binding.animationViewVisualizer.setBarColor(color)
+    }
+
+    private fun resetVisualizerBarColor() {
+        if (!isAdded || _binding == null) return
+        updateVisualizerBarColor(ContextCompat.getColor(requireContext(), R.color.dark_gray))
     }
 
     private fun startSeekUpdates() {
@@ -610,6 +629,7 @@ class PlayerFragment : Fragment() {
             binding.tvSongAlbum.text = ""
 
             latestAlbumBitmap = null
+            resetVisualizerBarColor()
             albumGradientManager?.resetToDarkBackground(binding.albumBackground, animate = true)
             binding.ivAlbumArt.setImageResource(R.drawable.ic_no_album_image)
             return
@@ -644,6 +664,7 @@ class PlayerFragment : Fragment() {
                 ): Boolean {
                     // 로드 실패 시 플레이스홀더와 기본 배경으로 되돌린다.
                     latestAlbumBitmap = null
+                    resetVisualizerBarColor()
 
                     if (vm.motionState.value == PlayerMotionManager.State.EXPANDED) {
                         albumGradientManager?.resetToDarkBackground(
@@ -667,7 +688,12 @@ class PlayerFragment : Fragment() {
                     latestAlbumBitmap = resource
 
                     if (vm.motionState.value == PlayerMotionManager.State.EXPANDED) {
-                        albumGradientManager?.applyGradients(resource, binding.albumBackground)
+                        albumGradientManager?.applyGradients(
+                            resource,
+                            binding.albumBackground
+                        ) { visualizerColor ->
+                            updateVisualizerBarColor(visualizerColor)
+                        }
                     } else {
                         binding.albumBackground.setBackgroundResource(R.color.dark_black)
                     }
