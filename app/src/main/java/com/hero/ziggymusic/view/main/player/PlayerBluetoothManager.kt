@@ -94,7 +94,7 @@ class PlayerBluetoothManager(
             val bondState = intent.getIntExtra(BluetoothDevice.EXTRA_BOND_STATE, BluetoothDevice.ERROR)
             when (bondState) {
                 BluetoothDevice.BOND_BONDING -> {
-                    Log.d(LOG_TAG, "Bluetooth pairing in progress: $deviceName ($pendingAddress)")
+                    Log.d(TAG, "Bluetooth pairing in progress: $deviceName ($pendingAddress)")
                 }
 
                 BluetoothDevice.BOND_BONDED -> {
@@ -102,13 +102,13 @@ class PlayerBluetoothManager(
                     setBluetoothIcon(R.drawable.ic_airpods)
                     pendingPairingDeviceAddress = null
                     onMessage("블루투스 페어링이 완료되었습니다.")
-                    Log.d(LOG_TAG, "Bluetooth pairing completed: $deviceName ($pendingAddress)")
+                    Log.d(TAG, "Bluetooth pairing completed: $deviceName ($pendingAddress)")
                 }
 
                 BluetoothDevice.BOND_NONE -> {
                     pendingPairingDeviceAddress = null
                     onMessage("블루투스 페어링에 실패했습니다.")
-                    Log.w(LOG_TAG, "Bluetooth pairing failed or canceled: $deviceName ($pendingAddress)")
+                    Log.w(TAG, "Bluetooth pairing failed or canceled: $deviceName ($pendingAddress)")
                     updateBluetoothIcon()
                 }
             }
@@ -129,7 +129,7 @@ class PlayerBluetoothManager(
             val errorMessage = error?.toString()
             if (errorMessage.isCompanionDeviceChooserCancellation()) return
 
-            Log.w(LOG_TAG, "Companion device association failed: $errorMessage")
+            Log.w(TAG, "Companion device association failed: $errorMessage")
             onMessage("블루투스 기기 목록을 불러오지 못했습니다.")
         }
     }
@@ -187,7 +187,7 @@ class PlayerBluetoothManager(
 
             setBluetoothIcon(R.drawable.ic_airplay)
         } catch (e: Exception) {
-            Log.e(LOG_TAG, "Error updating bluetooth icon", e)
+            Log.e(TAG, "Error updating bluetooth icon", e)
             setBluetoothIcon(R.drawable.ic_airplay)
         }
     }
@@ -301,7 +301,7 @@ class PlayerBluetoothManager(
             val request = IntentSenderRequest.Builder(intentSender).build()
             companionDeviceChooserLauncher.launch(request)
         } catch (e: IntentSender.SendIntentException) {
-            Log.e(LOG_TAG, "Failed to launch companion device chooser", e)
+            Log.e(TAG, "Failed to launch companion device chooser", e)
             onMessage("블루투스 기기 목록을 열지 못했습니다.")
         }
     }
@@ -338,16 +338,16 @@ class PlayerBluetoothManager(
                     updateBluetoothIcon()
                 }
                 pendingPairingDeviceAddress = null
-                Log.d(LOG_TAG, "Bluetooth device is already paired: $deviceAddress")
+                Log.d(TAG, "Bluetooth device is already paired: $deviceAddress")
             }
 
             BluetoothDevice.BOND_BONDING -> {
-                Log.d(LOG_TAG, "Bluetooth device is already bonding: $deviceAddress")
+                Log.d(TAG, "Bluetooth device is already bonding: $deviceAddress")
             }
 
             else -> {
                 val pairingStarted = createBluetoothBondIfPermitted(device)
-                Log.d(LOG_TAG, "Bluetooth pairing requested: $deviceAddress, started=$pairingStarted")
+                Log.d(TAG, "Bluetooth pairing requested: $deviceAddress, started=$pairingStarted")
                 if (!pairingStarted) {
                     pendingPairingDeviceAddress = null
                     onMessage("블루투스 페어링을 시작하지 못했습니다.")
@@ -363,7 +363,7 @@ class PlayerBluetoothManager(
         return try {
             device.address
         } catch (e: SecurityException) {
-            Log.w(LOG_TAG, "Missing permission while reading bluetooth device address", e)
+            Log.w(TAG, "Missing permission while reading bluetooth device address", e)
             null
         }
     }
@@ -374,7 +374,7 @@ class PlayerBluetoothManager(
         return try {
             device.name ?: "Unknown device"
         } catch (e: SecurityException) {
-            Log.w(LOG_TAG, "Missing permission while reading bluetooth device name", e)
+            Log.w(TAG, "Missing permission while reading bluetooth device name", e)
             "Unknown device"
         }
     }
@@ -385,7 +385,7 @@ class PlayerBluetoothManager(
         return try {
             device.bondState
         } catch (e: SecurityException) {
-            Log.w(LOG_TAG, "Missing permission while reading bluetooth bond state", e)
+            Log.w(TAG, "Missing permission while reading bluetooth bond state", e)
             null
         }
     }
@@ -396,7 +396,7 @@ class PlayerBluetoothManager(
         return try {
             device.createBond()
         } catch (e: SecurityException) {
-            Log.w(LOG_TAG, "Missing permission while creating bluetooth bond", e)
+            Log.w(TAG, "Missing permission while creating bluetooth bond", e)
             false
         }
     }
@@ -411,7 +411,7 @@ class PlayerBluetoothManager(
         try {
             getBluetoothAdapter()?.cancelDiscovery()
         } catch (e: SecurityException) {
-            Log.w(LOG_TAG, "Missing permission while canceling bluetooth discovery", e)
+            Log.w(TAG, "Missing permission while canceling bluetooth discovery", e)
         }
     }
 
@@ -419,7 +419,7 @@ class PlayerBluetoothManager(
         runCatching {
             fragment.startActivity(Intent(Settings.ACTION_BLUETOOTH_SETTINGS))
         }.onFailure { e ->
-            Log.e(LOG_TAG, "Failed to open bluetooth settings", e)
+            Log.e(TAG, "Failed to open bluetooth settings", e)
         }
     }
 
@@ -522,15 +522,15 @@ class PlayerBluetoothManager(
 
             if (a2dpConnected || headsetConnected) {
                 Log.d(
-                    LOG_TAG,
+                    TAG,
                     "Audio Profile connected: A2DP=$a2dpConnected, HEADSET=$headsetConnected"
                 )
                 return true
             }
         } catch (e: SecurityException) {
-            Log.e(LOG_TAG, "Missing permission while checking bluetooth profile connection", e)
+            Log.e(TAG, "Missing permission while checking bluetooth profile connection", e)
         } catch (e: Exception) {
-            Log.e(LOG_TAG, "Error checking bluetooth connection", e)
+            Log.e(TAG, "Error checking bluetooth connection", e)
         }
 
         return false
@@ -587,7 +587,7 @@ class PlayerBluetoothManager(
     }
 
     private companion object {
-        const val LOG_TAG = "Bluetooth"
+        const val TAG = "Bluetooth"
         const val BLUETOOTH_STATUS_UPDATE_DELAY_MS = 1_000L
     }
 }
