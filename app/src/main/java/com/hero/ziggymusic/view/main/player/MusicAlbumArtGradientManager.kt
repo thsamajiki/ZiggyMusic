@@ -190,20 +190,52 @@ class MusicAlbumArtGradientManager(private val context: Context) {
 
     private fun createVisualizerColor(topColor: Int, midColor: Int, bottomColor: Int): Int {
         val baseColor = ColorUtils.blendARGB(midColor, topColor, 0.35f)
+        val backgroundColor = ColorUtils.blendARGB(midColor, bottomColor, 0.35f)
         val hsl = FloatArray(3)
         ColorUtils.colorToHSL(baseColor, hsl)
+        val backgroundLuminance = ColorUtils.calculateLuminance(backgroundColor).toFloat()
 
         hsl[1] = hsl[1].coerceIn(VISUALIZER_MIN_SATURATION, VISUALIZER_MAX_SATURATION)
-        hsl[2] = hsl[2].coerceIn(VISUALIZER_MIN_LIGHTNESS, VISUALIZER_MAX_LIGHTNESS)
+        hsl[2] = targetVisualizerLightness(backgroundLuminance)
 
         if (isWarmHue(hsl[0])) {
             hsl[1] *= VISUALIZER_WARM_SATURATION_FACTOR
-            hsl[2] *= VISUALIZER_WARM_LIGHTNESS_FACTOR
         }
 
-        val tunedColor = ColorUtils.HSLToColor(hsl)
+        val tunedColor = ColorUtils.blendARGB(
+            ColorUtils.HSLToColor(hsl),
+            backgroundColor,
+            VISUALIZER_BACKGROUND_BLEND_RATIO
+        )
 
-        return ColorUtils.blendARGB(tunedColor, bottomColor, VISUALIZER_BACKGROUND_BLEND_RATIO)
+        return ensureVisualizerContrast(tunedColor, backgroundColor)
+    }
+
+    private fun targetVisualizerLightness(backgroundLuminance: Float): Float {
+        return when {
+            backgroundLuminance < 0.08f -> 0.58f
+            backgroundLuminance < 0.16f -> 0.52f
+            backgroundLuminance < 0.28f -> 0.46f
+            else -> 0.34f
+        }
+    }
+
+    private fun ensureVisualizerContrast(color: Int, backgroundColor: Int): Int {
+        if (ColorUtils.calculateContrast(color, backgroundColor) >= VISUALIZER_MIN_CONTRAST) {
+            return color
+        }
+
+        val hsl = FloatArray(3)
+        ColorUtils.colorToHSL(color, hsl)
+        val backgroundLuminance = ColorUtils.calculateLuminance(backgroundColor)
+
+        hsl[2] = if (backgroundLuminance < 0.35) {
+            (hsl[2] + VISUALIZER_CONTRAST_LIGHTNESS_STEP).coerceAtMost(0.68f)
+        } else {
+            (hsl[2] - VISUALIZER_CONTRAST_LIGHTNESS_STEP).coerceAtLeast(0.22f)
+        }
+
+        return ColorUtils.HSLToColor(hsl)
     }
 
     private fun isWarmHue(hue: Float): Boolean {
@@ -223,10 +255,9 @@ class MusicAlbumArtGradientManager(private val context: Context) {
         const val BACKGROUND_FADE_DURATION_MS = 150
         const val VISUALIZER_MIN_SATURATION = 0.18f
         const val VISUALIZER_MAX_SATURATION = 0.46f
-        const val VISUALIZER_MIN_LIGHTNESS = 0.28f
-        const val VISUALIZER_MAX_LIGHTNESS = 0.42f
         const val VISUALIZER_WARM_SATURATION_FACTOR = 0.65f
-        const val VISUALIZER_WARM_LIGHTNESS_FACTOR = 0.88f
-        const val VISUALIZER_BACKGROUND_BLEND_RATIO = 0.22f
+        const val VISUALIZER_BACKGROUND_BLEND_RATIO = 0.12f
+        const val VISUALIZER_MIN_CONTRAST = 1.65
+        const val VISUALIZER_CONTRAST_LIGHTNESS_STEP = 0.14f
     }
 }
