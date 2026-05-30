@@ -27,6 +27,7 @@ class MusicAlbumArtGradientManager(private val context: Context) {
     fun applyGradients(
         bitmap: Bitmap,
         albumBackground: View,
+        onVisualizerColorReady: ((Int) -> Unit)? = null,
     ) {
         Palette.from(bitmap).generate { palette ->
             val fallbackDominant = "#2B2B2B".toColorInt()
@@ -38,8 +39,11 @@ class MusicAlbumArtGradientManager(private val context: Context) {
             val midColor = darken(muted, 0.55f)
             val bottomColor = darken(dominant, 0.78f)
             val gradientLayer = createGradientLayer(topColor, midColor, bottomColor)
+            val visualizerColor = createVisualizerColor(vibrant)
 
             albumBackground.post {
+                onVisualizerColorReady?.invoke(visualizerColor)
+
                 val activity = context as? Activity
                 if (activity == null) {
                     albumBackground.crossfadeTo(gradientLayer)
@@ -182,6 +186,15 @@ class MusicAlbumArtGradientManager(private val context: Context) {
 
     private fun darken(color: Int, factor: Float = 0.8f): Int {
         return ColorUtils.blendARGB(color, Color.BLACK, 1f - factor)
+    }
+
+    private fun createVisualizerColor(color: Int): Int {
+        val hsl = FloatArray(3)
+        ColorUtils.colorToHSL(color, hsl)
+        hsl[1] = (hsl[1] + 0.2f).coerceAtMost(1f)
+        hsl[2] = (hsl[2] * 0.72f).coerceIn(0.20f, 0.55f)
+
+        return ColorUtils.HSLToColor(hsl)
     }
 
     private fun dpToPx(dp: Float): Float {
