@@ -1,32 +1,13 @@
 package com.hero.ziggymusic.view.main.player
 
-import android.Manifest
-import android.app.Activity
-import android.bluetooth.BluetoothAdapter
-import android.bluetooth.BluetoothDevice
-import android.bluetooth.BluetoothManager
-import android.bluetooth.BluetoothProfile
-import android.bluetooth.le.ScanResult
-import android.companion.AssociationInfo
-import android.companion.AssociationRequest
-import android.companion.BluetoothDeviceFilter
-import android.companion.CompanionDeviceManager
-import android.content.BroadcastReceiver
 import android.content.Context
-import android.content.Intent
-import android.content.IntentFilter
-import android.content.IntentSender
-import android.content.pm.PackageManager
 import android.database.ContentObserver
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
-import android.media.AudioDeviceCallback
-import android.media.AudioDeviceInfo
 import android.media.AudioManager
 import android.net.Uri
-import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -38,11 +19,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.SeekBar
 import android.widget.Toast
-import androidx.activity.result.ActivityResultLauncher
-import androidx.activity.result.IntentSenderRequest
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.OptIn
-import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
@@ -65,7 +42,6 @@ import com.hero.ziggymusic.databinding.FragmentPlayerBinding
 import com.hero.ziggymusic.view.main.player.viewmodel.PlayerViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
-import java.util.Locale
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import kotlin.math.max
@@ -78,6 +54,7 @@ import com.bumptech.glide.request.RequestListener
 import com.hero.ziggymusic.service.MusicMediaControllerConnector
 import com.hero.ziggymusic.service.MusicServiceController
 import com.hero.ziggymusic.view.main.player.model.LastPlayedMedia
+import java.util.Locale
 
 @AndroidEntryPoint
 class PlayerFragment : Fragment() {
@@ -104,6 +81,7 @@ class PlayerFragment : Fragment() {
     private lateinit var playerMotionManager: PlayerMotionManager
     private lateinit var playerBottomSheetManager: PlayerBottomSheetManager
     private lateinit var mediaControllerConnector: MusicMediaControllerConnector
+    private lateinit var playerBluetoothManager: PlayerBluetoothManager
     private var albumGradientManager: MusicAlbumArtGradientManager? = null
     private var latestAlbumBitmap: Bitmap? = null
     private var lastRenderedMusicId: String? = null
@@ -120,103 +98,6 @@ class PlayerFragment : Fragment() {
     private val updateSeekRunnable = Runnable {
         updatePlaybackProgress()
     }
-
-    private val updateBluetoothRunnable = Runnable {
-        updateBluetoothIcon()
-    }
-
-    private val audioDeviceCallback = object : AudioDeviceCallback() {
-        override fun onAudioDevicesAdded(addedDevices: Array<out AudioDeviceInfo>) {
-            if (addedDevices.any { it.isBluetoothOrWiredAudioDevice() }) {
-                updateBluetoothIcon()
-            }
-        }
-
-        override fun onAudioDevicesRemoved(removedDevices: Array<out AudioDeviceInfo>) {
-            if (removedDevices.any { it.isBluetoothOrWiredAudioDevice() }) {
-                updateBluetoothIcon()
-            }
-        }
-    }
-
-    private var isAudioDeviceCallbackRegistered = false
-
-    private val bluetoothPermissionLauncher =
-        registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { grantResults ->
-            if (grantResults.isNotEmpty() && grantResults.values.all { it }) {
-                handleBluetoothClick()
-            } else {
-                showToast("블루투스 권한이 필요합니다.")
-            }
-        }
-
-    private val companionDeviceChooserLauncher: ActivityResultLauncher<IntentSenderRequest> =
-        registerForActivityResult(ActivityResultContracts.StartIntentSenderForResult()) { result ->
-            if (result.resultCode != Activity.RESULT_OK) return@registerForActivityResult
-
-            val selectedDevice = result.data?.extractSelectedBluetoothDevice()
-            if (selectedDevice == null) {
-                showToast("선택한 블루투스 기기를 확인할 수 없습니다.")
-                return@registerForActivityResult
-            }
-
-            requestBluetoothPairing(selectedDevice)
-        }
-
-    private val bluetoothBondStateReceiver = object : BroadcastReceiver() {
-        override fun onReceive(context: Context?, intent: Intent?) {
-            if (intent?.action != BluetoothDevice.ACTION_BOND_STATE_CHANGED) return
-
-            val device = intent.getBluetoothDeviceExtra(BluetoothDevice.EXTRA_DEVICE) ?: return
-            val pendingAddress = pendingPairingDeviceAddress ?: return
-            if (!isPairingTarget(device, pendingAddress)) return
-
-            val deviceName = getBluetoothDeviceLogName(device)
-            val bondState = intent.getIntExtra(BluetoothDevice.EXTRA_BOND_STATE, BluetoothDevice.ERROR)
-            when (bondState) {
-                BluetoothDevice.BOND_BONDING -> {
-                    Log.d("Bluetooth", "Bluetooth pairing in progress: $deviceName ($pendingAddress)")
-                }
-
-                BluetoothDevice.BOND_BONDED -> {
-                    if (_binding == null) return
-                    binding.bluetooth.setImageResource(R.drawable.ic_airpods)
-                    pendingPairingDeviceAddress = null
-                    showToast("블루투스 페어링이 완료되었습니다.")
-                    Log.d("Bluetooth", "Bluetooth pairing completed: $deviceName ($pendingAddress)")
-                }
-
-                BluetoothDevice.BOND_NONE -> {
-                    pendingPairingDeviceAddress = null
-                    showToast("블루투스 페어링에 실패했습니다.")
-                    Log.w("Bluetooth", "Bluetooth pairing failed or canceled: $deviceName ($pendingAddress)")
-                    updateBluetoothIcon()
-                }
-            }
-        }
-    }
-
-    private val companionDeviceManagerCallback = object : CompanionDeviceManager.Callback() {
-        override fun onAssociationPending(intentSender: IntentSender) {
-            launchCompanionDeviceChooser(intentSender)
-        }
-
-        @Deprecated("onDeviceFound was renamed to onAssociationPending in API 33.")
-        override fun onDeviceFound(intentSender: IntentSender) {
-            launchCompanionDeviceChooser(intentSender)
-        }
-
-        override fun onFailure(error: CharSequence?) {
-            val errorMessage = error?.toString()
-            if (errorMessage.isCompanionDeviceChooserCancellation()) return
-
-            Log.w("Bluetooth", "Companion device association failed: $errorMessage")
-            showToast("블루투스 기기 목록을 불러오지 못했습니다.")
-        }
-    }
-
-    private var pendingPairingDeviceAddress: String? = null
-    private var isBluetoothBondStateReceiverRegistered = false
 
     private val startPlayerTextMarqueeRunnable = Runnable {
         if (_binding == null || vm.motionState.value != PlayerMotionManager.State.EXPANDED) return@Runnable
@@ -244,6 +125,7 @@ class PlayerFragment : Fragment() {
 
         initMediaController()
         initAudioManager()
+        initBluetoothManager()
         initPlayView()
         initPlayControlButtons()
         initSeekBar()
@@ -256,6 +138,16 @@ class PlayerFragment : Fragment() {
         audioManager = requireContext().getSystemService(Context.AUDIO_SERVICE) as AudioManager
         currentVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
         previousVolume = currentVolume
+    }
+
+    private fun initBluetoothManager() {
+        playerBluetoothManager = PlayerBluetoothManager(
+            fragment = this,
+            audioManager = audioManager,
+            rootViewProvider = { _binding?.root },
+            setBluetoothIcon = { resId -> _binding?.bluetooth?.setImageResource(resId) },
+            onMessage = { message -> context?.let { Toast.makeText(it, message, Toast.LENGTH_SHORT).show() } }
+        )
     }
 
     private fun initMediaController() {
@@ -273,7 +165,7 @@ class PlayerFragment : Fragment() {
         }
 
         binding.bluetooth.setOnClickListener {
-            handleBluetoothClick()
+            playerBluetoothManager.handleBluetoothClick()
         }
 
         toggleVolumeIcon()
@@ -973,451 +865,14 @@ class PlayerFragment : Fragment() {
         }
     }
 
-    private fun handleBluetoothClick() {
-        val bluetoothAdapter = getBluetoothAdapter()
-        if (bluetoothAdapter == null) {
-            showToast("이 기기는 블루투스를 지원하지 않습니다.")
-            return
-        }
-
-        val missingPermissions = getMissingBluetoothPermissions()
-        if (missingPermissions.isNotEmpty()) {
-            bluetoothPermissionLauncher.launch(missingPermissions.toTypedArray())
-            return
-        }
-
-        if (!bluetoothAdapter.isEnabled) {
-            showToast("블루투스를 켜주세요.")
-            return
-        }
-
-        showBluetoothDeviceChooser()
-    }
-
-    private fun getBluetoothAdapter(): BluetoothAdapter? {
-        return ContextCompat.getSystemService(
-            requireContext(),
-            BluetoothManager::class.java
-        )?.adapter
-    }
-
-    private fun getMissingBluetoothPermissions(): List<String> {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return emptyList()
-
-        return listOf(
-            Manifest.permission.BLUETOOTH_SCAN,
-            Manifest.permission.BLUETOOTH_CONNECT
-        ).filter { permission ->
-            ActivityCompat.checkSelfPermission(requireContext(), permission) !=
-                    PackageManager.PERMISSION_GRANTED
-        }
-    }
-
-    private fun showBluetoothDeviceChooser() {
-        val companionDeviceManager = ContextCompat.getSystemService(
-            requireContext(),
-            CompanionDeviceManager::class.java
-        )
-
-        if (companionDeviceManager == null) {
-            showToast("블루투스 기기 목록을 불러올 수 없습니다.")
-            return
-        }
-
-        val requestBuilder = AssociationRequest.Builder()
-            .addDeviceFilter(BluetoothDeviceFilter.Builder().build())
-            .setSingleDevice(false)
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            requestBuilder.setDisplayName("ZiggyMusic")
-        }
-
-        val request = requestBuilder.build()
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            companionDeviceManager.associate(
-                request,
-                ContextCompat.getMainExecutor(requireContext()),
-                companionDeviceManagerCallback
-            )
-        } else {
-            companionDeviceManager.associate(
-                request,
-                companionDeviceManagerCallback,
-                Handler(Looper.getMainLooper())
-            )
-        }
-    }
-
-    private fun launchCompanionDeviceChooser(intentSender: IntentSender) {
-        try {
-            val request = IntentSenderRequest.Builder(intentSender).build()
-            companionDeviceChooserLauncher.launch(request)
-        } catch (e: IntentSender.SendIntentException) {
-            Log.e("Bluetooth", "Failed to launch companion device chooser", e)
-            showToast("블루투스 기기 목록을 열지 못했습니다.")
-        }
-    }
-
-    private fun requestBluetoothPairing(device: BluetoothDevice) {
-        if (_binding == null) return
-
-        if (getMissingBluetoothPermissions().isNotEmpty()) {
-            bluetoothPermissionLauncher.launch(getMissingBluetoothPermissions().toTypedArray())
-            return
-        }
-
-        registerBluetoothBondStateReceiver()
-        val deviceAddress = getBluetoothDeviceAddressIfPermitted(device) ?: run {
-            showToast("블루투스 기기 정보를 확인할 수 없습니다.")
-            return
-        }
-
-        pendingPairingDeviceAddress = deviceAddress
-        cancelBluetoothDiscoveryIfPermitted()
-
-        when (getBluetoothBondStateIfPermitted(device)) {
-            null -> {
-                pendingPairingDeviceAddress = null
-                showToast("블루투스 권한이 필요합니다.")
-            }
-
-            BluetoothDevice.BOND_BONDED -> {
-                if (isBluetoothAudioDeviceConnected(audioManager)) {
-                    binding.bluetooth.setImageResource(R.drawable.ic_airpods)
-                } else {
-                    showToast("이미 페어링된 기기입니다. 블루투스 설정에서 연결해주세요.")
-                    openBluetoothSettings()
-                    updateBluetoothIcon()
-                }
-                pendingPairingDeviceAddress = null
-                Log.d("Bluetooth", "Bluetooth device is already paired: $deviceAddress")
-            }
-
-            BluetoothDevice.BOND_BONDING -> {
-                Log.d("Bluetooth", "Bluetooth device is already bonding: $deviceAddress")
-            }
-
-            else -> {
-                val pairingStarted = createBluetoothBondIfPermitted(device)
-                Log.d("Bluetooth", "Bluetooth pairing requested: $deviceAddress, started=$pairingStarted")
-                if (!pairingStarted) {
-                    pendingPairingDeviceAddress = null
-                    showToast("블루투스 페어링을 시작하지 못했습니다.")
-                    updateBluetoothIcon()
-                }
-            }
-        }
-    }
-
-    private fun getBluetoothDeviceAddressIfPermitted(device: BluetoothDevice): String? {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S &&
-            ActivityCompat.checkSelfPermission(
-                requireContext(),
-                Manifest.permission.BLUETOOTH_CONNECT
-            ) != PackageManager.PERMISSION_GRANTED
-        ) {
-            return null
-        }
-
-        return try {
-            device.address
-        } catch (e: SecurityException) {
-            Log.w("Bluetooth", "Missing permission while reading bluetooth device address", e)
-            null
-        }
-    }
-
-    private fun getBluetoothDeviceLogName(device: BluetoothDevice): String {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S &&
-            ActivityCompat.checkSelfPermission(
-                requireContext(),
-                Manifest.permission.BLUETOOTH_CONNECT
-            ) != PackageManager.PERMISSION_GRANTED
-        ) {
-            return "Unknown device"
-        }
-
-        return try {
-            device.name ?: "Unknown device"
-        } catch (e: SecurityException) {
-            Log.w("Bluetooth", "Missing permission while reading bluetooth device name", e)
-            "Unknown device"
-        }
-    }
-
-    private fun getBluetoothBondStateIfPermitted(device: BluetoothDevice): Int? {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S &&
-            ActivityCompat.checkSelfPermission(
-                requireContext(),
-                Manifest.permission.BLUETOOTH_CONNECT
-            ) != PackageManager.PERMISSION_GRANTED
-        ) {
-            return null
-        }
-
-        return try {
-            device.bondState
-        } catch (e: SecurityException) {
-            Log.w("Bluetooth", "Missing permission while reading bluetooth bond state", e)
-            null
-        }
-    }
-
-    private fun createBluetoothBondIfPermitted(device: BluetoothDevice): Boolean {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S &&
-            ActivityCompat.checkSelfPermission(
-                requireContext(),
-                Manifest.permission.BLUETOOTH_CONNECT
-            ) != PackageManager.PERMISSION_GRANTED
-        ) {
-            return false
-        }
-
-        return try {
-            device.createBond()
-        } catch (e: SecurityException) {
-            Log.w("Bluetooth", "Missing permission while creating bluetooth bond", e)
-            false
-        }
-    }
-
-    private fun isPairingTarget(device: BluetoothDevice, pendingAddress: String): Boolean {
-        return getBluetoothDeviceAddressIfPermitted(device) == pendingAddress
-    }
-
-    private fun cancelBluetoothDiscoveryIfPermitted() {
-        if (!hasBluetoothScanPermission()) return
-
-        try {
-            getBluetoothAdapter()?.cancelDiscovery()
-        } catch (e: SecurityException) {
-            Log.w("Bluetooth", "Missing permission while canceling bluetooth discovery", e)
-        }
-    }
-
-    private fun hasBluetoothScanPermission(): Boolean {
-        return Build.VERSION.SDK_INT < Build.VERSION_CODES.S ||
-                ActivityCompat.checkSelfPermission(
-                    requireContext(),
-                    Manifest.permission.BLUETOOTH_SCAN
-                ) == PackageManager.PERMISSION_GRANTED
-    }
-
-    private fun openBluetoothSettings() {
-        runCatching {
-            startActivity(Intent(Settings.ACTION_BLUETOOTH_SETTINGS))
-        }.onFailure { e ->
-            Log.e("Bluetooth", "Failed to open bluetooth settings", e)
-        }
-    }
-
-    private fun registerBluetoothBondStateReceiver() {
-        if (isBluetoothBondStateReceiverRegistered) return
-
-        ContextCompat.registerReceiver(
-            requireContext(),
-            bluetoothBondStateReceiver,
-            IntentFilter(BluetoothDevice.ACTION_BOND_STATE_CHANGED),
-            ContextCompat.RECEIVER_EXPORTED
-        )
-        isBluetoothBondStateReceiverRegistered = true
-    }
-
-    private fun unregisterBluetoothBondStateReceiver() {
-        if (!isBluetoothBondStateReceiverRegistered) return
-
-        requireContext().unregisterReceiver(bluetoothBondStateReceiver)
-        isBluetoothBondStateReceiverRegistered = false
-    }
-
-    private fun Intent.extractSelectedBluetoothDevice(): BluetoothDevice? {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-            val associatedDevice = getAssociationInfoExtra(
-                CompanionDeviceManager.EXTRA_ASSOCIATION
-            )?.associatedDevice
-
-            val selectedDevice = associatedDevice?.bluetoothDevice
-                ?: associatedDevice?.bleDevice?.device
-
-            if (selectedDevice != null) return selectedDevice
-        }
-
-        @Suppress("DEPRECATION")
-        val legacyDevice = getBluetoothDeviceExtra(CompanionDeviceManager.EXTRA_DEVICE)
-        if (legacyDevice != null) return legacyDevice
-
-        @Suppress("DEPRECATION")
-        val legacyLeDevice = getBleScanResultExtra(
-            CompanionDeviceManager.EXTRA_DEVICE
-        )?.device
-
-        return legacyLeDevice
-    }
-
-    private fun Intent.getBluetoothDeviceExtra(name: String): BluetoothDevice? {
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            getParcelableExtra(name, BluetoothDevice::class.java)
-        } else {
-            @Suppress("DEPRECATION")
-            getParcelableExtra(name)
-        }
-    }
-
-    private fun Intent.getAssociationInfoExtra(name: String): AssociationInfo? {
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            getParcelableExtra(name, AssociationInfo::class.java)
-        } else {
-            @Suppress("DEPRECATION")
-            getParcelableExtra(name)
-        }
-    }
-
-    private fun Intent.getBleScanResultExtra(name: String): ScanResult? {
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            getParcelableExtra(name, ScanResult::class.java)
-        } else {
-            @Suppress("DEPRECATION")
-            getParcelableExtra(name)
-        }
-    }
-
-    private fun String?.isCompanionDeviceChooserCancellation(): Boolean {
-        if (isNullOrBlank()) return false
-
-        val normalizedMessage = lowercase(Locale.US)
-        return "cancel" in normalizedMessage ||
-                "cancelled" in normalizedMessage ||
-                "canceled" in normalizedMessage
-    }
-
-    private fun showToast(message: String) {
-        context?.let { Toast.makeText(it, message, Toast.LENGTH_SHORT).show() }
-    }
-
-    private fun updateBluetoothIcon() {
-        if (_binding == null) return
-        try {
-            // AudioManager.getDevices()를 사용해 블루투스 및 유선 오디오 기기를 확인
-            val hasBluetoothDevice = isBluetoothAudioDeviceConnected(audioManager)
-            val hasWiredDevice = isWiredAudioDeviceConnected(audioManager)
-
-            // 블루투스 오디오 기기가 연결되어 있고 유선 기기가 없을 때
-            if (hasBluetoothDevice && !hasWiredDevice) {
-                binding.bluetooth.setImageResource(R.drawable.ic_airpods)
-                return
-            }
-
-            // 블루투스 권한이 있으면 프로파일 연결 상태도 추가로 확인
-            if (ActivityCompat.checkSelfPermission(
-                    requireContext(),
-                    Manifest.permission.BLUETOOTH_CONNECT
-                ) == PackageManager.PERMISSION_GRANTED
-            ) {
-                val bluetoothManager = ContextCompat.getSystemService(
-                    requireContext(),
-                    BluetoothManager::class.java
-                )
-
-                bluetoothManager?.let { manager ->
-                    val bluetoothAdapter = manager.adapter
-
-                    if (bluetoothAdapter?.isEnabled == true) {
-                        // 연결된 블루투스 기기가 있는지 확인
-                        val isBluetoothConnected = checkBluetoothConnection(manager)
-
-                        if (isBluetoothConnected) {
-                            binding.bluetooth.setImageResource(R.drawable.ic_airpods)
-                            return
-                        }
-                    }
-                }
-            }
-
-            // 기본값: 블루투스가 연결되지 않음
-            binding.bluetooth.setImageResource(R.drawable.ic_airplay)
-        } catch (e: Exception) {
-            Log.e("Bluetooth", "Error updating bluetooth icon", e)
-            binding.bluetooth.setImageResource(R.drawable.ic_airplay)
-        }
-    }
-
-
-    private fun checkBluetoothConnection(bluetoothManager: BluetoothManager): Boolean {
-        if (ActivityCompat.checkSelfPermission(
-                requireContext(),
-                Manifest.permission.BLUETOOTH_CONNECT
-            ) != PackageManager.PERMISSION_GRANTED
-        ) {
-            return false
-        }
-
-        try {
-            val bluetoothAdapter: BluetoothAdapter? = bluetoothManager.adapter
-
-            // 블루투스 profile connections
-            val a2dpConnected =
-                bluetoothAdapter?.getProfileConnectionState(BluetoothProfile.A2DP) == BluetoothAdapter.STATE_CONNECTED
-            val headsetConnected =
-                bluetoothAdapter?.getProfileConnectionState(BluetoothProfile.HEADSET) == BluetoothAdapter.STATE_CONNECTED
-
-            if (a2dpConnected || headsetConnected) {
-                Log.d(
-                    "Bluetooth",
-                    "Audio Profile connected: A2DP=$a2dpConnected, HEADSET=$headsetConnected"
-                )
-                return true
-            }
-
-        } catch (e: Exception) {
-            Log.e("Bluetooth", "Error checking bluetooth connection", e)
-        }
-
-        return false
-    }
-
-    // AudioDeviceInfo를 사용해 블루투스 오디오 기기를 감지
-    private fun isBluetoothAudioDeviceConnected(audioManager: AudioManager): Boolean {
-        val devices = audioManager.getDevices(AudioManager.GET_DEVICES_OUTPUTS)
-        for (device in devices) {
-            when (device.type) {
-                AudioDeviceInfo.TYPE_BLUETOOTH_A2DP,
-                AudioDeviceInfo.TYPE_BLUETOOTH_SCO,
-                    -> {
-                    return true
-                }
-                else -> {}
-            }
-        }
-
-        return false
-    }
-
-    // AudioDeviceInfo를 사용해 유선 오디오 기기를 감지
-    private fun isWiredAudioDeviceConnected(audioManager: AudioManager): Boolean {
-        val devices = audioManager.getDevices(AudioManager.GET_DEVICES_OUTPUTS)
-        for (device in devices) {
-            when (device.type) {
-                AudioDeviceInfo.TYPE_WIRED_HEADPHONES,
-                AudioDeviceInfo.TYPE_WIRED_HEADSET,
-                    -> {
-                    return true
-                }
-                else -> {}
-            }
-        }
-
-        return false
-    }
-
     override fun onResume() {
         super.onResume()
         // 화면이 다시 보일 때 블루투스 상태를 갱신
         if (_binding != null) {
-            updateBluetoothIcon()
-            scheduleBluetoothUpdate()
+            playerBluetoothManager.updateBluetoothIcon()
+            playerBluetoothManager.refreshBluetoothIcon()
         }
-        registerAudioDeviceCallback()
+        playerBluetoothManager.registerAudioDeviceCallback()
 
         // 포그라운드 복귀 시 진행 루프를 다시 시작
         startSeekUpdates()
@@ -1429,8 +884,7 @@ class PlayerFragment : Fragment() {
 
         savePlaybackState(immediate = true)
         stopSeekUpdates()
-        binding.root.removeCallbacks(updateBluetoothRunnable)
-        unregisterAudioDeviceCallback()
+        playerBluetoothManager.unregisterAudioDeviceCallback()
         stopVolumeObserver()    // 하드웨어 볼륨 변경 감지 중지
     }
 
@@ -1444,10 +898,8 @@ class PlayerFragment : Fragment() {
         // View가 파괴된 뒤 player가 Surface를 붙잡지 않도록 분리
         _binding?.vPlayer?.player = null
         stopSeekUpdates()
-        binding.root.removeCallbacks(updateBluetoothRunnable)
-        unregisterAudioDeviceCallback()
+        playerBluetoothManager.release()
         binding.root.removeCallbacks(startPlayerTextMarqueeRunnable)
-        unregisterBluetoothBondStateReceiver()
 
         // 앨범 비트맵 참조를 해제 Glide가 관리하므로 recycle()은 호출하지 않는다.
         latestAlbumBitmap = null
@@ -1460,39 +912,6 @@ class PlayerFragment : Fragment() {
 
         _binding = null
         super.onDestroyView()
-    }
-
-    private fun scheduleBluetoothUpdate() {
-        if (_binding == null) return
-
-        binding.root.removeCallbacks(updateBluetoothRunnable)
-        binding.root.postDelayed(updateBluetoothRunnable, BLUETOOTH_STATUS_UPDATE_DELAY_MS)
-    }
-
-    private fun registerAudioDeviceCallback() {
-        if (isAudioDeviceCallbackRegistered) return
-
-        audioManager.registerAudioDeviceCallback(audioDeviceCallback, Handler(Looper.getMainLooper()))
-        isAudioDeviceCallbackRegistered = true
-    }
-
-    private fun unregisterAudioDeviceCallback() {
-        if (!isAudioDeviceCallbackRegistered) return
-
-        audioManager.unregisterAudioDeviceCallback(audioDeviceCallback)
-        isAudioDeviceCallbackRegistered = false
-    }
-
-    private fun AudioDeviceInfo.isBluetoothOrWiredAudioDevice(): Boolean {
-        return when (type) {
-            AudioDeviceInfo.TYPE_BLUETOOTH_A2DP,
-            AudioDeviceInfo.TYPE_BLUETOOTH_SCO,
-            AudioDeviceInfo.TYPE_WIRED_HEADPHONES,
-            AudioDeviceInfo.TYPE_WIRED_HEADSET,
-                -> true
-
-            else -> false
-        }
     }
 
     // 시스템 볼륨과 UI를 동기화
@@ -1570,7 +989,6 @@ class PlayerFragment : Fragment() {
         private const val SEEK_UPDATE_AFTER_TRANSITION_MS = 100L
 
         private const val PLAYER_TEXT_MARQUEE_START_DELAY_MS = 700L
-        private const val BLUETOOTH_STATUS_UPDATE_DELAY_MS = 1_000L
 
         fun newInstance(musicId: String): PlayerFragment =
             PlayerFragment().apply {
