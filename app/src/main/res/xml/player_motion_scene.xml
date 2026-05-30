@@ -244,10 +244,7 @@
             motion:layout_constraintBottom_toBottomOf="@id/tvSongAlbum"
             motion:layout_constraintEnd_toStartOf="@id/tvSongAlbum"
             motion:layout_constraintStart_toStartOf="parent"
-            motion:layout_constraintTop_toTopOf="@id/tvSongAlbum"
-            motion:lottie_autoPlay="true"
-            motion:lottie_loop="true"
-            motion:lottie_rawRes="@raw/audio_visualizer" />
+            motion:layout_constraintTop_toTopOf="@id/tvSongAlbum" />
 
         <Constraint
             android:id="@+id/bluetooth"

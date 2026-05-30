@@ -101,7 +101,7 @@
             app:layout_constraintStart_toEndOf="@id/animationViewVisualizer"
             app:layout_constraintTop_toBottomOf="@id/tvSongArtist" />
 
-        <com.airbnb.lottie.LottieAnimationView
+        <com.hero.ziggymusic.view.main.player.NowPlayingVisualizerView
             android:id="@+id/animationViewVisualizer"
             android:layout_width="@dimen/animation_visualizer"
             android:layout_height="@dimen/animation_visualizer"
@@ -109,10 +109,7 @@
             app:layout_constraintBottom_toBottomOf="@id/tvSongAlbum"
             app:layout_constraintEnd_toStartOf="@id/tvSongAlbum"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="@id/tvSongAlbum"
-            app:lottie_autoPlay="true"
-            app:lottie_loop="true"
-            app:lottie_rawRes="@raw/audio_visualizer" />
+            app:layout_constraintTop_toTopOf="@id/tvSongAlbum" />
 
         <com.skydoves.elasticviews.ElasticImageView
             android:id="@+id/bluetooth"
