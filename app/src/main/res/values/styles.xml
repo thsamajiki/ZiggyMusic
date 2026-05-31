@@ -68,7 +68,7 @@
 
     <style name="TextAppearance.ZiggyMusic.Player.Album" parent="TextAppearance.ZiggyMusic.White.Caption">
         <item name="android:textSize">@dimen/small_text_size</item>
-        <item name="android:textColor">@color/light_gray</item>
+        <item name="android:textColor">@color/normal_gray</item>
     </style>
 
     <style name="TextAppearance.ZiggyMusic.White.Sub" parent="TextAppearance.ZiggyMusic.Sub">
