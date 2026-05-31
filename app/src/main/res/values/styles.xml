@@ -39,6 +39,12 @@
         <item name="android:textColor">@color/white</item>
     </style>
 
+    <style name="TextAppearance.ZiggyMusic.White.Title.Medium" parent="TextAppearance.ZiggyMusic.Title">
+        <item name="android:fontFamily">@font/pretendard_medium</item>
+        <item name="fontFamily">@font/pretendard_medium</item>
+        <item name="android:textColor">@color/white</item>
+    </style>
+
     <style name="TextAppearance.ZiggyMusic.White.Title" parent="TextAppearance.ZiggyMusic.Title">
         <item name="android:textColor">@color/white</item>
     </style>

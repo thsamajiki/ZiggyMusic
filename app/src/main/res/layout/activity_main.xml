@@ -36,7 +36,7 @@
                 android:id="@+id/tvMainTitle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textAppearance="@style/TextAppearance.ZiggyMusic.White.Title.SemiBold"
+                android:textAppearance="@style/TextAppearance.ZiggyMusic.White.Title.Medium"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
@@ -61,9 +61,9 @@
         android:id="@+id/fcvMain"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@drawable/main_background"
         android:layout_marginTop="?attr/actionBarSize"
-        android:layout_marginBottom="@dimen/player_peek_height" />
+        android:layout_marginBottom="@dimen/player_peek_height"
+        android:background="@drawable/main_background" />
 
     <androidx.fragment.app.FragmentContainerView
         android:id="@+id/containerPlayer"
@@ -79,10 +79,10 @@
         android:layout_height="@dimen/bottom_nav_height"
         android:layout_gravity="bottom"
         app:backgroundTint="@color/dark_black"
-        app:itemIconTint="@color/normal_gray"
+        app:itemIconTint="@color/bottom_nav_item_color"
         app:itemTextAppearanceActive="@style/TextAppearance.ZiggyMusic.BottomNavigation"
         app:itemTextAppearanceInactive="@style/TextAppearance.ZiggyMusic.BottomNavigation"
-        app:itemTextColor="@color/normal_gray"
+        app:itemTextColor="@color/bottom_nav_item_color"
         app:labelVisibilityMode="labeled"
         app:layout_constraintBottom_toBottomOf="parent"
         app:menu="@menu/menu_bt_nav" />
