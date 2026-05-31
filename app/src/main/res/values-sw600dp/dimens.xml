@@ -50,7 +50,7 @@
     <dimen name="icon_prev_next">45dp</dimen>
     <dimen name="icon_shuffle_mode">45dp</dimen>
     <dimen name="icon_repeat_mode">45dp</dimen>
-    <dimen name="animation_visualizer">53dp</dimen>
+    <dimen name="animation_visualizer">48dp</dimen>
     <dimen name="bluetooth">53dp</dimen>
     <dimen name="player_view_height">112dp</dimen>
     <dimen name="seekbar_player_height">5dp</dimen>

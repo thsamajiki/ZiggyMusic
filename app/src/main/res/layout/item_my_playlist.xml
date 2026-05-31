@@ -86,7 +86,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="@dimen/space_sm"
                 android:layout_marginBottom="@dimen/space_sm"
-                android:textAppearance="@style/TextAppearance.ZiggyMusic.White.Caption"
+                android:textAppearance="@style/TextAppearance.ZiggyMusic.White.Sub"
                 app:duration="@{music.duration}"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent" />

@@ -29,31 +29,22 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
-        <androidx.appcompat.widget.Toolbar
-            android:id="@+id/toolbarNowPlayingTitle"
+        <FrameLayout
+            android:id="@+id/playerTopHandleContainer"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            app:contentInsetStart="0dp"
             app:layout_constraintTop_toTopOf="parent">
 
-            <androidx.constraintlayout.widget.ConstraintLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent">
+            <ImageView
+                android:id="@+id/ivDragHandle"
+                android:layout_width="42dp"
+                android:layout_height="48dp"
+                android:layout_gravity="top|center_horizontal"
+                android:paddingTop="@dimen/space_14"
+                android:src="@drawable/ic_drag_handle"
+                android:contentDescription="@null" />
 
-                <TextView
-                    android:id="@+id/tvNowPlayingTitle"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/now_playing_title"
-                    android:textAppearance="@style/TextAppearance.ZiggyMusic.White.Title.SemiBold"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent" />
-
-            </androidx.constraintlayout.widget.ConstraintLayout>
-
-        </androidx.appcompat.widget.Toolbar>
+        </FrameLayout>
 
         <TextView
             android:id="@+id/tvSongTitle"
@@ -66,10 +57,10 @@
             android:marqueeRepeatLimit="marquee_forever"
             android:singleLine="true"
             android:text="@{music.title}"
-            android:textAppearance="@style/TextAppearance.ZiggyMusic.White.Body.SemiBold"
+            android:textAppearance="@style/TextAppearance.ZiggyMusic.White.Body"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/toolbarNowPlayingTitle" />
+            app:layout_constraintTop_toBottomOf="@id/playerTopHandleContainer" />
 
         <androidx.appcompat.widget.AppCompatImageView
             android:id="@+id/ivAlbumArt"
@@ -77,7 +68,6 @@
             android:layout_height="wrap_content"
             android:layout_marginHorizontal="@dimen/space_xxxl"
             android:layout_marginTop="@dimen/space_xl"
-            app:imageURI="@{music.albumUri}"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/tvSongTitle" />
@@ -104,13 +94,13 @@
             android:gravity="center"
             android:singleLine="true"
             android:text="@{music.album}"
-            android:textAppearance="@style/TextAppearance.ZiggyMusic.White.Body"
+            android:textAppearance="@style/TextAppearance.ZiggyMusic.Player.Album"
             app:layout_constraintEnd_toStartOf="@id/bluetooth"
             app:layout_constraintHorizontal_chainStyle="packed"
             app:layout_constraintStart_toEndOf="@id/animationViewVisualizer"
             app:layout_constraintTop_toBottomOf="@id/tvSongArtist" />
 
-        <com.airbnb.lottie.LottieAnimationView
+        <com.hero.ziggymusic.view.main.player.NowPlayingVisualizerView
             android:id="@+id/animationViewVisualizer"
             android:layout_width="@dimen/animation_visualizer"
             android:layout_height="@dimen/animation_visualizer"
@@ -118,10 +108,7 @@
             app:layout_constraintBottom_toBottomOf="@id/tvSongAlbum"
             app:layout_constraintEnd_toStartOf="@id/tvSongAlbum"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="@id/tvSongAlbum"
-            app:lottie_autoPlay="true"
-            app:lottie_loop="true"
-            app:lottie_rawRes="@raw/audio_visualizer" />
+            app:layout_constraintTop_toTopOf="@id/tvSongAlbum" />
 
         <com.skydoves.elasticviews.ElasticImageView
             android:id="@+id/bluetooth"

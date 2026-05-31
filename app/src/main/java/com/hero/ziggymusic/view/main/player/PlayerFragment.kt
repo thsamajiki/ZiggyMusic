@@ -1,19 +1,11 @@
 package com.hero.ziggymusic.view.main.player
 
-import android.Manifest
-import android.annotation.SuppressLint
-import android.bluetooth.BluetoothAdapter
-import android.bluetooth.BluetoothGatt
-import android.bluetooth.BluetoothManager
-import android.bluetooth.BluetoothProfile
 import android.content.Context
-import android.content.pm.PackageManager
 import android.database.ContentObserver
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
-import android.media.AudioDeviceInfo
 import android.media.AudioManager
 import android.net.Uri
 import android.os.Bundle
@@ -26,8 +18,8 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.SeekBar
+import android.widget.Toast
 import androidx.annotation.OptIn
-import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
@@ -50,7 +42,6 @@ import com.hero.ziggymusic.databinding.FragmentPlayerBinding
 import com.hero.ziggymusic.view.main.player.viewmodel.PlayerViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
-import java.util.Locale
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import kotlin.math.max
@@ -63,6 +54,7 @@ import com.bumptech.glide.request.RequestListener
 import com.hero.ziggymusic.service.MusicMediaControllerConnector
 import com.hero.ziggymusic.service.MusicServiceController
 import com.hero.ziggymusic.view.main.player.model.LastPlayedMedia
+import java.util.Locale
 
 @AndroidEntryPoint
 class PlayerFragment : Fragment() {
@@ -78,17 +70,19 @@ class PlayerFragment : Fragment() {
 
     private var currentMusic: MusicModel? = null // 현재 재생 중인 음원
     private val playbackStateStore by lazy { PlaybackStateStore(requireContext()) }
+    private var visualizerBarColor: Int? = null
 
-    // position 저장 스로틀(너무 자주 prefs write 방지)
+    // position 저장 쓰로틀링으로 불필요한 prefs write를 줄인다.
     private var lastSavedAtMs: Long = 0L
     private var lastSavedPositionMs: Long = -1L
 
-    private val saveIntervalMs = 3_000L   // 3초 간격 저장(현업에서 흔한 수준)
-    private val saveMinDeltaMs = 1_000L   // 위치 1초 이상 변했을 때만 저장
+    private val saveIntervalMs = 3_000L   // 최소 3초 간격으로 저장
+    private val saveMinDeltaMs = 1_000L   // 위치가 1초 이상 변했을 때만 저장
 
     private lateinit var playerMotionManager: PlayerMotionManager
     private lateinit var playerBottomSheetManager: PlayerBottomSheetManager
     private lateinit var mediaControllerConnector: MusicMediaControllerConnector
+    private lateinit var playerBluetoothManager: PlayerBluetoothManager
     private var albumGradientManager: MusicAlbumArtGradientManager? = null
     private var latestAlbumBitmap: Bitmap? = null
     private var lastRenderedMusicId: String? = null
@@ -97,18 +91,13 @@ class PlayerFragment : Fragment() {
     private var currentVolume: Int = 0  // 현재 볼륨
     private var previousVolume: Int = 0 // 이전 볼륨 저장
 
-    private var volumeObserver: ContentObserver? = null // 시스템 볼륨 변경 이벤트 옵저버
+    private var volumeObserver: ContentObserver? = null // 시스템 볼륨 변경 감지 observer
 
     private val musicKey: String
         get() = requireArguments().getString(EXTRA_MUSIC_FILE_ID).orEmpty()
 
     private val updateSeekRunnable = Runnable {
         updatePlaybackProgress()
-    }
-
-    private val updateBluetoothRunnable = Runnable {
-        updateBluetoothIcon()
-        scheduleBluetoothUpdate()
     }
 
     private val startPlayerTextMarqueeRunnable = Runnable {
@@ -129,14 +118,15 @@ class PlayerFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // DataBinding 변수(music)가 null이면 리바인딩 타이밍에 제목/아티스트가 빈 값으로 덮이는 간헐적 문제가 발생할 수 있음.
-        // (앨범아트는 ImageView에 이미 로드되어 남아있어서 '텍스트만 사라진 것'처럼 보임)
+        // DataBinding 변수(music)가 null이면 제목/아티스트가 빈 값으로 보이는 문제가 생길 수 있다.
+        // 초기 바인딩을 명시해 앨범 아트와 텍스트 표시 상태를 안정화
         binding.lifecycleOwner = viewLifecycleOwner
         binding.music = playerModel.currentMusic
         binding.executePendingBindings()
 
         initMediaController()
         initAudioManager()
+        initBluetoothManager()
         initPlayView()
         initPlayControlButtons()
         initSeekBar()
@@ -151,6 +141,16 @@ class PlayerFragment : Fragment() {
         previousVolume = currentVolume
     }
 
+    private fun initBluetoothManager() {
+        playerBluetoothManager = PlayerBluetoothManager(
+            fragment = this,
+            audioManager = audioManager,
+            rootViewProvider = { _binding?.root },
+            setBluetoothIcon = { resId -> _binding?.bluetooth?.setImageResource(resId) },
+            onMessage = { message -> context?.let { Toast.makeText(it, message, Toast.LENGTH_SHORT).show() } }
+        )
+    }
+
     private fun initMediaController() {
         mediaControllerConnector = MusicMediaControllerConnector(requireContext())
         viewLifecycleOwner.lifecycleScope.launch {
@@ -163,6 +163,10 @@ class PlayerFragment : Fragment() {
             if (vm.motionState.value == PlayerMotionManager.State.COLLAPSED) {
                 vm.changeState(PlayerMotionManager.State.EXPANDED)
             }
+        }
+
+        binding.bluetooth.setOnClickListener {
+            playerBluetoothManager.handleBluetoothClick()
         }
 
         toggleVolumeIcon()
@@ -233,22 +237,23 @@ class PlayerFragment : Fragment() {
                     if (state == PlayerMotionManager.State.EXPANDED) {
                         startSeekUpdates()
 
-                        // MotionLayout 배경 제거 -> containerPlayer 배경(그라데이션)이 보이도록 함
+                        // MotionLayout 배경을 제거해 containerPlayer의 그라데이션 배경이 보이게
                         binding.motionLayout.background = null
 
-                        binding.albumBackground.setBackgroundResource(R.color.dark_black)
-
                         if (latestAlbumBitmap != null) {
-                            albumGradientManager?.applyGradients(latestAlbumBitmap!!, binding.albumBackground)
+                            albumGradientManager?.applyGradients(
+                                latestAlbumBitmap!!,
+                                binding.albumBackground
+                            ) { visualizerColor ->
+                                updateVisualizerBarColor(visualizerColor)
+                            }
                         } else {
-                            // 앨범 아트가 없을 때 (리스트에서 클릭하여 진입한 경우 등)
-                            // 그라데이션 대신 확실하게 dark_black 배경을 적용하고, 기존 그라데이션 제거
-                            requireActivity().window.decorView.setBackgroundColor(ContextCompat.getColor(requireActivity(), R.color.dark_black))
-                            requireActivity().findViewById<View>(R.id.containerPlayer)
-                                ?.setBackgroundColor(ContextCompat.getColor(requireActivity(), R.color.dark_black))
+                            // 앨범 아트가 없으면 기본 어두운 배경으로 되돌림
+                            // 기존 그라데이션도 함께 제거
+                            albumGradientManager?.resetToDarkBackground(binding.albumBackground)
                         }
                     } else {
-                        // 플레이어가 닫히면(Collapsed) 투명해진 배경을 다시 원래 검은색으로 복구
+                        // 플레이어가 접히면 투명해진 배경을 기본 검은색으로 복구
                         binding.motionLayout.setBackgroundResource(R.color.dark_black)
                         binding.albumBackground.setBackgroundResource(R.color.dark_black)
 
@@ -269,13 +274,13 @@ class PlayerFragment : Fragment() {
                     ?: musicList.find { it.id == musicKey }
                     ?: musicList.getOrNull(0)
 
-                // PlayerModel, UI 동기화
+                // PlayerModel과 UI를 동기화
                 if (nowMusic != null) {
                     playerModel.updateCurrentMusic(nowMusic)
                     updatePlayerView(nowMusic)
                 }
 
-                // 이미 재생 중인 곡이 있으면 playMusic을 다시 호출하지 않음
+                // 이미 재생 중인 곡이 있으면 playMusic을 다시 호출하지 않는다.
                 if (player.currentMediaItem == null && nowMusic != null) {
                     playMusic(musicList, nowMusic)
                 }
@@ -431,33 +436,34 @@ class PlayerFragment : Fragment() {
 
         albumGradientManager = MusicAlbumArtGradientManager(requireActivity())
 
+        resetVisualizerBarColor()
         syncPlayerUi()
-        startSeekUpdates() // 포그라운드 진입 직후 진행바 시작
+        startSeekUpdates() // 포그라운드 진입 직후 진행바를 시작
 
-        // 화면 회전/재진입 등으로 initPlayView()가 여러 번 호출되면, 기존 리스너 위에 새 리스너가 계속 추가되어 콜백이 중복 실행됨 -> 이를 방지
+        // 화면 재진입 등으로 initPlayView()가 여러 번 호출될 때 리스너 중복 등록을 막는다.
         playerListener?.let { player.removeListener(it) }
 
         playerListener = object : Player.Listener {
             override fun onIsPlayingChanged(isPlaying: Boolean) {
                 super.onIsPlayingChanged(isPlaying)
 
-                // 재생 아이콘 및 비주얼라이저 동기화
+                // 재생 아이콘과 비주얼라이저 상태를 동기화
                 syncPlayerUi()
                 if (isPlaying) {
                     startSeekUpdates()
                 } else {
-                    // 일시정지/정지되는 순간 현재 position 저장
+                    // 일시정지/정지 시 현재 position을 저장
                     savePlaybackState(immediate = true)
                     stopSeekUpdates()
                 }
             }
 
-            // 미디어 아이템이 바뀔 때
+            // 미디어 아이템이 바뀔 때 상태를 갱신
             override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
                 super.onMediaItemTransition(mediaItem, reason)
 
                 val newMusicKey: String = mediaItem?.mediaId ?: return
-                // 트랙이 바뀌면 새 트랙의 position=0으로 저장(직후)
+                // 트랙이 바뀌면 새 트랙 position을 0으로 저장
                 playbackStateStore.saveLastPlayedMedia(
                     LastPlayedMedia(
                         type = PlaybackContentType.MUSIC,
@@ -470,37 +476,36 @@ class PlayerFragment : Fragment() {
                 playerModel.changedMusic(newMusicKey)
 
                 latestAlbumBitmap = null
-                binding.albumBackground.setBackgroundResource(R.color.dark_black)
 
                 updatePlayerView(playerModel.currentMusic)
                 binding.root.removeCallbacks(updateSeekRunnable)
                 updatePlaybackProgressUi(duration = 0L, position = 0L)
 
-                // 트랙 전환 시 제목/아티스트/앨범 아트, 재생/일시정지 아이콘 동기화
+                // 트랙 전환 후 제목, 아티스트, 앨범 아트와 재생 UI를 동기화
                 syncPlayerUi()
                 if (player.isPlaying) {
                     binding.root.postDelayed(updateSeekRunnable, SEEK_UPDATE_AFTER_TRANSITION_MS)
                 }
             }
 
-            // 재생, 재생 완료, 버퍼링 상태 ...
+            // 재생, 종료, 버퍼링 상태를 처리
             override fun onPlaybackStateChanged(state: Int) {
                 super.onPlaybackStateChanged(state)
 
                 updatePlaybackProgress()
 
-                // 재생 반복 해제 모드 & 마지막 트랙 재생이 끝났을 때 -> 첫번째 트랙으로 이동 & 일시정지 상태
+                // 반복 해제 상태에서 마지막 트랙이 끝나면 첫 트랙으로 이동하고 일시정지
                 if (player.repeatMode == Player.REPEAT_MODE_OFF &&
                     player.currentMediaItemIndex == player.mediaItemCount - 1 &&
                     state == Player.STATE_ENDED
                 ) {
-                    // 자동 재생 방지
+                    // 자동 재생을 방지
                     player.playWhenReady = false
 
                     // 첫 트랙으로 이동
                     player.seekTo(0, 0)
 
-                    // PlayerModel 및 UI 동기화
+                    // PlayerModel과 UI를 동기화
                     if (player.mediaItemCount > 0) {
                         val firstId = player.getMediaItemAt(0).mediaId
                         playerModel.changedMusic(firstId)
@@ -516,16 +521,28 @@ class PlayerFragment : Fragment() {
     }
 
     private fun syncPlayerUi() {
-        if (!isAdded || _binding == null) return // 뷰가 준비되지 않았거나 파괴된 상태면 아무 작업도 하지 않음
+        if (!isAdded || _binding == null) return // 뷰가 준비되지 않았거나 파괴된 상태면 작업하지 않는다.
 
         val isPlaying = player.isPlaying
 
-        // 플레이어가 재생 또는 일시정지 될 때 재생/일시정지 버튼 아이콘 전환하고 애니메이션 재생/정지
+        // 재생 상태에 맞춰 버튼 아이콘과 비주얼라이저 애니메이션을 갱신
         binding.ivPlayPause.setImageResource(
             if (isPlaying) R.drawable.ic_pause_button else R.drawable.ic_play_button
         )
-        if (isPlaying) binding.animationViewVisualizer.playAnimation()
-        else binding.animationViewVisualizer.pauseAnimation()
+        binding.animationViewVisualizer.setPlaying(isPlaying)
+    }
+
+    private fun updateVisualizerBarColor(color: Int) {
+        if (_binding == null) return
+        if (visualizerBarColor == color) return
+
+        visualizerBarColor = color
+        binding.animationViewVisualizer.setBarColor(color)
+    }
+
+    private fun resetVisualizerBarColor() {
+        if (!isAdded || _binding == null) return
+        updateVisualizerBarColor(ContextCompat.getColor(requireContext(), R.color.dark_gray))
     }
 
     private fun startSeekUpdates() {
@@ -533,7 +550,7 @@ class PlayerFragment : Fragment() {
 
         binding.root.removeCallbacks(updateSeekRunnable)
 
-        updatePlaybackProgress() // 즉시 1회 갱신하고, 내부에서 다음 주기를 예약
+        updatePlaybackProgress() // 즉시 한 번 갱신하고 다음 주기를 예약
     }
 
     private fun stopSeekUpdates() {
@@ -560,38 +577,38 @@ class PlayerFragment : Fragment() {
         if (player.isPlaying) {
             val currentPositionMs = position.coerceAtLeast(0L)
             val delay = (ONE_SECOND_MS - (currentPositionMs % ONE_SECOND_MS) + SEEK_UPDATE_BOUNDARY_OFFSET_MS)
-                .coerceIn(MIN_SEEK_UPDATE_DELAY_MS, MAX_SEEK_UPDATE_DELAY_MS) // 다음에 updatePlaybackProgress()를 다시 실행하는데 걸리는 시간 (ms)
+                .coerceIn(MIN_SEEK_UPDATE_DELAY_MS, MAX_SEEK_UPDATE_DELAY_MS) // 다음 갱신까지 기다릴 시간(ms)
             view.postDelayed(updateSeekRunnable, delay)
         }
     }
 
     private fun updatePlaybackProgressUi(duration: Long, position: Long) {
-        // 재생 시작 직전, 트랙 전환 중에 들어올 수 있는 음수 값을 UI 계산 전에 보정
+        // 재생 시작 직전이나 트랙 전환 중 발생할 수 있는 음수 값을 UI 계산 전에 보정
         val durationMs = duration.coerceAtLeast(0L)
         val positionMs = position.coerceAtLeast(0L)
 
-        // 초 경계 근처에서 시간 텍스트가 늦게 바뀌는 느낌을 줄이기 위한 표시용 위치
+        // 초 경계 근처에서 시간 텍스트가 늦게 바뀌는 느낌을 줄이기 위한 표시 보정치
         val displayPositionMs = if (durationMs > 0L) {
             (positionMs + POSITION_DISPLAY_OFFSET_MS).coerceAtMost(durationMs)
         } else {
             positionMs
         }
 
-        binding.sbPlayer.max = (durationMs / ONE_SECOND_MS).toInt() // 총 길이를 설정. 1000으로 나눠 작게
-        binding.sbPlayer.progress = (positionMs / ONE_SECOND_MS).toInt() // 동일하게 1000으로 나눠 작게
+        binding.sbPlayer.max = (durationMs / ONE_SECOND_MS).toInt() // 전체 길이를 초 단위로 설정
+        binding.sbPlayer.progress = (positionMs / ONE_SECOND_MS).toInt() // 현재 위치를 초 단위로 설정
 
         binding.tvCurrentPlayTime.text = String.format(
             Locale.KOREA,
             "%02d:%02d",
             TimeUnit.MINUTES.convert(displayPositionMs, TimeUnit.MILLISECONDS), // 현재 분
-            (displayPositionMs / ONE_SECOND_MS) % 60 // 분 단위를 제외한 현재 초
+            (displayPositionMs / ONE_SECOND_MS) % 60 // 현재 초
         )
 
         binding.tvTotalTime.text = String.format(
             Locale.KOREA,
             "%02d:%02d",
             TimeUnit.MINUTES.convert(durationMs, TimeUnit.MILLISECONDS), // 전체 분
-            (durationMs / ONE_SECOND_MS) % 60 // 분 단위를 제외한 초
+            (durationMs / ONE_SECOND_MS) % 60 // 전체 초
         )
     }
 
@@ -603,7 +620,7 @@ class PlayerFragment : Fragment() {
             binding.root.removeCallbacks(startPlayerTextMarqueeRunnable)
             binding.tvSongTitle.isSelected = false
 
-            // 상태 초기화(필요 시)
+            // 상태 초기화
             binding.music = null
             binding.executePendingBindings()
 
@@ -612,13 +629,14 @@ class PlayerFragment : Fragment() {
             binding.tvSongAlbum.text = ""
 
             latestAlbumBitmap = null
-            binding.albumBackground.setBackgroundResource(R.color.dark_black)
+            resetVisualizerBarColor()
+            albumGradientManager?.resetToDarkBackground(binding.albumBackground, animate = true)
             binding.ivAlbumArt.setImageResource(R.drawable.ic_no_album_image)
             return
         }
 
-        // XML에서 tvSongTitle/tvSongArtist/tvSongAlbum 및 ivAlbumArt가 DataBinding(@{music.*})로 그려지고 있으므로,
-        // music 변수를 갱신하지 않으면 리바인딩 타이밍에 텍스트가 null(또는 빈 문자열)로 덮일 수 있음.
+        // XML에서 tvSongTitle/tvSongArtist/tvSongAlbum 및 ivAlbumArt가 DataBinding으로 그려진다.
+        // music 변수를 갱신하지 않으면 리바인딩 타이밍에 텍스트가 null 또는 빈 문자열로 남을 수 있다.
         if (lastRenderedMusicId == musicModel.id) {
             return
         }
@@ -629,12 +647,13 @@ class PlayerFragment : Fragment() {
         updatePlayerTextMarquee(vm.motionState.value)
 
         latestAlbumBitmap = null
-        binding.albumBackground.setBackgroundResource(R.color.dark_black)
+        // Decode at expanded size so startup/collapsed loads are not stretched later.
+        val albumArtSize = resources.getDimensionPixelSize(R.dimen.album_art_size_expanded)
 
         Glide.with(binding.ivAlbumArt.context)
             .asBitmap()
             .load(musicModel.getAlbumUri())
-            .override(binding.ivAlbumArt.layoutParams.width, binding.ivAlbumArt.layoutParams.height)
+            .override(albumArtSize, albumArtSize)
             .error(R.drawable.ic_no_album_image)
             .fallback(R.drawable.ic_no_album_image)
             .transform(RoundedCorners(12))
@@ -645,16 +664,17 @@ class PlayerFragment : Fragment() {
                     target: com.bumptech.glide.request.target.Target<Bitmap>,
                     isFirstResource: Boolean
                 ): Boolean {
-                    // 실패 시 플레이스홀더 설정 및 그라데이션 제거(또는 기본 처리)
+                    // 로드 실패 시 플레이스홀더와 기본 배경으로 되돌린다.
                     latestAlbumBitmap = null
+                    resetVisualizerBarColor()
 
-                    binding.albumBackground.setBackgroundResource(R.color.dark_black)
-
-                    // 이전 곡이 그라데이션이었다면 여기서 리셋해줘야 StatusBar 뒤쪽도 검은색이 됨.
                     if (vm.motionState.value == PlayerMotionManager.State.EXPANDED) {
-                        requireActivity().window.decorView.setBackgroundColor(ContextCompat.getColor(requireActivity(), R.color.dark_black))
-                        requireActivity().findViewById<View>(R.id.containerPlayer)
-                            ?.setBackgroundColor(ContextCompat.getColor(requireActivity(), R.color.dark_black))
+                        albumGradientManager?.resetToDarkBackground(
+                            binding.albumBackground,
+                            animate = true
+                        )
+                    } else {
+                        binding.albumBackground.setBackgroundResource(R.color.dark_black)
                     }
 
                     return false
@@ -670,7 +690,12 @@ class PlayerFragment : Fragment() {
                     latestAlbumBitmap = resource
 
                     if (vm.motionState.value == PlayerMotionManager.State.EXPANDED) {
-                        albumGradientManager?.applyGradients(resource, binding.albumBackground)
+                        albumGradientManager?.applyGradients(
+                            resource,
+                            binding.albumBackground
+                        ) { visualizerColor ->
+                            updateVisualizerBarColor(visualizerColor)
+                        }
                     } else {
                         binding.albumBackground.setBackgroundResource(R.color.dark_black)
                     }
@@ -686,7 +711,7 @@ class PlayerFragment : Fragment() {
 
         if (state == PlayerMotionManager.State.EXPANDED) {
             binding.tvSongTitle.isSelected = false
-            // 트랙 정보 반영 직후 레이아웃이 안정된 뒤 marquee를 시작한다.
+            // 트랙 정보 반영 직후 레이아웃이 안정된 뒤 marquee를 시작
             binding.root.postDelayed(startPlayerTextMarqueeRunnable, PLAYER_TEXT_MARQUEE_START_DELAY_MS)
         } else {
             binding.tvSongTitle.isSelected = false
@@ -743,13 +768,13 @@ class PlayerFragment : Fragment() {
                 )
                 .build()
 
-            ProgressiveMediaSource.Factory(defaultDataSourceFactory) // 미디어 정보를 가져오는 클래스
+            ProgressiveMediaSource.Factory(defaultDataSourceFactory)
                 .createMediaSource(mediaItem)
         }
 
         val playIndex = musicList.indexOf(nowPlayMusic)
 
-        // 마지막 저장 상태 로드(있으면 position 복원)
+        // 마지막 재생 상태를 로드하고 position을 복원
         val lastPlayed = playbackStateStore.loadLastPlayedMedia()
         val resumePositionMs =
             if (lastPlayed != null &&
@@ -766,7 +791,7 @@ class PlayerFragment : Fragment() {
         player.run {
             setMediaSources(musicMediaItems)
             prepare()
-            seekTo(max(playIndex, 0), resumePositionMs) // 마지막 재생 시간(초)부터 시작
+            seekTo(max(playIndex, 0), resumePositionMs) // 마지막 재생 위치에서 시작
         }
     }
 
@@ -790,10 +815,10 @@ class PlayerFragment : Fragment() {
     @OptIn(UnstableApi::class)
     private fun toggleShuffleModeIcon() {
         binding.ivShuffleMode.setOnClickListener {
-            if (player.shuffleModeEnabled) { // 셔플 모드가 On일 때
+            if (player.shuffleModeEnabled) { // 셔플 모드가 켜진 상태
                 player.shuffleModeEnabled = false
                 binding.ivShuffleMode.setImageResource(R.drawable.ic_shuffle_off)
-            } else { // 셔플 모드가 Off일 때
+            } else { // 셔플 모드가 꺼진 상태
                 player.shuffleModeEnabled = true
                 player.shuffleOrder = ShuffleOrder.DefaultShuffleOrder(vm.musicList.value.orEmpty().size, Random.nextLong())
                 binding.ivShuffleMode.setImageResource(R.drawable.ic_shuffle_on)
@@ -804,15 +829,15 @@ class PlayerFragment : Fragment() {
     private fun toggleRepeatModeIcon() {
         binding.ivRepeatMode.setOnClickListener {
             when (player.repeatMode) {
-                Player.REPEAT_MODE_OFF -> { // 반복 재생 모드 해제 상태일 때
+                Player.REPEAT_MODE_OFF -> { // 반복 재생 해제 상태
                     player.repeatMode = Player.REPEAT_MODE_ALL
                     binding.ivRepeatMode.setImageResource(R.drawable.ic_repeat_all_on)
                 }
-                Player.REPEAT_MODE_ALL -> { // 전 곡 반복 재생 모드일 때
+                Player.REPEAT_MODE_ALL -> { // 전체 반복 재생 상태
                     player.repeatMode = Player.REPEAT_MODE_ONE
                     binding.ivRepeatMode.setImageResource(R.drawable.ic_repeat_one_on)
                 }
-                else -> { // 한 곡 반복 재생 모드일 때
+                else -> { // 한 곡 반복 재생 상태
                     player.repeatMode = Player.REPEAT_MODE_OFF
                     binding.ivRepeatMode.setImageResource(R.drawable.ic_repeat_all)
                 }
@@ -868,154 +893,16 @@ class PlayerFragment : Fragment() {
         }
     }
 
-    private fun updateBluetoothIcon() {
-        if (_binding == null) return
-        Log.d("Bluetooth", "Updating bluetooth icon...")
-
-        try {
-            // AudioManager.getDevices()를 활용하여 블루투스 및 유선 오디오 기기 체크 (Android 6.0 이상)
-            val hasBluetoothDevice = isBluetoothAudioDeviceConnected(audioManager)
-            val hasWiredDevice = isWiredAudioDeviceConnected(audioManager)
-
-            Log.d(
-                "Bluetooth",
-                "Audio device detect - Bluetooth: $hasBluetoothDevice, Wired: $hasWiredDevice"
-            )
-
-            // 블루투스 오디오 기기가 연결되어 있고 유선 기기는 없을 때
-            if (hasBluetoothDevice && !hasWiredDevice) {
-                binding.bluetooth.setImageResource(R.drawable.ic_airpods)
-                Log.d("Bluetooth", "Bluetooth audio is active - showing airpods icon")
-                return
-            }
-
-            // 블루투스 권한 체크 후 추가 확인
-            if (ActivityCompat.checkSelfPermission(
-                    requireContext(),
-                    Manifest.permission.BLUETOOTH_CONNECT
-                ) == PackageManager.PERMISSION_GRANTED
-            ) {
-                val bluetoothManager = ContextCompat.getSystemService(
-                    requireContext(),
-                    BluetoothManager::class.java
-                )
-
-                bluetoothManager?.let { manager ->
-                    val bluetoothAdapter = manager.adapter
-
-                    if (bluetoothAdapter?.isEnabled == true) {
-                        // 연결된 블루투스 기기가 있는지 확인
-                        val isBluetoothConnected = checkBluetoothConnection(manager)
-
-                        if (isBluetoothConnected) {
-                            binding.bluetooth.setImageResource(R.drawable.ic_airpods)
-                            Log.d(
-                                "Bluetooth",
-                                "Bluetooth device connected via profile - showing airpods icon"
-                            )
-                            return
-                        }
-                    }
-                }
-            }
-
-            // 기본값: 블루투스가 연결되지 않음
-            binding.bluetooth.setImageResource(R.drawable.ic_airplay)
-            Log.d("Bluetooth", "No bluetooth connection detected - showing airplay icon")
-
-        } catch (e: Exception) {
-            Log.e("Bluetooth", "Error updating bluetooth icon", e)
-            binding.bluetooth.setImageResource(R.drawable.ic_airplay)
-        }
-    }
-
-    @SuppressLint("MissingPermission")
-    private fun checkBluetoothConnection(bluetoothManager: BluetoothManager): Boolean {
-        if (ActivityCompat.checkSelfPermission(
-                requireContext(),
-                Manifest.permission.BLUETOOTH_CONNECT
-            ) != PackageManager.PERMISSION_GRANTED
-        ) {
-            return false
-        }
-
-        try {
-            val bluetoothAdapter: BluetoothAdapter? = bluetoothManager.adapter
-
-            // 블루투스 profile connections
-            val a2dpConnected =
-                bluetoothAdapter?.getProfileConnectionState(BluetoothProfile.A2DP) == BluetoothAdapter.STATE_CONNECTED
-            val headsetConnected =
-                bluetoothAdapter?.getProfileConnectionState(BluetoothProfile.HEADSET) == BluetoothAdapter.STATE_CONNECTED
-
-            if (a2dpConnected || headsetConnected) {
-                Log.d(
-                    "Bluetooth",
-                    "Audio Profile connected: A2DP=$a2dpConnected, HEADSET=$headsetConnected"
-                )
-                return true
-            }
-
-            // GATT connections 검사
-            val bluetoothDevices = bluetoothAdapter?.bondedDevices ?: emptySet()
-            bluetoothDevices.forEach { device ->
-                val connectionState =
-                    bluetoothManager.getConnectionState(device, BluetoothGatt.GATT)
-                if (connectionState == BluetoothGatt.STATE_CONNECTED) {
-                    Log.d("Bluetooth", "Connected GATT device found: ${device.name}")
-                    return true
-                }
-            }
-        } catch (e: Exception) {
-            Log.e("Bluetooth", "Error checking bluetooth connection", e)
-        }
-
-        return false
-    }
-
-    // AudioDeviceInfo를 이용한 블루투스 오디오 기기 탐지
-    private fun isBluetoothAudioDeviceConnected(audioManager: AudioManager): Boolean {
-        val devices = audioManager.getDevices(AudioManager.GET_DEVICES_OUTPUTS)
-        for (device in devices) {
-            when (device.type) {
-                AudioDeviceInfo.TYPE_BLUETOOTH_A2DP,
-                AudioDeviceInfo.TYPE_BLUETOOTH_SCO,
-                    -> {
-                    Log.d("Bluetooth", "Bluetooth output device connected: type=${device.type}")
-                    return true
-                }
-            }
-        }
-
-        return false
-    }
-
-    // AudioDeviceInfo를 이용한 유선 오디오 기기 탐지
-    private fun isWiredAudioDeviceConnected(audioManager: AudioManager): Boolean {
-        val devices = audioManager.getDevices(AudioManager.GET_DEVICES_OUTPUTS)
-        for (device in devices) {
-            when (device.type) {
-                AudioDeviceInfo.TYPE_WIRED_HEADPHONES,
-                AudioDeviceInfo.TYPE_WIRED_HEADSET,
-                    -> {
-                    Log.d("Bluetooth", "Wired output device connected: type=${device.type}")
-                    return true
-                }
-            }
-        }
-
-        return false
-    }
-
     override fun onResume() {
         super.onResume()
-        // 화면이 다시 보일 때 블루투스 상태 업데이트
+        // 화면이 다시 보일 때 블루투스 상태를 갱신
         if (_binding != null) {
-            updateBluetoothIcon()
-            scheduleBluetoothUpdate()
+            playerBluetoothManager.updateBluetoothIcon()
+            playerBluetoothManager.refreshBluetoothIcon()
         }
+        playerBluetoothManager.registerAudioDeviceCallback()
 
-        // 포그라운드 복귀 시 반드시 루프 재시작
+        // 포그라운드 복귀 시 진행 루프를 다시 시작
         startSeekUpdates()
         startVolumeObserver()   // 하드웨어 볼륨 변경 감지 시작
     }
@@ -1025,43 +912,37 @@ class PlayerFragment : Fragment() {
 
         savePlaybackState(immediate = true)
         stopSeekUpdates()
-        binding.root.removeCallbacks(updateBluetoothRunnable)
+        playerBluetoothManager.unregisterAudioDeviceCallback()
         stopVolumeObserver()    // 하드웨어 볼륨 변경 감지 중지
     }
 
     override fun onDestroyView() {
-        // View 파괴 직전 마지막 상태 저장(안전망)
+        // View 파괴 직전 마지막 상태를 저장
         savePlaybackState(immediate = true)
-        // 리스너 참조로 인한 메모리/수명 누수 방지
+        // 리스너 참조로 인한 메모리 누수를 방지
         playerListener?.let { player.removeListener(it) }
         playerListener = null
 
-        // Surface 리소스 누수(Fragment의 View가 파괴된 뒤에도 플레이어가 그 Surface를 붙잡고 있어 해제되지 않는 상황)를 방지하기 위해 뷰에서 플레이어를 분리
+        // View가 파괴된 뒤 player가 Surface를 붙잡지 않도록 분리
         _binding?.vPlayer?.player = null
         stopSeekUpdates()
-        binding.root.removeCallbacks(updateBluetoothRunnable)
+        playerBluetoothManager.release()
         binding.root.removeCallbacks(startPlayerTextMarqueeRunnable)
 
-        // 앨범 비트맵 해제하여 메모리 누수 방지 (Glide에 의해 관리되므로 수동 recycle() 호출은 하지 않음)
+        // 앨범 비트맵 참조를 해제 Glide가 관리하므로 recycle()은 호출하지 않는다.
         latestAlbumBitmap = null
 
         // 앨범 그라데이션 매니저 해제
         albumGradientManager = null
         mediaControllerConnector.release()
 
-        lastRenderedMusicId = null // 렌더링 캐시를 초기화
+        lastRenderedMusicId = null // 렌더 캐시 초기화
 
         _binding = null
         super.onDestroyView()
     }
 
-    private fun scheduleBluetoothUpdate() {
-        if (_binding == null) return
-
-        binding.root.removeCallbacks(updateBluetoothRunnable)
-    }
-
-    // 시스템 볼륨 → UI 동기화
+    // 시스템 볼륨과 UI를 동기화
     private fun updateVolumeFromSystem() {
         if (_binding == null) return
         val max = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
@@ -1076,7 +957,7 @@ class PlayerFragment : Fragment() {
         )
     }
 
-    // 볼륨 옵저버 등록/해제
+    // 볼륨 observer 등록/해제
     private fun startVolumeObserver() {
         val resolver = context?.contentResolver
         if (volumeObserver != null) return
@@ -1093,11 +974,11 @@ class PlayerFragment : Fragment() {
                 true,
                 volumeObserver!!
             )
-            // 등록 직후 1회 동기화
+            // 등록 직후 한 번 동기화
             updateVolumeFromSystem()
         } catch (t: Throwable) {
             Log.e(TAG, "Failed to register volumeObserver", t)
-            // 등록 실패 시 누수 방지
+            // 등록 실패 시 누수를 방지
             volumeObserver = null
         }
     }
@@ -1122,17 +1003,17 @@ class PlayerFragment : Fragment() {
         // 재생 시간 계산의 기본 단위
         private const val ONE_SECOND_MS = 1_000L
 
-        // 시간 텍스트 표시를 초 경계에 더 가깝게 맞추기 위한 보정값
+        // 시간 텍스트 표시를 초 경계에 가깝게 맞추기 위한 보정값
         private const val POSITION_DISPLAY_OFFSET_MS = 80L
 
         // 다음 초가 지난 직후 UI를 갱신하기 위한 지연값
         private const val SEEK_UPDATE_BOUNDARY_OFFSET_MS = 50L
 
-        // 다음 갱신이 너무 자주 돌거나 1초 넘게 밀리지 않도록 제한하는 범위
-        private const val MIN_SEEK_UPDATE_DELAY_MS = 100L // 아무리 빨라도
-        private const val MAX_SEEK_UPDATE_DELAY_MS = 1_000L // 아무리 늦어도
+        // 다음 갱신이 너무 잦거나 1초보다 늦게 밀리지 않도록 제한하는 범위
+        private const val MIN_SEEK_UPDATE_DELAY_MS = 100L // 너무 빠르지 않게
+        private const val MAX_SEEK_UPDATE_DELAY_MS = 1_000L // 너무 늦지 않게
 
-        // 자동 다음 곡 전환 직후 새 트랙 position을 다시 읽기 전까지 기다리는 시간
+        // 자동 다음 곡 전환 직후 새 트랙 position을 다시 읽기까지 기다리는 시간
         private const val SEEK_UPDATE_AFTER_TRANSITION_MS = 100L
 
         private const val PLAYER_TEXT_MARQUEE_START_DELAY_MS = 700L

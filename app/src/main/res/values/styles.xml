@@ -1,9 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="Widget.ZiggyMusic.TextView" parent="Widget.AppCompat.TextView">
-        <item name="android:fontFamily">@font/pretendard</item>
-        <item name="fontFamily">@font/pretendard</item>
-    </style>
+    <style name="Widget.ZiggyMusic.TextView" parent="Widget.AppCompat.TextView" />
 
     <style name="TextAppearance.ZiggyMusic.Base" parent="TextAppearance.AppCompat">
         <item name="android:fontFamily">@font/pretendard_regular</item>
@@ -55,6 +52,11 @@
         <item name="fontFamily">@font/pretendard_semibold</item>
     </style>
 
+    <style name="TextAppearance.ZiggyMusic.White.Body.Medium" parent="TextAppearance.ZiggyMusic.White.Body">
+        <item name="android:fontFamily">@font/pretendard_medium</item>
+        <item name="fontFamily">@font/pretendard_medium</item>
+    </style>
+
     <style name="TextAppearance.ZiggyMusic.White.Caption" parent="TextAppearance.ZiggyMusic.Caption">
         <item name="android:textColor">@color/white</item>
     </style>
@@ -64,11 +66,19 @@
         <item name="fontFamily">@font/pretendard_semibold</item>
     </style>
 
+    <style name="TextAppearance.ZiggyMusic.Player.Album" parent="TextAppearance.ZiggyMusic.White.Caption">
+        <item name="android:textSize">@dimen/small_text_size</item>
+        <item name="android:textColor">@color/normal_gray</item>
+    </style>
+
     <style name="TextAppearance.ZiggyMusic.White.Sub" parent="TextAppearance.ZiggyMusic.Sub">
         <item name="android:textColor">@color/white</item>
     </style>
 
     <style name="TextAppearance.ZiggyMusic.PlayerTime" parent="TextAppearance.ZiggyMusic.White.Sub">
+        <item name="android:fontFamily">@font/pretendard_light</item>
+        <item name="fontFamily">@font/pretendard_light</item>
+
         <!-- 숫자 폭을 일정하게 값 변경 시 폭 흔들림 완화 -->
         <item name="android:fontFeatureSettings">tnum</item>
     </style>
