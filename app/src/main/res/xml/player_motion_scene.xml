@@ -229,7 +229,7 @@
             android:ellipsize="end"
             android:gravity="center"
             android:singleLine="true"
-            android:textAppearance="@style/TextAppearance.ZiggyMusic.White.Title"
+            android:textAppearance="@style/TextAppearance.ZiggyMusic.Player.Album"
             android:text="@string/current_song_album"
             motion:layout_constraintEnd_toStartOf="@id/bluetooth"
             motion:layout_constraintHorizontal_chainStyle="packed"

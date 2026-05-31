@@ -57,7 +57,7 @@
             android:marqueeRepeatLimit="marquee_forever"
             android:singleLine="true"
             android:text="@{music.title}"
-            android:textAppearance="@style/TextAppearance.ZiggyMusic.White.Body.SemiBold"
+            android:textAppearance="@style/TextAppearance.ZiggyMusic.White.Body"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/playerTopHandleContainer" />
@@ -94,7 +94,7 @@
             android:gravity="center"
             android:singleLine="true"
             android:text="@{music.album}"
-            android:textAppearance="@style/TextAppearance.ZiggyMusic.White.Body"
+            android:textAppearance="@style/TextAppearance.ZiggyMusic.Player.Album"
             app:layout_constraintEnd_toStartOf="@id/bluetooth"
             app:layout_constraintHorizontal_chainStyle="packed"
             app:layout_constraintStart_toEndOf="@id/animationViewVisualizer"
