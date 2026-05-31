@@ -1,9 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="Widget.ZiggyMusic.TextView" parent="Widget.AppCompat.TextView">
-        <item name="android:fontFamily">@font/pretendard</item>
-        <item name="fontFamily">@font/pretendard</item>
-    </style>
+    <style name="Widget.ZiggyMusic.TextView" parent="Widget.AppCompat.TextView" />
 
     <style name="TextAppearance.ZiggyMusic.Base" parent="TextAppearance.AppCompat">
         <item name="android:fontFamily">@font/pretendard_regular</item>
@@ -69,6 +66,9 @@
     </style>
 
     <style name="TextAppearance.ZiggyMusic.PlayerTime" parent="TextAppearance.ZiggyMusic.White.Sub">
+        <item name="android:fontFamily">@font/pretendard_light</item>
+        <item name="fontFamily">@font/pretendard_light</item>
+
         <!-- 숫자 폭을 일정하게 값 변경 시 폭 흔들림 완화 -->
         <item name="android:fontFeatureSettings">tnum</item>
     </style>
