@@ -5,8 +5,6 @@
         <item name="windowNoTitle">true</item>
 
         <!-- Default text style -->
-        <item name="android:fontFamily">@font/pretendard</item>
-        <item name="fontFamily">@font/pretendard</item>
         <item name="android:textViewStyle">@style/Widget.ZiggyMusic.TextView</item>
 
         <!-- Primary brand color -->
