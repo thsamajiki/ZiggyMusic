@@ -10,7 +10,6 @@
         <item>설정</item>
     </string-array>
 
-    <string name="now_playing_title">지금 재생 중</string>
     <string name="current_playing_time">0:00</string>
     <string name="total_playing_time">3:10</string>
 
