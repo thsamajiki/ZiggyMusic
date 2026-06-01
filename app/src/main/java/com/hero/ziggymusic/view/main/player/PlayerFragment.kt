@@ -118,12 +118,6 @@ class PlayerFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // DataBinding 변수(music)가 null이면 제목/아티스트가 빈 값으로 보이는 문제가 생길 수 있다.
-        // 초기 바인딩을 명시해 앨범 아트와 텍스트 표시 상태를 안정화
-        binding.lifecycleOwner = viewLifecycleOwner
-        binding.music = playerModel.currentMusic
-        binding.executePendingBindings()
-
         initMediaController()
         initAudioManager()
         initBluetoothManager()
@@ -436,6 +430,10 @@ class PlayerFragment : Fragment() {
 
         albumGradientManager = MusicAlbumArtGradientManager(requireActivity())
 
+        binding.tvSongTitle.text = playerModel.currentMusic?.title.orEmpty()
+        binding.tvSongArtist.text = playerModel.currentMusic?.artist.orEmpty()
+        binding.tvSongAlbum.text = playerModel.currentMusic?.album.orEmpty()
+
         resetVisualizerBarColor()
         syncPlayerUi()
         startSeekUpdates() // 포그라운드 진입 직후 진행바를 시작
@@ -620,10 +618,6 @@ class PlayerFragment : Fragment() {
             binding.root.removeCallbacks(startPlayerTextMarqueeRunnable)
             binding.tvSongTitle.isSelected = false
 
-            // 상태 초기화
-            binding.music = null
-            binding.executePendingBindings()
-
             binding.tvSongTitle.text = ""
             binding.tvSongArtist.text = ""
             binding.tvSongAlbum.text = ""
@@ -635,20 +629,20 @@ class PlayerFragment : Fragment() {
             return
         }
 
-        // XML에서 tvSongTitle/tvSongArtist/tvSongAlbum 및 ivAlbumArt가 DataBinding으로 그려진다.
-        // music 변수를 갱신하지 않으면 리바인딩 타이밍에 텍스트가 null 또는 빈 문자열로 남을 수 있다.
         if (lastRenderedMusicId == musicModel.id) {
             return
         }
         lastRenderedMusicId = musicModel.id
 
-        binding.music = musicModel
-        binding.executePendingBindings()
+        binding.tvSongTitle.text = musicModel.title.orEmpty()
+        binding.tvSongArtist.text = musicModel.artist.orEmpty()
+        binding.tvSongAlbum.text = musicModel.album.orEmpty()
         updatePlayerTextMarquee(vm.motionState.value)
 
         latestAlbumBitmap = null
         // Decode at expanded size so startup/collapsed loads are not stretched later.
         val albumArtSize = resources.getDimensionPixelSize(R.dimen.album_art_size_expanded)
+        val albumArtCornerRadius = resources.getDimensionPixelSize(R.dimen.album_art_corner_radius)
 
         Glide.with(binding.ivAlbumArt.context)
             .asBitmap()
@@ -656,7 +650,7 @@ class PlayerFragment : Fragment() {
             .override(albumArtSize, albumArtSize)
             .error(R.drawable.ic_no_album_image)
             .fallback(R.drawable.ic_no_album_image)
-            .transform(RoundedCorners(12))
+            .transform(RoundedCorners(albumArtCornerRadius))
             .listener(object : RequestListener<Bitmap> {
                 override fun onLoadFailed(
                     e: GlideException?,

@@ -7,7 +7,6 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.appcompat.widget.PopupMenu
 import androidx.core.view.isVisible
-import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -34,9 +33,7 @@ class MyPlaylistFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        _binding = DataBindingUtil.inflate(inflater, R.layout.fragment_my_playlist, container, false)
-        binding.lifecycleOwner = viewLifecycleOwner
-        binding.vm = vm
+        _binding = FragmentMyPlaylistBinding.inflate(inflater, container, false)
 
         return binding.root
     }
@@ -81,6 +78,7 @@ class MyPlaylistFragment : Fragment() {
 
                 is MyPlaylistUiState.Empty -> {
                     myPlayListAdapter.submitList(emptyList())
+                    binding.tvNothingFound.text = vm.emptyStateMessage.value.orEmpty()
                     binding.rvMyPlayList.isVisible = false
                     binding.tvNothingFound.isVisible = true
                 }
