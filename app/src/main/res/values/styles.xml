@@ -154,9 +154,11 @@
         <item name="android:elevation">0dp</item>
     </style>
 
-    <style name="roundedCorners">
+    <style name="ShapeAppearance.ZiggyMusic" parent="ShapeAppearance.MaterialComponents.SmallComponent" />
+
+    <style name="ShapeAppearance.ZiggyMusic.AlbumArt" parent="ShapeAppearance.ZiggyMusic">
         <item name="cornerFamily">rounded</item>
-        <item name="cornerSize">@dimen/card_corner_radius</item>
+        <item name="cornerSize">@dimen/album_art_corner_radius</item>
     </style>
 
     <style name="Custom_Spinner_Item_Style" parent="Widget.AppCompat.DropDownItem.Spinner">
