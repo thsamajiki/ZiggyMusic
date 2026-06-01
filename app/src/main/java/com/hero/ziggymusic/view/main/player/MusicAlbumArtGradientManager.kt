@@ -1,7 +1,5 @@
 package com.hero.ziggymusic.view.main.player
 
-import android.animation.ArgbEvaluator
-import android.animation.ValueAnimator
 import android.app.Activity
 import android.content.Context
 import android.graphics.Bitmap
@@ -15,7 +13,6 @@ import android.util.Log
 import android.util.TypedValue
 import android.view.View
 import android.view.WindowManager
-import android.view.animation.AccelerateDecelerateInterpolator
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.ColorUtils
 import androidx.core.graphics.toColorInt
@@ -54,7 +51,7 @@ class MusicAlbumArtGradientManager(private val context: Context) {
                 albumBackground.background = null
                 activity.findViewById<View>(R.id.containerPlayer)?.crossfadeTo(gradientLayer)
                 activity.crossfadeWindowTo(gradientLayer)
-                activity.animateOpaqueStatusBarTo(topColor)
+                activity.makeStatusBarTransparent()
             }
         }
     }
@@ -79,11 +76,11 @@ class MusicAlbumArtGradientManager(private val context: Context) {
             if (animate) {
                 containerPlayer?.crossfadeTo(darkBackground)
                 activity.crossfadeWindowTo(darkBackground)
-                activity.animateOpaqueStatusBarTo(darkColor)
+                activity.makeStatusBarTransparent()
             } else {
                 containerPlayer?.background = darkBackground.newDrawableInstance()
                 activity.window.setBackgroundDrawable(darkBackground.newDrawableInstance())
-                activity.setOpaqueStatusBarColor(darkColor)
+                activity.makeStatusBarTransparent()
             }
         }
     }
@@ -131,26 +128,10 @@ class MusicAlbumArtGradientManager(private val context: Context) {
         )
     }
 
-    private fun Activity.animateOpaqueStatusBarTo(color: Int) {
-        prepareOpaqueStatusBar()
-        ValueAnimator.ofObject(ArgbEvaluator(), window.statusBarColor, color).apply {
-            duration = BACKGROUND_FADE_DURATION_MS.toLong()
-            interpolator = AccelerateDecelerateInterpolator()
-            addUpdateListener { animator ->
-                window.statusBarColor = animator.animatedValue as Int
-            }
-            start()
-        }
-    }
-
-    private fun Activity.setOpaqueStatusBarColor(color: Int) {
-        prepareOpaqueStatusBar()
-        window.statusBarColor = color
-    }
-
-    private fun Activity.prepareOpaqueStatusBar() {
+    private fun Activity.makeStatusBarTransparent() {
         window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS)
         window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS)
+        window.statusBarColor = Color.TRANSPARENT
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             window.isStatusBarContrastEnforced = false
         }
