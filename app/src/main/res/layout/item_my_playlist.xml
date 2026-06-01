@@ -1,97 +1,84 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout xmlns:android="http://schemas.android.com/apk/res/android"
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools">
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/mcvMusicList"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    app:cardBackgroundColor="@color/normal_gray"
+    app:cardCornerRadius="@dimen/album_art_corner_radius"
+    app:cardElevation="0dp"
+    app:cardUseCompatPadding="false"
+    app:contentPadding="@dimen/card_padding"
+    app:rippleColor="@color/colorPrimary30">
 
-    <data>
-
-        <import type="com.hero.ziggymusic.R" />
-
-        <variable
-            name="music"
-            type="com.hero.ziggymusic.database.music.entity.MusicModel" />
-    </data>
-
-    <com.google.android.material.card.MaterialCardView
-        android:id="@+id/mcvMusicList"
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        app:cardBackgroundColor="@color/normal_gray"
-        app:cardCornerRadius="@dimen/card_corner_radius"
-        app:cardElevation="@dimen/card_elevation"
-        app:cardUseCompatPadding="true"
-        app:contentPadding="@dimen/card_padding"
-        app:playStateBackground="@{music.isPlaying}"
-        app:rippleColor="@color/colorPrimary30">
+        android:layout_height="@dimen/list_item_height">
 
-        <androidx.constraintlayout.widget.ConstraintLayout
-            android:layout_width="match_parent"
-            android:layout_height="@dimen/list_item_height">
+        <com.google.android.material.imageview.ShapeableImageView
+            android:id="@+id/ivAlbum"
+            android:layout_width="@dimen/album_art_size"
+            android:layout_height="@dimen/album_art_size"
+            android:layout_marginVertical="@dimen/space_xs"
+            android:layout_marginStart="@dimen/space_xs"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:shapeAppearanceOverlay="@style/ShapeAppearance.ZiggyMusic.AlbumArt"
+            tools:src="@drawable/ic_no_album_image" />
 
-            <com.google.android.material.imageview.ShapeableImageView
-                android:id="@+id/ivAlbum"
-                android:layout_width="@dimen/album_art_size"
-                android:layout_height="@dimen/album_art_size"
-                android:layout_marginVertical="@dimen/space_xs"
-                android:layout_marginStart="@dimen/space_xs"
-                app:imageURI="@{music.albumUri}"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                app:shapeAppearanceOverlay="@style/roundedCorners" />
+        <TextView
+            android:id="@+id/tvSongTitle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="@dimen/space_sm"
+            android:layout_marginTop="@dimen/space_sm"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textAppearance="@style/TextAppearance.ZiggyMusic.White.Body"
+            app:layout_constraintEnd_toStartOf="@id/ivMusicOptionMenu"
+            app:layout_constraintStart_toEndOf="@id/ivAlbum"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:text="Out Of Time" />
 
-            <TextView
-                android:id="@+id/tvSongTitle"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginHorizontal="@dimen/space_sm"
-                android:layout_marginTop="@dimen/space_sm"
-                android:ellipsize="end"
-                android:maxLines="1"
-                android:textAppearance="@style/TextAppearance.ZiggyMusic.White.Body"
-                android:text="@{music.title}"
-                app:layout_constraintEnd_toStartOf="@id/ivMusicOptionMenu"
-                app:layout_constraintStart_toEndOf="@id/ivAlbum"
-                app:layout_constraintTop_toTopOf="parent" />
+        <ImageView
+            android:id="@+id/ivMusicOptionMenu"
+            android:layout_width="@dimen/icon_md"
+            android:layout_height="@dimen/icon_md"
+            android:layout_marginTop="@dimen/space_sm"
+            android:layout_marginEnd="@dimen/space_sm"
+            android:background="?selectableItemBackgroundBorderless"
+            android:clickable="true"
+            android:src="@drawable/ic_option_menu"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
-            <ImageView
-                android:id="@+id/ivMusicOptionMenu"
-                android:layout_width="@dimen/icon_md"
-                android:layout_height="@dimen/icon_md"
-                android:layout_marginTop="@dimen/space_sm"
-                android:layout_marginEnd="@dimen/space_sm"
-                android:background="?selectableItemBackgroundBorderless"
-                android:clickable="true"
-                android:src="@drawable/ic_option_menu"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
+        <TextView
+            android:id="@+id/tvSongArtist"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="@dimen/space_sm"
+            android:layout_marginTop="@dimen/space_sm"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textAppearance="@style/TextAppearance.ZiggyMusic.White.Sub"
+            app:layout_constraintEnd_toStartOf="@id/ivMusicOptionMenu"
+            app:layout_constraintStart_toEndOf="@id/ivAlbum"
+            app:layout_constraintTop_toBottomOf="@id/tvSongTitle"
+            tools:text="The Weeknd" />
 
-            <TextView
-                android:id="@+id/tvSongArtist"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginHorizontal="@dimen/space_sm"
-                android:layout_marginTop="@dimen/space_sm"
-                android:ellipsize="end"
-                android:maxLines="1"
-                android:textAppearance="@style/TextAppearance.ZiggyMusic.White.Sub"
-                android:text="@{music.artist}"
-                app:layout_constraintEnd_toStartOf="@id/ivMusicOptionMenu"
-                app:layout_constraintStart_toEndOf="@id/ivAlbum"
-                app:layout_constraintTop_toBottomOf="@id/tvSongTitle" />
+        <TextView
+            android:id="@+id/tvDuration"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="@dimen/space_sm"
+            android:layout_marginBottom="@dimen/space_sm"
+            android:textAppearance="@style/TextAppearance.ZiggyMusic.PlayerTime"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            tools:text="03:34" />
 
-            <TextView
-                android:id="@+id/tvDuration"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="@dimen/space_sm"
-                android:layout_marginBottom="@dimen/space_sm"
-                android:textAppearance="@style/TextAppearance.ZiggyMusic.PlayerTime"
-                app:duration="@{music.duration}"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toEndOf="parent" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
-        </androidx.constraintlayout.widget.ConstraintLayout>
-
-    </com.google.android.material.card.MaterialCardView>
-</layout>
+</com.google.android.material.card.MaterialCardView>
