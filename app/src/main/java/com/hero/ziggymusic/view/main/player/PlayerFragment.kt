@@ -247,8 +247,8 @@ class PlayerFragment : Fragment() {
                             albumGradientManager?.resetToDarkBackground(binding.albumBackground)
                         }
                     } else {
-                        // 플레이어가 접히면 투명해진 배경을 기본 검은색으로 복구
-                        binding.motionLayout.setBackgroundResource(R.color.dark_black)
+                        // 플레이어가 접히면 root gradient 위에 반투명 surface로 표시한다.
+                        binding.motionLayout.setBackgroundResource(R.color.player_collapsed_scrim)
                         binding.albumBackground.setBackgroundResource(R.color.dark_black)
 
                         stopSeekUpdates()
@@ -634,13 +634,13 @@ class PlayerFragment : Fragment() {
         }
         lastRenderedMusicId = musicModel.id
 
-        binding.tvSongTitle.text = musicModel.title.orEmpty()
-        binding.tvSongArtist.text = musicModel.artist.orEmpty()
-        binding.tvSongAlbum.text = musicModel.album.orEmpty()
+        binding.tvSongTitle.text = musicModel?.title.orEmpty()
+        binding.tvSongArtist.text = musicModel?.artist.orEmpty()
+        binding.tvSongAlbum.text = musicModel?.album.orEmpty()
         updatePlayerTextMarquee(vm.motionState.value)
 
         latestAlbumBitmap = null
-        // Decode at expanded size so startup/collapsed loads are not stretched later.
+        // Expanded 상태에서 Decode -> Startup/Collapsed 상태에서 로드할 때 나중에 stretch되지 않게 함
         val albumArtSize = resources.getDimensionPixelSize(R.dimen.album_art_size_expanded)
         val albumArtCornerRadius = resources.getDimensionPixelSize(R.dimen.album_art_corner_radius)
 

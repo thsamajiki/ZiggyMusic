@@ -4,6 +4,7 @@ import android.Manifest
 import android.app.AlertDialog
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
@@ -216,12 +217,12 @@ class MainActivity : AppCompatActivity(),
     }
 
     private fun initStatusBarColor() {
-        // statusBar 컬러를 toolBar 컬러와 동일하게 맞추기 위함
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) { // Android 11+
-            window.decorView.setOnApplyWindowInsetsListener { view, insets ->
+        val systemBarColor = ContextCompat.getColor(this, R.color.main_dark_gradient_start)
+        window.statusBarColor = systemBarColor
+        window.navigationBarColor = systemBarColor
 
-                insets
-            }
+        WindowInsetsControllerCompat(window, window.decorView).apply {
+            isAppearanceLightStatusBars = false
         }
     }
 
@@ -400,10 +401,16 @@ class MainActivity : AppCompatActivity(),
         }
 
         // 3. 배경색 및 Insets 처리
-        val defaultSystemBarColor = ContextCompat.getColor(this, R.color.dark_black)
-        window.statusBarColor = defaultSystemBarColor
-        window.decorView.setBackgroundColor(defaultSystemBarColor)
-        binding.containerPlayer.setBackgroundColor(defaultSystemBarColor)
+        val defaultSystemBarColor = ContextCompat.getColor(this, R.color.main_dark_gradient_start)
+        window.statusBarColor = if (isExpanded) Color.TRANSPARENT else defaultSystemBarColor
+        window.navigationBarColor = defaultSystemBarColor
+        binding.containerPlayer.setBackgroundColor(
+            if (isExpanded) {
+                ContextCompat.getColor(this, R.color.dark_black)
+            } else {
+                Color.TRANSPARENT
+            }
+        )
 
         if (isExpanded) {
             ViewCompat.setOnApplyWindowInsetsListener(binding.containerPlayer) { view, insets ->
@@ -433,5 +440,4 @@ class MainActivity : AppCompatActivity(),
             })
         }
     }
-
 }

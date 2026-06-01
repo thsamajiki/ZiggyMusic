@@ -5,7 +5,7 @@
     android:id="@+id/motionLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/dark_black"
+    android:background="@color/player_collapsed_scrim"
     app:layoutDescription="@xml/player_motion_scene">
 
         <View
