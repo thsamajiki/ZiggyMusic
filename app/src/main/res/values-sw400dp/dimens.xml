@@ -28,7 +28,7 @@
     <dimen name="btn_height">50dp</dimen>
     <dimen name="toolbar_height">60dp</dimen>
     <dimen name="card_padding">14dp</dimen>
-    <dimen name="card_corner_radius">9dp</dimen>
+    <dimen name="album_art_corner_radius">9dp</dimen>
     <dimen name="card_elevation">3dp</dimen>
     <dimen name="list_item_height">104dp</dimen>
     <dimen name="spinner_height">40dp</dimen>
