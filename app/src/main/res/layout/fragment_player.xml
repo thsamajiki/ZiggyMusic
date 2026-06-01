@@ -1,21 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.motion.widget.MotionLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools">
-
-    <data>
-
-        <variable
-            name="music"
-            type="com.hero.ziggymusic.database.music.entity.MusicModel" />
-    </data>
-
-    <androidx.constraintlayout.motion.widget.MotionLayout
-        android:id="@+id/motionLayout"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="@color/dark_black"
-        app:layoutDescription="@xml/player_motion_scene">
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/motionLayout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/dark_black"
+    app:layoutDescription="@xml/player_motion_scene">
 
         <View
             android:id="@+id/albumBackground"
@@ -56,11 +47,11 @@
             android:gravity="start|center_vertical"
             android:marqueeRepeatLimit="marquee_forever"
             android:singleLine="true"
-            android:text="@{music.title}"
             android:textAppearance="@style/TextAppearance.ZiggyMusic.White.Body"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/playerTopHandleContainer" />
+            app:layout_constraintTop_toBottomOf="@id/playerTopHandleContainer"
+            tools:text="Out Of Time" />
 
         <androidx.appcompat.widget.AppCompatImageView
             android:id="@+id/ivAlbumArt"
@@ -81,9 +72,9 @@
             android:ellipsize="end"
             android:gravity="start|center_vertical"
             android:singleLine="true"
-            android:text="@{music.artist}"
             android:textAppearance="@style/TextAppearance.ZiggyMusic.White.Body"
-            app:layout_constraintTop_toBottomOf="@id/ivAlbumArt" />
+            app:layout_constraintTop_toBottomOf="@id/ivAlbumArt"
+            tools:text="The Weeknd" />
 
         <TextView
             android:id="@+id/tvSongAlbum"
@@ -93,12 +84,12 @@
             android:ellipsize="end"
             android:gravity="center"
             android:singleLine="true"
-            android:text="@{music.album}"
             android:textAppearance="@style/TextAppearance.ZiggyMusic.Player.Album"
             app:layout_constraintEnd_toStartOf="@id/bluetooth"
             app:layout_constraintHorizontal_chainStyle="packed"
             app:layout_constraintStart_toEndOf="@id/animationViewVisualizer"
-            app:layout_constraintTop_toBottomOf="@id/tvSongArtist" />
+            app:layout_constraintTop_toBottomOf="@id/tvSongArtist"
+            tools:text="After Hours" />
 
         <com.hero.ziggymusic.view.main.player.NowPlayingVisualizerView
             android:id="@+id/animationViewVisualizer"
@@ -257,5 +248,4 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="@id/vPlayer" />
 
-    </androidx.constraintlayout.motion.widget.MotionLayout>
-</layout>
+</androidx.constraintlayout.motion.widget.MotionLayout>
