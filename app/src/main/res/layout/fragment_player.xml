@@ -5,7 +5,7 @@
     android:id="@+id/motionLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/dark_black"
+    android:background="@color/player_collapsed_scrim"
     app:layoutDescription="@xml/player_motion_scene">
 
         <View
@@ -26,14 +26,14 @@
             android:layout_height="?attr/actionBarSize"
             app:layout_constraintTop_toTopOf="parent">
 
-            <ImageView
-                android:id="@+id/ivDragHandle"
-                android:layout_width="42dp"
-                android:layout_height="48dp"
-                android:layout_gravity="top|center_horizontal"
-                android:paddingTop="@dimen/space_14"
-                android:src="@drawable/ic_drag_handle"
-                android:contentDescription="@null" />
+                <ImageView
+                    android:id="@+id/ivDragHandle"
+                    android:layout_width="42dp"
+                    android:layout_height="48dp"
+                    android:layout_gravity="top|center_horizontal"
+                    android:paddingTop="@dimen/space_14"
+                    android:src="@drawable/ic_drag_handle"
+                    android:contentDescription="@null" />
 
         </FrameLayout>
 
