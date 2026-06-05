@@ -285,6 +285,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="@dimen/space_xxl"
+                    android:visibility="gone"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@id/sbVirtualizer">
 
@@ -293,8 +294,8 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="@dimen/space_xxxl"
-                        android:textAppearance="@style/TextAppearance.ZiggyMusic.White.Caption"
                         android:text="@string/spatial_audio"
+                        android:textAppearance="@style/TextAppearance.ZiggyMusic.White.Caption"
                         app:layout_constraintBottom_toBottomOf="parent"
                         app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toTopOf="parent" />
@@ -314,6 +315,7 @@
                     android:id="@+id/layoutHeadTracking"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:visibility="gone"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@id/layoutSpatialAudio">
 
@@ -322,8 +324,8 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="@dimen/space_xxxl"
-                        android:textAppearance="@style/TextAppearance.ZiggyMusic.LightGray.Sub"
                         android:text="@string/head_tracking"
+                        android:textAppearance="@style/TextAppearance.ZiggyMusic.LightGray.Sub"
                         app:layout_constraintBottom_toBottomOf="parent"
                         app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toTopOf="parent" />
@@ -352,4 +354,3 @@
     </androidx.core.widget.NestedScrollView>
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
-
