@@ -12,8 +12,8 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
+import android.widget.LinearLayout
 import android.widget.SeekBar
-import android.widget.TableRow
 import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
@@ -25,6 +25,7 @@ import com.hero.ziggymusic.audio.PlayerAudioGraph
 import com.hero.ziggymusic.audio.SpatializerSupport
 import com.hero.ziggymusic.view.main.setting.AudioEffectManager.equalizer
 import com.hero.ziggymusic.view.main.setting.AudioEffectManager.mainColor
+import java.util.Locale
 
 class SettingFragment : Fragment() {
     private var _binding: FragmentSettingBinding? = null
@@ -292,33 +293,31 @@ class SettingFragment : Fragment() {
                 override fun onStopTrackingTouch(seekBar: SeekBar) = Unit
             })
 
-            val layoutParams: TableRow.LayoutParams =
-                TableRow.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1.0f)
-            verticalSeekbar.layoutParams = layoutParams
+            val seekbarLayoutParams =
+                LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1.0f)
+            verticalSeekbar.layoutParams = seekbarLayoutParams
 
             val centerFreq = AudioEffectManager.getCenterFreq(index) ?: 0
-            val title = if (centerFreq > 1000000) {
-                "${centerFreq / 1000000} kHz"
-            } else {
-                "${centerFreq / 1000} ".let { it.substring(0, it.length - 2) + " Hz" }
-            }
+            val title = formatCenterFreq(centerFreq)
 
             val textView = TextView(requireContext())
             textView.text = title
+            textView.includeFontPadding = false
             textView.maxLines = 1
             textView.setTextSize(
                 TypedValue.COMPLEX_UNIT_PX,
-                resources.getDimension(R.dimen.small_text_size)
+                resources.getDimension(R.dimen.setting_eq_label_text_size)
             )
             textView.setTextColor(ContextCompat.getColor(requireContext(), R.color.white))
 
             val params =
-                TableRow.LayoutParams(0, TableRow.LayoutParams.WRAP_CONTENT, 1f)
+                LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)
             textView.gravity = Gravity.CENTER
             textView.layoutParams = params
 
             binding.tvSeekbar.addView(textView)
             binding.seekbarContainer.addView(verticalSeekbar)
+            verticalSeekbar.post { verticalSeekbar.refreshThumbState() }
 
             val initialGainDb = mapEqProgressToDb(
                 progress = verticalSeekbar.progress,
@@ -339,6 +338,20 @@ class SettingFragment : Fragment() {
         if (max <= 0) return 0.0f
         val normalized = (progress.toFloat() / max.toFloat()).coerceIn(0.0f, 1.0f) // 0..1
         return (normalized * 24.0f) - 12.0f // -12..+12
+    }
+
+    private fun formatCenterFreq(centerFreqMilliHz: Int): String {
+        val hz = centerFreqMilliHz / 1000
+        if (hz < 1000) return "$hz Hz"
+
+        val khz = hz / 1000f
+        if (khz in 3.5f..4.4f) return "4 kHz"
+
+        return if (khz % 1f == 0f) {
+            "${khz.toInt()} kHz"
+        } else {
+            String.format(Locale.US, "%.1f kHz", khz)
+        }
     }
 
     private fun initReverb() {

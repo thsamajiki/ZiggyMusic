@@ -93,6 +93,10 @@
         <item name="android:textColor">@color/light_gray</item>
     </style>
 
+    <style name="TextAppearance.ZiggyMusic.Setting.Spinner" parent="TextAppearance.ZiggyMusic.White.Caption">
+        <item name="android:textSize">@dimen/setting_spinner_text_size</item>
+    </style>
+
     <style name="TextAppearance.ZiggyMusic.Spatial.DeviceTitle" parent="TextAppearance.ZiggyMusic.Base">
         <item name="android:textColor">#E6FFFFFF</item>
         <item name="android:textSize">@dimen/title_text_size</item>

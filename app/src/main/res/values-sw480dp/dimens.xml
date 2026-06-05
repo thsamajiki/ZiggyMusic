@@ -32,6 +32,19 @@
     <dimen name="card_elevation">4dp</dimen>
     <dimen name="list_item_height">108dp</dimen>
     <dimen name="spinner_height">44dp</dimen>
+    <dimen name="setting_spinner_width">140dp</dimen>
+    <dimen name="setting_spinner_dropdown_width">176dp</dimen>
+    <dimen name="setting_spinner_height">38dp</dimen>
+    <dimen name="setting_spinner_text_size">10sp</dimen>
+    <dimen name="setting_eq_label_text_size">10sp</dimen>
+    <dimen name="setting_effect_control_end_margin">@dimen/space_xxxl</dimen>
+    <dimen name="setting_effect_seekbar_end_margin">22dp</dimen>
+    <dimen name="setting_eq_scale_width">32dp</dimen>
+    <dimen name="setting_eq_horizontal_padding">@dimen/space_xxxl</dimen>
+    <dimen name="setting_eq_scale_to_bands_gap">2dp</dimen>
+    <dimen name="setting_eq_track_vertical_inset">22dp</dimen>
+    <dimen name="setting_eq_label_vertical_padding">16dp</dimen>
+    <dimen name="setting_eq_frequency_translation_y">-16dp</dimen>
     <dimen name="empty_height_sm">32dp</dimen>
     <dimen name="bottom_nav_height">64dp</dimen>
 

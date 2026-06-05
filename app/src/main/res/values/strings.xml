@@ -22,10 +22,15 @@
 
     <string name="no_music_found">음원이 없습니다.</string>
     <string name="load_music_failed">음원 목록을 불러오는 데 실패했습니다.</string>
-    <string name="preset">Preset:</string>
-    <string name="reverb">Reverb:</string>
-    <string name="bass">Bass:</string>
-    <string name="_3d_virtualizer">3D Virtualizer:</string>
+    <string name="equalizer">이퀄라이저</string>
+    <string name="preset">프리셋</string>
+    <string name="eq_max">+12</string>
+    <string name="eq_zero">0</string>
+    <string name="eq_min">-12</string>
+    <string name="audio_effect">음향 효과</string>
+    <string name="reverb">리버브</string>
+    <string name="bass">베이스</string>
+    <string name="_3d_virtualizer">3D 버추얼라이저</string>
     <string name="spatial_audio">Spatial Audio</string>
     <string name="head_tracking">Head Tracking</string>
 </resources>

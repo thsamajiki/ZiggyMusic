@@ -3,13 +3,13 @@
         <layer-list>
             <item>
                 <shape>
-                    <solid android:color="@color/black" />
-                    <stroke android:width="1dp" android:color="@color/light_gray" />
-                    <corners android:radius="5dp" />
-                    <padding android:bottom="15dp" android:end="10dp" android:start="10dp" android:top="15dp" />
+                    <solid android:color="#33000000" />
+                    <stroke android:width="0.5dp" android:color="#66FFFFFF" />
+                    <corners android:radius="8dp" />
+                    <padding android:bottom="0dp" android:end="36dp" android:start="14dp" android:top="0dp" />
                 </shape>
             </item>
-            <item android:drawable="@drawable/ic_arrow_drop_down" android:end="5dp" android:gravity="center_vertical|end" />
+            <item android:drawable="@drawable/ic_arrow_drop_down" android:end="14dp" android:gravity="center_vertical|end" />
         </layer-list>
     </item>
 
@@ -17,13 +17,13 @@
         <layer-list>
             <item>
                 <shape>
-                    <solid android:color="@color/black" />
-                    <stroke android:width="1dp" android:color="@color/light_gray" />
-                    <corners android:radius="5dp" />
-                    <padding android:bottom="15dp" android:end="10dp" android:start="10dp" android:top="15dp" />
+                    <solid android:color="#22000000" />
+                    <stroke android:width="0.5dp" android:color="#33FFFFFF" />
+                    <corners android:radius="8dp" />
+                    <padding android:bottom="0dp" android:end="36dp" android:start="14dp" android:top="0dp" />
                 </shape>
             </item>
-            <item android:drawable="@drawable/ic_arrow_drop_down" android:end="5dp" android:gravity="center_vertical|end" />
+            <item android:drawable="@drawable/ic_arrow_drop_down" android:end="14dp" android:gravity="center_vertical|end" />
         </layer-list>
     </item>
 </selector>
