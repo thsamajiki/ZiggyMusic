@@ -259,24 +259,26 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="@dimen/space_xxxl"
-                    android:layout_marginTop="@dimen/space_xl"
-                    android:textAppearance="@style/TextAppearance.ZiggyMusic.White.Caption"
+                    android:includeFontPadding="false"
                     android:text="@string/_3d_virtualizer"
+                    android:textAppearance="@style/TextAppearance.ZiggyMusic.White.Caption"
+                    app:layout_constraintBottom_toBottomOf="@id/sbVirtualizer"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/sbBass" />
+                    app:layout_constraintTop_toTopOf="@id/sbVirtualizer" />
 
                 <SeekBar
                     android:id="@+id/sbVirtualizer"
-                    android:layout_width="match_parent"
+                    android:layout_width="0dp"
                     android:layout_height="40dp"
                     android:layout_gravity="center_vertical"
-                    android:layout_marginVertical="@dimen/space_md"
+                    android:layout_marginStart="@dimen/space_xl"
+                    android:layout_marginTop="@dimen/space_xl"
+                    android:layout_marginEnd="@dimen/setting_effect_seekbar_end_margin"
                     android:max="100"
                     android:maxHeight="1dp"
-                    android:paddingStart="@dimen/seekbar_padding"
-                    android:paddingEnd="@dimen/seekbar_padding"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/tvVirtualizer" />
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toEndOf="@id/tvVirtualizer"
+                    app:layout_constraintTop_toBottomOf="@id/sbBass" />
 
                 <androidx.constraintlayout.widget.ConstraintLayout
                     android:id="@+id/layoutSpatialAudio"
@@ -350,3 +352,4 @@
     </androidx.core.widget.NestedScrollView>
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
+
