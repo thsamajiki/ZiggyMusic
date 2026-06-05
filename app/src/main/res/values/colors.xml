@@ -21,6 +21,7 @@
     <color name="setting_dark_gradient_start">#030405</color>
     <color name="setting_dark_gradient_center">#0D1012</color>
     <color name="setting_dark_gradient_end">#202124</color>
+    <color name="setting_divider">#1FFFFFFF</color>
     <color name="bottom_nav_scrim">#CC101214</color>
     <color name="player_collapsed_scrim">#E6101214</color>
     <color name="dark_gray">#535353</color>
