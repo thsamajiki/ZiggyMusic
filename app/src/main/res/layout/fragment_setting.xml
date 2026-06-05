@@ -179,7 +179,7 @@
                 android:layout_marginStart="@dimen/space_xxxl"
                 android:layout_marginTop="@dimen/space_10"
                 android:layout_marginEnd="@dimen/space_xxxl"
-                android:background="#1FFFFFFF" />
+                android:background="@color/setting_divider" />
 
             <TextView
                 android:id="@+id/tvAudioEffect"
