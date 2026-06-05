@@ -6,7 +6,12 @@
     android:layout_height="wrap_content"
     android:background="@color/transparent"
     android:ellipsize="marquee"
-    android:paddingVertical="5dp"
+    android:gravity="center_vertical"
+    android:includeFontPadding="false"
+    android:minHeight="@dimen/setting_spinner_height"
+    android:paddingVertical="@dimen/space_xs"
+    android:paddingStart="@dimen/space_md"
+    android:paddingEnd="@dimen/space_xxxl"
     android:singleLine="true"
     android:textAlignment="inherit"
-    android:textAppearance="@style/TextAppearance.ZiggyMusic.White.Caption" />
+    android:textAppearance="@style/TextAppearance.ZiggyMusic.Setting.Spinner" />
