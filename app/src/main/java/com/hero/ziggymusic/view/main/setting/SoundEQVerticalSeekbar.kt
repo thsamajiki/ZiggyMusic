@@ -6,7 +6,6 @@ import android.graphics.Paint
 import android.util.AttributeSet
 import android.view.MotionEvent
 import androidx.core.graphics.withRotation
-import androidx.core.graphics.toColorInt
 import androidx.appcompat.R as AppCompatR
 import androidx.appcompat.widget.AppCompatSeekBar
 import androidx.core.content.ContextCompat
