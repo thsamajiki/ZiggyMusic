@@ -187,7 +187,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="@dimen/space_xxxl"
                 android:layout_marginTop="@dimen/space_25"
-                android:text="@string/audioEffect"
+                android:text="@string/audio_effect"
                 android:textAppearance="@style/TextAppearance.ZiggyMusic.White.Body.Medium" />
 
             <androidx.constraintlayout.widget.ConstraintLayout
