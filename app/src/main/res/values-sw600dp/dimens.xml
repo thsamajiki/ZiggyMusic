@@ -43,8 +43,8 @@
     <dimen name="setting_eq_horizontal_padding">@dimen/space_xxxl</dimen>
     <dimen name="setting_eq_scale_to_bands_gap">3dp</dimen>
     <dimen name="setting_eq_track_vertical_inset">24dp</dimen>
-    <dimen name="setting_eq_label_vertical_padding">18dp</dimen>
-    <dimen name="setting_eq_frequency_translation_y">-18dp</dimen>
+    <dimen name="setting_eq_label_vertical_padding">17dp</dimen>
+    <dimen name="setting_eq_frequency_translation_y">-8dp</dimen>
     <dimen name="empty_height_sm">34dp</dimen>
     <dimen name="bottom_nav_height">68dp</dimen>
 
