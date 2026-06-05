@@ -233,24 +233,26 @@
                     android:id="@+id/tvBass"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textAppearance="@style/TextAppearance.ZiggyMusic.White.Caption"
                     android:layout_marginStart="@dimen/space_xxxl"
+                    android:includeFontPadding="false"
                     android:text="@string/bass"
+                    android:textAppearance="@style/TextAppearance.ZiggyMusic.White.Caption"
+                    app:layout_constraintBottom_toBottomOf="@id/sbBass"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent" />
+                    app:layout_constraintTop_toTopOf="@id/sbBass" />
 
                 <SeekBar
                     android:id="@+id/sbBass"
-                    android:layout_width="match_parent"
+                    android:layout_width="0dp"
                     android:layout_height="40dp"
                     android:layout_gravity="center_vertical"
-                    android:layout_marginVertical="@dimen/space_md"
+                    android:layout_marginStart="@dimen/space_xl"
+                    android:layout_marginEnd="@dimen/setting_effect_seekbar_end_margin"
                     android:max="100"
                     android:maxHeight="1dp"
-                    android:paddingStart="@dimen/seekbar_padding"
-                    android:paddingEnd="@dimen/seekbar_padding"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/tvBass" />
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toEndOf="@id/tvBass"
+                    app:layout_constraintTop_toTopOf="parent" />
 
                 <TextView
                     android:id="@+id/tvVirtualizer"
