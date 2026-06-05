@@ -2,19 +2,19 @@ package com.hero.ziggymusic.view.main.setting
 
 import android.content.Context
 import android.graphics.Canvas
-import android.graphics.Color
 import android.graphics.Paint
 import android.util.AttributeSet
 import android.view.MotionEvent
-import androidx.appcompat.widget.AppCompatSeekBar
-import androidx.appcompat.R
 import androidx.core.graphics.withRotation
 import androidx.core.graphics.toColorInt
+import androidx.appcompat.R as AppCompatR
+import androidx.appcompat.widget.AppCompatSeekBar
+import com.hero.ziggymusic.R
 
 class SoundEQVerticalSeekbar @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
-    defStyleAttr: Int = R.attr.seekBarStyle,
+    defStyleAttr: Int = AppCompatR.attr.seekBarStyle,
 ) : AppCompatSeekBar(context, attrs, defStyleAttr) {
     var isTrackingTouch: Boolean = false
         private set
@@ -28,9 +28,9 @@ class SoundEQVerticalSeekbar @JvmOverloads constructor(
     private val tickStartOffset = 16f * resources.displayMetrics.density
     private val tickEndOffset = 11f * resources.displayMetrics.density
     private val majorTickExtraLength = 2f * resources.displayMetrics.density
-    private val tickTopInset = 20f * resources.displayMetrics.density
-    private val tickBottomInset = 20f * resources.displayMetrics.density
-    private val trackVerticalInset = 20f * resources.displayMetrics.density
+    private val trackVerticalInset = resources.getDimension(R.dimen.setting_eq_track_vertical_inset)
+    private val tickTopInset = trackVerticalInset
+    private val tickBottomInset = trackVerticalInset
 
     init {
         secondaryProgress = 0
