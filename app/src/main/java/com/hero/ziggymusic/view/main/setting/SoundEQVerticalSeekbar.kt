@@ -107,9 +107,7 @@ class SoundEQVerticalSeekbar @JvmOverloads constructor(
     }
 
     override fun setProgress(progress: Int) {
-        super.setProgress(progress)
-        syncDrawableBounds()
-        invalidate()
+        updateProgress(progress)
     }
 
     private fun updateProgressFromTouch(y: Float) {
@@ -124,11 +122,12 @@ class SoundEQVerticalSeekbar @JvmOverloads constructor(
         val progressFromTouch = max - (max * (clampedY - trackTop) / trackHeight).toInt()
         val newProgress = progressFromTouch.coerceIn(0, max)
 
-        super.setProgress(newProgress)
+        updateProgress(newProgress)
+    }
 
-        // 세로 SeekBar에서는 progress 변경 후 내부 drawable bounds 갱신이 필요할 수 있음
-        onSizeChanged(width, height, 0, 0)
-
+    private fun updateProgress(progress: Int) {
+        super.setProgress(progress)
+        syncDrawableBounds()
         invalidate()
     }
 
