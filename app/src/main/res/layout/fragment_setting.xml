@@ -80,19 +80,97 @@
 
             </androidx.constraintlayout.widget.ConstraintLayout>
 
-            <LinearLayout
-                android:id="@+id/seekbarContainer"
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/layoutEqualizerBands"
                 android:layout_width="match_parent"
                 android:layout_height="@dimen/seekbar_container_height"
                 android:layout_marginTop="@dimen/space_10"
-                android:orientation="horizontal" />
+                android:paddingStart="@dimen/setting_eq_horizontal_padding"
+                android:paddingEnd="@dimen/setting_eq_horizontal_padding">
 
-            <LinearLayout
-                android:id="@+id/tvSeekbar"
-                android:layout_width="match_parent"
-                android:layout_height="@dimen/empty_height_sm"
-                android:layout_marginVertical="@dimen/space_xs"
-                android:orientation="horizontal" />
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:id="@+id/layoutEqScale"
+                    android:layout_width="@dimen/setting_eq_scale_width"
+                    android:layout_height="0dp"
+                    android:paddingTop="@dimen/setting_eq_label_vertical_padding"
+                    android:paddingBottom="@dimen/setting_eq_label_vertical_padding"
+                    app:layout_constraintBottom_toTopOf="@id/tvSeekbar"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent">
+
+                    <TextView
+                        android:id="@+id/tvEqMax"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="start"
+                        android:includeFontPadding="false"
+                        android:text="@string/eq_max"
+                        android:textAppearance="@style/TextAppearance.ZiggyMusic.White.Sub"
+                        android:textColor="@color/normal_gray"
+                        android:textSize="@dimen/setting_eq_label_text_size"
+                        app:layout_constraintBottom_toTopOf="@id/tvEqZero"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:layout_constraintVertical_chainStyle="spread_inside" />
+
+                    <TextView
+                        android:id="@+id/tvEqZero"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="@dimen/space_sm"
+                        android:gravity="start"
+                        android:includeFontPadding="false"
+                        android:text="@string/eq_zero"
+                        android:textAppearance="@style/TextAppearance.ZiggyMusic.White.Sub"
+                        android:textColor="@color/normal_gray"
+                        android:textSize="@dimen/setting_eq_label_text_size"
+                        app:layout_constraintBottom_toTopOf="@id/tvEqMin"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toBottomOf="@id/tvEqMax" />
+
+                    <TextView
+                        android:id="@+id/tvEqMin"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="start"
+                        android:includeFontPadding="false"
+                        android:text="@string/eq_min"
+                        android:textAppearance="@style/TextAppearance.ZiggyMusic.White.Sub"
+                        android:textColor="@color/normal_gray"
+                        android:textSize="@dimen/setting_eq_label_text_size"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toBottomOf="@id/tvEqZero" />
+
+                </androidx.constraintlayout.widget.ConstraintLayout>
+
+                <LinearLayout
+                    android:id="@+id/seekbarContainer"
+                    android:layout_width="0dp"
+                    android:layout_height="0dp"
+                    android:layout_marginStart="@dimen/setting_eq_scale_to_bands_gap"
+                    android:gravity="center"
+                    android:orientation="horizontal"
+                    app:layout_constraintBottom_toTopOf="@id/tvSeekbar"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toEndOf="@id/layoutEqScale"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <LinearLayout
+                    android:id="@+id/tvSeekbar"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/setting_eq_scale_to_bands_gap"
+                    android:layout_marginTop="@dimen/space_xxs"
+                    android:gravity="center"
+                    android:orientation="horizontal"
+                    android:translationY="@dimen/setting_eq_frequency_translation_y"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toEndOf="@id/layoutEqScale"
+                    app:layout_constraintTop_toBottomOf="@id/seekbarContainer" />
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
 
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
