@@ -9,6 +9,7 @@ import androidx.core.graphics.withRotation
 import androidx.core.graphics.toColorInt
 import androidx.appcompat.R as AppCompatR
 import androidx.appcompat.widget.AppCompatSeekBar
+import androidx.core.content.ContextCompat
 import com.hero.ziggymusic.R
 
 class SoundEQVerticalSeekbar @JvmOverloads constructor(
@@ -20,7 +21,7 @@ class SoundEQVerticalSeekbar @JvmOverloads constructor(
         private set
 
     private val tickPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        color = "#535353".toColorInt()
+        color = ContextCompat.getColor(context, R.color.dark_gray)
         strokeWidth = resources.displayMetrics.density
     }
 
