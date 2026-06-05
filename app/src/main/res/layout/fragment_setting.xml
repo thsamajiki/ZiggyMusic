@@ -172,6 +172,24 @@
 
             </androidx.constraintlayout.widget.ConstraintLayout>
 
+            <View
+                android:id="@+id/dividerEqualizerAudioEffect"
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginStart="@dimen/space_xxxl"
+                android:layout_marginTop="@dimen/space_10"
+                android:layout_marginEnd="@dimen/space_xxxl"
+                android:background="#1FFFFFFF" />
+
+            <TextView
+                android:id="@+id/tvAudioEffect"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/space_xxxl"
+                android:layout_marginTop="@dimen/space_25"
+                android:text="@string/audioEffect"
+                android:textAppearance="@style/TextAppearance.ZiggyMusic.White.Body.Medium" />
+
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
