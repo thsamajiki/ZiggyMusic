@@ -53,7 +53,7 @@
 
                 <TextView
                     android:id="@+id/tvPreset"
-                    android:layout_width="0dp"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="@dimen/space_xxxl"
                     android:text="@string/preset"
@@ -197,7 +197,7 @@
 
                 <TextView
                     android:id="@+id/tvReverb"
-                    android:layout_width="0dp"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="@dimen/space_xxxl"
                     android:text="@string/reverb"
