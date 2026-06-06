@@ -427,13 +427,17 @@ class MainActivity : AppCompatActivity(),
 
     @OptIn(UnstableApi::class)
     private fun initSoundEQSettings() {
+        val prefs = getSharedPreferences(SettingFragment.TAG, 0)
+
         if (player.audioSessionId != 0) {
             AudioEffectManager.init(player.audioSessionId)
+            AudioEffectManager.setEnabledFromPrefs(prefs)
         } else {
             player.addListener(object : Player.Listener {
                 override fun onAudioSessionIdChanged(audioSessionId: Int) {
                     if (audioSessionId != 0) {
                         AudioEffectManager.init(audioSessionId)
+                        AudioEffectManager.setEnabledFromPrefs(prefs)
                         player.removeListener(this)
                     }
                 }
