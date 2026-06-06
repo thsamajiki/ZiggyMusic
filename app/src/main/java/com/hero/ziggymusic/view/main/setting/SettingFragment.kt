@@ -70,7 +70,7 @@ class SettingFragment : Fragment() {
 
     // Spatial Audio & Head Tracking UI 설정
     private fun initSpatialAudioUi() {
-        Log.d("SettingFragment", "Spatializer status: ${spatializerSupport.describeStatus()}")
+        Log.d(TAG, "Spatializer status: ${spatializerSupport.describeStatus()}")
 
         binding.swSpatialAudio.setOnCheckedChangeListener(null)
         binding.swHeadTracking.setOnCheckedChangeListener(null)
@@ -174,7 +174,7 @@ class SettingFragment : Fragment() {
     }
 
     private fun initSetting() {
-        prefs = requireContext().getSharedPreferences("SettingFragment", 0)
+        prefs = requireContext().getSharedPreferences(TAG, 0)
         AudioEffectManager.setEnabledFromPrefs(prefs)
     }
 
@@ -452,13 +452,16 @@ class SettingFragment : Fragment() {
         super.onDestroyView()
         _binding = null
     }
-
+    
     companion object {
         fun newInstance(): SettingFragment = SettingFragment()
 
-        const val KEY_SPATIAL_ENABLED = "SPATIAL_ENABLED"
-        const val KEY_HEAD_TRACKING_ENABLED = "HEAD_TRACKING_ENABLED"
+        const val TAG = "SettingFragment"
+        const val KEY_EQUALIZER_ENABLED = "ENABLED"
+        const val KEY_REVERB = "REVERB"
         const val KEY_BASS = "BASS"
         const val KEY_VIRTUALIZER = "VIRTUALIZER"
+        const val KEY_SPATIAL_ENABLED = "SPATIAL_ENABLED"
+        const val KEY_HEAD_TRACKING_ENABLED = "HEAD_TRACKING_ENABLED"
     }
 }
