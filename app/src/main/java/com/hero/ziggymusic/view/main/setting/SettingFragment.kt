@@ -237,7 +237,6 @@ class SettingFragment : Fragment() {
     }
 
     private fun initEqualizer() {
-        val equalizer = AudioEffectManager.equalizer ?: return
         val bandLevelRange = AudioEffectManager.getBandLevelRange() ?: return
         val max = bandLevelRange[1].toInt()
         val min = bandLevelRange[0].toInt()
@@ -434,8 +433,8 @@ class SettingFragment : Fragment() {
 
         AudioEffectManager.applyBassStrength(bassProgress)
 
-        binding.sbBass.progressDrawable.setTint(AudioEffectManager.mainColor)
-        binding.sbBass.thumb.setTint(AudioEffectManager.mainColor)
+        binding.sbBass.progressDrawable.setTint(mainColor)
+        binding.sbBass.thumb.setTint(mainColor)
         binding.sbBass.progress = bassProgress
 
         binding.sbBass.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
@@ -453,8 +452,8 @@ class SettingFragment : Fragment() {
 
         AudioEffectManager.applyVirtualizerStrength(virtualizerProgress)
 
-        binding.sbVirtualizer.progressDrawable.setTint(AudioEffectManager.mainColor)
-        binding.sbVirtualizer.thumb.setTint(AudioEffectManager.mainColor)
+        binding.sbVirtualizer.progressDrawable.setTint(mainColor)
+        binding.sbVirtualizer.thumb.setTint(mainColor)
         binding.sbVirtualizer.progress = virtualizerProgress
 
         binding.sbVirtualizer.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
