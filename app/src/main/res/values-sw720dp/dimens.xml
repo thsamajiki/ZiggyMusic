@@ -39,6 +39,7 @@
     <dimen name="setting_eq_label_text_size">10sp</dimen>
     <dimen name="setting_effect_control_end_margin">@dimen/space_xxxl</dimen>
     <dimen name="setting_effect_seekbar_end_margin">26dp</dimen>
+    <dimen name="setting_switch_seekbar_aligned_end_margin">31dp</dimen>
     <dimen name="setting_eq_scale_width">36dp</dimen>
     <dimen name="setting_eq_horizontal_padding">@dimen/space_xxxl</dimen>
     <dimen name="setting_eq_scale_to_bands_gap">3dp</dimen>
