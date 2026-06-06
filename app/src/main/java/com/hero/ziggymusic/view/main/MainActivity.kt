@@ -427,7 +427,7 @@ class MainActivity : AppCompatActivity(),
 
     @OptIn(UnstableApi::class)
     private fun initSoundEQSettings() {
-        val prefs = getSharedPreferences(SettingFragment.TAG, 0)
+        val prefs = getSharedPreferences(SettingFragment.TAG, MODE_PRIVATE)
 
         if (player.audioSessionId != 0) {
             AudioEffectManager.init(player.audioSessionId)
