@@ -9,7 +9,9 @@ import androidx.core.content.edit
 import androidx.core.graphics.toColorInt
 import com.hero.ziggymusic.audio.AudioProcessorChainController
 import com.hero.ziggymusic.view.main.setting.SettingFragment.Companion.KEY_BASS
+import com.hero.ziggymusic.view.main.setting.SettingFragment.Companion.KEY_EQUALIZER_ENABLED
 import com.hero.ziggymusic.view.main.setting.SettingFragment.Companion.KEY_HEAD_TRACKING_ENABLED
+import com.hero.ziggymusic.view.main.setting.SettingFragment.Companion.KEY_REVERB
 import com.hero.ziggymusic.view.main.setting.SettingFragment.Companion.KEY_SPATIAL_ENABLED
 import com.hero.ziggymusic.view.main.setting.SettingFragment.Companion.KEY_VIRTUALIZER
 
@@ -43,8 +45,8 @@ object AudioEffectManager {
     }
 
     fun setEnabledFromPrefs(prefs: SharedPreferences) {
-        val enabled = prefs.getBoolean("ENABLED", false)
-        val reverbPreset = prefs.getInt("REVERB", 0)
+        val enabled = prefs.getBoolean(KEY_EQUALIZER_ENABLED, false)
+        val reverbPreset = prefs.getInt(KEY_REVERB, 0)
         val bassProgress = prefs.getInt(KEY_BASS, 0)
         val virtualizerProgress = prefs.getInt(KEY_VIRTUALIZER, 0)
 
