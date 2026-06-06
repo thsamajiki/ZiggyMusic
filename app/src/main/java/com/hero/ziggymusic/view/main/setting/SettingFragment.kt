@@ -281,7 +281,7 @@ class SettingFragment : Fragment() {
                 binding.spinnerPreset.setSelection(0)
                 prefs.edit { putInt(seekBar.tag.toString(), progress) }
 
-                if (AudioEffectManager.equalizer?.enabled == true) {
+                if (equalizer?.enabled == true) {
                     AudioEffectManager.applyEqualizerBandLevel(
                         bandIndex = seekBar.tag as Int,
                         level = (progress + min).toShort()
