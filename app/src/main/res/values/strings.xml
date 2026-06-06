@@ -31,6 +31,8 @@
     <string name="reverb">리버브</string>
     <string name="bass">베이스</string>
     <string name="_3d_virtualizer">3D 버추얼라이저</string>
+    <string name="loudness_normalizer">음량 평준화</string>
+    <string name="loudness_normalizer_description">곡마다 음량을 일정하게 유지</string>
     <string name="spatial_audio">Spatial Audio</string>
     <string name="head_tracking">Head Tracking</string>
 </resources>
