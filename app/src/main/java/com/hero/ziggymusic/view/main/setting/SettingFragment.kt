@@ -64,6 +64,7 @@ class SettingFragment : Fragment() {
         initEqualizer()
         initBassSeekBar(prefs)
         initReverb()
+        initLoudnessNormalizer()
         initVirtualizerSeekbar()
         initSpatialAudioUi() // XR 기능 UI 설정
     }
@@ -428,6 +429,16 @@ class SettingFragment : Fragment() {
         }
     }
 
+    private fun initLoudnessNormalizer() {
+        val loudnessEnabled = prefs.getBoolean(KEY_LOUDNESS_NORMALIZER_ENABLED, false)
+
+        binding.swLoudnessNormalizer.setOnCheckedChangeListener(null)
+        binding.swLoudnessNormalizer.isChecked = loudnessEnabled
+        binding.swLoudnessNormalizer.setOnCheckedChangeListener { _, isChecked ->
+            AudioEffectManager.applyLoudnessNormalizer(isChecked, prefs)
+        }
+    }
+
     private fun initBassSeekBar(settings: SharedPreferences) {
         val bassProgress = settings.getInt("BASS", 0)
 
@@ -502,6 +513,7 @@ class SettingFragment : Fragment() {
         const val KEY_REVERB = "REVERB"
         const val KEY_BASS = "BASS"
         const val KEY_VIRTUALIZER = "VIRTUALIZER"
+        const val KEY_LOUDNESS_NORMALIZER_ENABLED = "LOUDNESS_NORMALIZER_ENABLED"
         const val KEY_SPATIAL_ENABLED = "SPATIAL_ENABLED"
         const val KEY_HEAD_TRACKING_ENABLED = "HEAD_TRACKING_ENABLED"
 

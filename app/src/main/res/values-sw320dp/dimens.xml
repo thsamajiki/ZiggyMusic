@@ -38,8 +38,11 @@
     <dimen name="setting_spinner_text_size">10sp</dimen>
     <dimen name="setting_eq_label_text_size">9sp</dimen>
     <dimen name="setting_effect_control_end_margin">@dimen/space_xxxl</dimen>
-    <dimen name="setting_effect_seekbar_end_margin">16dp</dimen>
-    <dimen name="setting_switch_seekbar_aligned_end_margin">21dp</dimen>
+    <dimen name="setting_reverb_spinner_end_margin">@dimen/setting_effect_control_end_margin</dimen>
+    <dimen name="setting_effect_seekbar_end_margin">12dp</dimen>
+    <dimen name="setting_switch_seekbar_aligned_end_margin">18dp</dimen>
+    <dimen name="setting_loudness_switch_end_margin">@dimen/setting_switch_seekbar_aligned_end_margin</dimen>
+    <dimen name="setting_description_text_size">@dimen/sub_text_size</dimen>
     <dimen name="setting_eq_scale_width">26dp</dimen>
     <dimen name="setting_eq_horizontal_padding">@dimen/space_xxxl</dimen>
     <dimen name="setting_eq_scale_to_bands_gap">2dp</dimen>

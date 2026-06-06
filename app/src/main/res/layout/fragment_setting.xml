@@ -211,13 +211,58 @@
                     style="@style/Widget.My.Spinner"
                     android:layout_width="@dimen/setting_spinner_width"
                     android:layout_height="@dimen/setting_spinner_height"
-                    android:layout_marginEnd="@dimen/setting_effect_control_end_margin"
+                    android:layout_marginEnd="@dimen/setting_reverb_spinner_end_margin"
                     android:dropDownWidth="@dimen/setting_spinner_dropdown_width"
                     android:dropDownSelector="@color/white"
                     android:padding="0dp"
                     android:popupBackground="@color/black"
                     android:scrollbars="none"
                     android:spinnerMode="dropdown"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/space_xl">
+
+                <TextView
+                    android:id="@+id/tvLoudnessNormalizer"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/space_xxxl"
+                    android:layout_marginEnd="@dimen/space_md"
+                    android:includeFontPadding="false"
+                    android:text="@string/loudness_normalizer"
+                    android:textAppearance="@style/TextAppearance.ZiggyMusic.White.Caption"
+                    app:layout_constraintEnd_toStartOf="@id/swLoudnessNormalizer"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <TextView
+                    android:id="@+id/tvLoudnessNormalizerDescription"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/space_xxxl"
+                    android:layout_marginTop="@dimen/space_xxs"
+                    android:layout_marginEnd="@dimen/space_md"
+                    android:includeFontPadding="false"
+                    android:text="@string/loudness_normalizer_description"
+                    android:textAppearance="@style/TextAppearance.ZiggyMusic.Setting.Description"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toStartOf="@id/swLoudnessNormalizer"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/tvLoudnessNormalizer" />
+
+                <androidx.appcompat.widget.SwitchCompat
+                    android:id="@+id/swLoudnessNormalizer"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="@dimen/setting_loudness_switch_end_margin"
+                    android:contentDescription="@string/loudness_normalizer"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />
