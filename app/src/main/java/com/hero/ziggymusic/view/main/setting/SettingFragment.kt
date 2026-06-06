@@ -70,7 +70,7 @@ class SettingFragment : Fragment() {
 
     // Spatial Audio & Head Tracking UI 설정
     private fun initSpatialAudioUi() {
-        Log.d("SettingFragment", "Spatializer status: ${spatializerSupport.describeStatus()}")
+        Log.d(TAG, "Spatializer status: ${spatializerSupport.describeStatus()}")
 
         binding.swSpatialAudio.setOnCheckedChangeListener(null)
         binding.swHeadTracking.setOnCheckedChangeListener(null)
@@ -174,8 +174,16 @@ class SettingFragment : Fragment() {
     }
 
     private fun initSetting() {
-        prefs = requireContext().getSharedPreferences("SettingFragment", 0)
+        prefs = requireContext().getSharedPreferences(TAG, 0)
         AudioEffectManager.setEnabledFromPrefs(prefs)
+
+        val isEqualizerEnabled = prefs.getBoolean(KEY_EQUALIZER_ENABLED, false)
+        binding.swEqualizer.isChecked = isEqualizerEnabled
+        binding.swEqualizer.setOnCheckedChangeListener { _, isChecked ->
+            prefs.edit { putBoolean(KEY_EQUALIZER_ENABLED, isChecked) }
+            AudioEffectManager.setEnabledFromPrefs(prefs)
+            updateEqualizerUiState(isChecked)
+        }
     }
 
     private fun initPresets(min: Int) {
@@ -229,7 +237,6 @@ class SettingFragment : Fragment() {
     }
 
     private fun initEqualizer() {
-        val equalizer = AudioEffectManager.equalizer ?: return
         val bandLevelRange = AudioEffectManager.getBandLevelRange() ?: return
         val max = bandLevelRange[1].toInt()
         val min = bandLevelRange[0].toInt()
@@ -268,26 +275,26 @@ class SettingFragment : Fragment() {
                 seekBar: SeekBar,
                 progress: Int,
                 fromUser: Boolean,
-                ) {
-                    if (!verticalSeekbar.isTrackingTouch) return
+            ) {
+                if (!verticalSeekbar.isTrackingTouch) return
 
-                    binding.spinnerPreset.setSelection(0)
-                    prefs.edit { putInt(seekBar.tag.toString(), progress) }
+                binding.spinnerPreset.setSelection(0)
+                prefs.edit { putInt(seekBar.tag.toString(), progress) }
 
-                    if (AudioEffectManager.equalizer?.enabled == true) {
-                        AudioEffectManager.applyEqualizerBandLevel(
-                            bandIndex = seekBar.tag as Int,
-                            level = (progress + min).toShort()
-                        )
-                    }
-
-                    val bandIndex = seekBar.tag as Int
-                    val gainDb = mapEqProgressToDb(
-                        progress = progress,
-                        max = seekBar.max
+                if (equalizer?.enabled == true) {
+                    AudioEffectManager.applyEqualizerBandLevel(
+                        bandIndex = seekBar.tag as Int,
+                        level = (progress + min).toShort()
                     )
-                    AudioEffectManager.setBandGain(bandIndex, gainDb)
                 }
+
+                val bandIndex = seekBar.tag as Int
+                val gainDb = mapEqProgressToDb(
+                    progress = progress,
+                    max = seekBar.max
+                )
+                AudioEffectManager.setBandGain(bandIndex, gainDb)
+            }
 
                 override fun onStartTrackingTouch(seekBar: SeekBar) = Unit
                 override fun onStopTrackingTouch(seekBar: SeekBar) = Unit
@@ -331,6 +338,40 @@ class SettingFragment : Fragment() {
         }
 
         initPresets(min)
+        updateEqualizerUiState(binding.swEqualizer.isChecked)
+    }
+
+    private fun updateEqualizerUiState(isEnabled: Boolean) {
+        val contentAlpha = if (isEnabled) EQ_ENABLED_ALPHA else EQ_DISABLED_CONTENT_ALPHA
+        val scaleAlpha = if (isEnabled) EQ_ENABLED_ALPHA else EQ_DISABLED_SCALE_ALPHA
+        val tickAlpha = if (isEnabled) EQ_ENABLED_ALPHA else EQ_DISABLED_TICK_ALPHA
+        val seekbarTint = if (isEnabled) {
+            mainColor
+        } else {
+            ContextCompat.getColor(requireContext(), R.color.dark_gray)
+        }
+
+        binding.tvPreset.isEnabled = isEnabled
+        binding.tvPreset.alpha = contentAlpha
+        binding.spinnerPreset.isEnabled = isEnabled
+        binding.spinnerPreset.alpha = contentAlpha
+        binding.layoutEqScale.alpha = scaleAlpha
+        binding.tvSeekbar.alpha = contentAlpha
+
+        for (index in 0 until binding.seekbarContainer.childCount) {
+            val seekbar = binding.seekbarContainer.getChildAt(index) as? SoundEQVerticalSeekbar
+                ?: continue
+
+            seekbar.isEnabled = isEnabled
+            seekbar.progressDrawable.mutate().setTint(seekbarTint)
+            seekbar.thumb.mutate().setTint(seekbarTint)
+            seekbar.setTickAlpha(tickAlpha)
+            seekbar.refreshThumbState()
+        }
+
+        for (index in 0 until binding.tvSeekbar.childCount) {
+            binding.tvSeekbar.getChildAt(index).isEnabled = isEnabled
+        }
     }
 
     // SettingsFragment의 progress 범위를 기준으로 dB로 환산
@@ -359,14 +400,14 @@ class SettingFragment : Fragment() {
             requireContext(),
             R.layout.item_spinner,
             arrayOf(
-            "None",
-            "Small Room",
-            "Medium Room",
-            "Large Room",
-            "Medium Hall",
-            "Large Hall",
-            "Plate"
-        ))
+                "None",
+                "Small Room",
+                "Medium Room",
+                "Large Room",
+                "Medium Hall",
+                "Large Hall",
+                "Plate"
+            ))
 
         binding.spinnerReverb.adapter = reverbAdapter
         binding.spinnerReverb.setSelection(prefs.getInt("REVERB", 0))
@@ -392,8 +433,8 @@ class SettingFragment : Fragment() {
 
         AudioEffectManager.applyBassStrength(bassProgress)
 
-        binding.sbBass.progressDrawable.setTint(AudioEffectManager.mainColor)
-        binding.sbBass.thumb.setTint(AudioEffectManager.mainColor)
+        binding.sbBass.progressDrawable.setTint(mainColor)
+        binding.sbBass.thumb.setTint(mainColor)
         binding.sbBass.progress = bassProgress
 
         binding.sbBass.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
@@ -411,8 +452,8 @@ class SettingFragment : Fragment() {
 
         AudioEffectManager.applyVirtualizerStrength(virtualizerProgress)
 
-        binding.sbVirtualizer.progressDrawable.setTint(AudioEffectManager.mainColor)
-        binding.sbVirtualizer.thumb.setTint(AudioEffectManager.mainColor)
+        binding.sbVirtualizer.progressDrawable.setTint(mainColor)
+        binding.sbVirtualizer.thumb.setTint(mainColor)
         binding.sbVirtualizer.progress = virtualizerProgress
 
         binding.sbVirtualizer.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
@@ -456,9 +497,17 @@ class SettingFragment : Fragment() {
     companion object {
         fun newInstance(): SettingFragment = SettingFragment()
 
-        const val KEY_SPATIAL_ENABLED = "SPATIAL_ENABLED"
-        const val KEY_HEAD_TRACKING_ENABLED = "HEAD_TRACKING_ENABLED"
+        const val TAG = "SettingFragment"
+        const val KEY_EQUALIZER_ENABLED = "ENABLED"
+        const val KEY_REVERB = "REVERB"
         const val KEY_BASS = "BASS"
         const val KEY_VIRTUALIZER = "VIRTUALIZER"
+        const val KEY_SPATIAL_ENABLED = "SPATIAL_ENABLED"
+        const val KEY_HEAD_TRACKING_ENABLED = "HEAD_TRACKING_ENABLED"
+
+        private const val EQ_ENABLED_ALPHA = 1.0f
+        private const val EQ_DISABLED_CONTENT_ALPHA = 0.55f
+        private const val EQ_DISABLED_SCALE_ALPHA = 0.5f
+        private const val EQ_DISABLED_TICK_ALPHA = 0.45f
     }
 }

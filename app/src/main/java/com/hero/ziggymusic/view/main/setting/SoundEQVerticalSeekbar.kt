@@ -106,6 +106,11 @@ class SoundEQVerticalSeekbar @JvmOverloads constructor(
         invalidate()
     }
 
+    fun setTickAlpha(alpha: Float) {
+        tickPaint.alpha = (alpha.coerceIn(0f, 1f) * 255).toInt()
+        invalidate()
+    }
+
     override fun setProgress(progress: Int) {
         updateProgress(progress)
     }

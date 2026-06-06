@@ -37,7 +37,7 @@
                     android:id="@+id/swEqualizer"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginEnd="@dimen/space_xxxl"
+                    android:layout_marginEnd="@dimen/setting_switch_seekbar_aligned_end_margin"
                     android:checked="true"
                     android:contentDescription="@string/equalizer"
                     app:layout_constraintBottom_toBottomOf="parent"
