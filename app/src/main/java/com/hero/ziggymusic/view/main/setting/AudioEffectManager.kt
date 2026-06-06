@@ -11,6 +11,7 @@ import com.hero.ziggymusic.audio.AudioProcessorChainController
 import com.hero.ziggymusic.view.main.setting.SettingFragment.Companion.KEY_BASS
 import com.hero.ziggymusic.view.main.setting.SettingFragment.Companion.KEY_EQUALIZER_ENABLED
 import com.hero.ziggymusic.view.main.setting.SettingFragment.Companion.KEY_HEAD_TRACKING_ENABLED
+import com.hero.ziggymusic.view.main.setting.SettingFragment.Companion.KEY_LOUDNESS_NORMALIZER_ENABLED
 import com.hero.ziggymusic.view.main.setting.SettingFragment.Companion.KEY_REVERB
 import com.hero.ziggymusic.view.main.setting.SettingFragment.Companion.KEY_SPATIAL_ENABLED
 import com.hero.ziggymusic.view.main.setting.SettingFragment.Companion.KEY_VIRTUALIZER
@@ -49,11 +50,13 @@ object AudioEffectManager {
         val reverbPreset = prefs.getInt(KEY_REVERB, 0)
         val bassProgress = prefs.getInt(KEY_BASS, 0)
         val virtualizerProgress = prefs.getInt(KEY_VIRTUALIZER, 0)
+        val loudnessNormalizerEnabled = prefs.getBoolean(KEY_LOUDNESS_NORMALIZER_ENABLED, false)
 
         equalizer?.enabled = enabled
         reverb?.enabled = enabled && reverbPreset != 0
         bassBoost?.enabled = enabled && bassProgress > 0
         virtualizer?.enabled = enabled && virtualizerProgress > 0
+        setLoudnessNormalizerEnabled(enabled && loudnessNormalizerEnabled)
     }
 
     fun applyBassStrength(progress: Int, prefs: SharedPreferences? = null) {
@@ -84,6 +87,11 @@ object AudioEffectManager {
         prefs?.edit { putInt("REVERB", position) }
         reverb?.preset = position.toShort()
         prefs?.let { setEnabledFromPrefs(it) }
+    }
+
+    fun applyLoudnessNormalizer(enabled: Boolean, prefs: SharedPreferences) {
+        prefs.edit { putBoolean(KEY_LOUDNESS_NORMALIZER_ENABLED, enabled) }
+        setEnabledFromPrefs(prefs)
     }
 
     fun applyEqualizerBandLevel(
@@ -130,6 +138,26 @@ object AudioEffectManager {
 
     fun setCompressor(thresholdDb: Float, ratio: Float, attackMs: Float, releaseMs: Float, makeupDb: Float) {
         AudioProcessorChainController.setCompressor(thresholdDb, ratio, attackMs, releaseMs, makeupDb)
+    }
+
+    private fun setLoudnessNormalizerEnabled(enabled: Boolean) {
+        if (enabled) {
+            setCompressor(
+                thresholdDb = LOUDNESS_NORMALIZER_THRESHOLD_DB,
+                ratio = LOUDNESS_NORMALIZER_RATIO,
+                attackMs = LOUDNESS_NORMALIZER_ATTACK_MS,
+                releaseMs = LOUDNESS_NORMALIZER_RELEASE_MS,
+                makeupDb = LOUDNESS_NORMALIZER_MAKEUP_DB
+            )
+        } else {
+            setCompressor(
+                thresholdDb = COMPRESSOR_BYPASS_THRESHOLD_DB,
+                ratio = COMPRESSOR_BYPASS_RATIO,
+                attackMs = COMPRESSOR_BYPASS_ATTACK_MS,
+                releaseMs = COMPRESSOR_BYPASS_RELEASE_MS,
+                makeupDb = COMPRESSOR_BYPASS_MAKEUP_DB
+            )
+        }
     }
 
     fun setReverb(enabled: Boolean, wet: Float) {
@@ -197,7 +225,20 @@ object AudioEffectManager {
         return (normalized * 24.0f) - 12.0f
     }
 
+    private const val LOUDNESS_NORMALIZER_THRESHOLD_DB = -18.0f
+    private const val LOUDNESS_NORMALIZER_RATIO = 3.0f
+    private const val LOUDNESS_NORMALIZER_ATTACK_MS = 8.0f
+    private const val LOUDNESS_NORMALIZER_RELEASE_MS = 180.0f
+    private const val LOUDNESS_NORMALIZER_MAKEUP_DB = 4.0f
+
+    private const val COMPRESSOR_BYPASS_THRESHOLD_DB = 0.0f
+    private const val COMPRESSOR_BYPASS_RATIO = 1.0f
+    private const val COMPRESSOR_BYPASS_ATTACK_MS = 10.0f
+    private const val COMPRESSOR_BYPASS_RELEASE_MS = 100.0f
+    private const val COMPRESSOR_BYPASS_MAKEUP_DB = 0.0f
+
     fun release() {
+        runCatching { setLoudnessNormalizerEnabled(false) }
         runCatching { equalizer?.release() }
         runCatching { bassBoost?.release() }
         runCatching { virtualizer?.release() }
