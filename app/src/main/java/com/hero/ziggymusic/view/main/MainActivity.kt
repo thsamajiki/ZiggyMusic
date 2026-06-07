@@ -117,7 +117,12 @@ class MainActivity : AppCompatActivity(),
     private fun initListeners() {
         binding.ivBack.setOnClickListener {
             supportFragmentManager.popBackStack()
-            vm.navigateBack()
+        }
+
+        supportFragmentManager.addOnBackStackChangedListener {
+            if (supportFragmentManager.backStackEntryCount == 0) {
+                vm.setTitle(getCurrentMainTitle())
+            }
         }
 
         binding.ivSetting.setOnClickListener {
@@ -205,6 +210,13 @@ class MainActivity : AppCompatActivity(),
             }
         }
         return true
+    }
+
+    private fun getCurrentMainTitle(): MainTitle {
+        return when (binding.bottomNavMain.selectedItemId) {
+            R.id.menu_my_play_list -> MainTitle.MyPlaylist
+            else -> MainTitle.MusicList
+        }
     }
 
     private fun startMusicServiceIfNotificationAllowed() {
