@@ -40,11 +40,11 @@
             android:gravity="start|center_vertical"
             android:maxLines="1"
             android:textAlignment="viewStart"
-            motion:layout_constraintStart_toEndOf="@id/ivAlbumArt"
-            motion:layout_constraintEnd_toStartOf="@id/ivPlayPause"
-            motion:layout_constraintTop_toTopOf="@id/ivAlbumArt"
             motion:layout_constraintBottom_toTopOf="@id/tvSongArtist"
-            motion:layout_constraintHorizontal_bias="0">
+            motion:layout_constraintEnd_toStartOf="@id/ivPlayPause"
+            motion:layout_constraintHorizontal_bias="0"
+            motion:layout_constraintStart_toEndOf="@id/ivAlbumArt"
+            motion:layout_constraintTop_toTopOf="@id/ivAlbumArt">
 
             <CustomAttribute
                 motion:attributeName="textSize"
@@ -57,8 +57,8 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="@dimen/space_xs"
-            android:layout_marginEnd="@dimen/space_xs"
             android:layout_marginTop="@dimen/space_xxs"
+            android:layout_marginEnd="@dimen/space_xs"
             android:ellipsize="end"
             android:gravity="start|center_vertical"
             android:maxLines="1"
@@ -72,6 +72,10 @@
             <CustomAttribute
                 motion:attributeName="textSize"
                 motion:customFloatValue="10" />
+
+            <CustomAttribute
+                motion:attributeName="textColor"
+                motion:customColorValue="@color/player_collapsed_artist_text" />
 
         </Constraint>
 
@@ -146,10 +150,10 @@
             android:background="@color/black"
             android:clickable="false"
             android:focusable="false"
-            motion:layout_constraintTop_toTopOf="parent"
             motion:layout_constraintBottom_toTopOf="@id/vPlayer"
+            motion:layout_constraintEnd_toEndOf="parent"
             motion:layout_constraintStart_toStartOf="parent"
-            motion:layout_constraintEnd_toEndOf="parent" />
+            motion:layout_constraintTop_toTopOf="parent" />
 
         <Constraint
             android:id="@+id/playerTopHandleContainer"
@@ -170,14 +174,14 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="@dimen/space_xxxl"
-            android:layout_marginEnd="@dimen/space_xxxl"
             android:layout_marginTop="@dimen/space_xxxl"
-            android:singleLine="true"
+            android:layout_marginEnd="@dimen/space_xxxl"
             android:ellipsize="marquee"
             android:gravity="center"
             android:marqueeRepeatLimit="marquee_forever"
-            android:textAppearance="@style/TextAppearance.ZiggyMusic.White.Title.SemiBold"
+            android:singleLine="true"
             android:text="@string/current_song_title"
+            android:textAppearance="@style/TextAppearance.ZiggyMusic.White.Title.SemiBold"
             motion:layout_constraintEnd_toEndOf="parent"
             motion:layout_constraintStart_toStartOf="parent"
             motion:layout_constraintTop_toBottomOf="@id/playerTopHandleContainer">
@@ -202,13 +206,13 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="@dimen/space_xxxl"
-            android:layout_marginEnd="@dimen/space_xxxl"
             android:layout_marginTop="@dimen/space_25"
+            android:layout_marginEnd="@dimen/space_xxxl"
             android:ellipsize="end"
             android:gravity="center"
             android:singleLine="true"
-            android:textAppearance="@style/TextAppearance.ZiggyMusic.White.Title"
             android:text="@string/current_song_artist"
+            android:textAppearance="@style/TextAppearance.ZiggyMusic.White.Title"
             motion:layout_constraintEnd_toEndOf="parent"
             motion:layout_constraintStart_toStartOf="parent"
             motion:layout_constraintTop_toBottomOf="@id/ivAlbumArt">
@@ -217,6 +221,10 @@
                 motion:attributeName="textSize"
                 motion:customFloatValue="17" />
 
+            <CustomAttribute
+                motion:attributeName="textColor"
+                motion:customColorValue="@color/white" />
+
         </Constraint>
 
         <Constraint
@@ -224,13 +232,13 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="@dimen/space_xxxxl"
-            android:layout_marginEnd="@dimen/space_xxxl"
             android:layout_marginTop="@dimen/space_25"
+            android:layout_marginEnd="@dimen/space_xxxl"
             android:ellipsize="end"
             android:gravity="center"
             android:singleLine="true"
-            android:textAppearance="@style/TextAppearance.ZiggyMusic.Player.Album"
             android:text="@string/current_song_album"
+            android:textAppearance="@style/TextAppearance.ZiggyMusic.Player.Album"
             motion:layout_constraintEnd_toStartOf="@id/bluetooth"
             motion:layout_constraintHorizontal_chainStyle="packed"
             motion:layout_constraintStart_toEndOf="@id/animationViewVisualizer"

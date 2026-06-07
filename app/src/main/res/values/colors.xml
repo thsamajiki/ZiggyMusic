@@ -12,12 +12,15 @@
     <color name="colorPrimaryDark">#008FB3</color>
     <color name="colorAccent">#3F51B5</color>
     <color name="cyan">#0AD6EC</color>
-    <color name="white">#ffffff</color>
+    <color name="white">#FFFFFFFF</color>
+    <color name="white_75">#BFFFFFFF</color>
+    <color name="white_70">#B3FFFFFF</color>
     <color name="black">#000000</color>
     <color name="dark_black">#201F1F</color>
     <color name="main_dark_gradient_start">#050607</color>
     <color name="main_dark_gradient_center">#101214</color>
     <color name="main_dark_gradient_end">#1A1B1E</color>
+    <color name="player_collapsed_artist_text">@color/white_75</color>
     <color name="setting_dark_gradient_start">#030405</color>
     <color name="setting_dark_gradient_center">#0D1012</color>
     <color name="setting_dark_gradient_end">#202124</color>
