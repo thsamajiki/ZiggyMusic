@@ -89,8 +89,8 @@
         <item name="android:fontFeatureSettings">tnum</item>
     </style>
 
-    <style name="TextAppearance.ZiggyMusic.LightGray.Sub" parent="TextAppearance.ZiggyMusic.Sub">
-        <item name="android:textColor">@color/light_gray</item>
+    <style name="TextAppearance.ZiggyMusic.NormalGray.Sub" parent="TextAppearance.ZiggyMusic.Sub">
+        <item name="android:textColor">@color/normal_gray</item>
     </style>
 
     <style name="TextAppearance.ZiggyMusic.Setting.Spinner" parent="TextAppearance.ZiggyMusic.White.Caption">
