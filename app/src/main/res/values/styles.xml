@@ -72,6 +72,12 @@
         <item name="fontFamily">@font/pretendard_semibold</item>
     </style>
 
+    <style name="TextAppearance.ZiggyMusic.Player.Collapsed.Title" parent="TextAppearance.ZiggyMusic.White.Body.Medium" />
+
+    <style name="TextAppearance.ZiggyMusic.Player.Collapsed.Artist" parent="TextAppearance.ZiggyMusic.Body">
+        <item name="android:textColor">@color/player_collapsed_artist_text</item>
+    </style>
+
     <style name="TextAppearance.ZiggyMusic.Player.Album" parent="TextAppearance.ZiggyMusic.White.Caption">
         <item name="android:textSize">@dimen/small_text_size</item>
         <item name="android:textColor">@color/normal_gray</item>
