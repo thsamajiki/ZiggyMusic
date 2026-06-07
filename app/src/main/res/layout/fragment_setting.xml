@@ -370,7 +370,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginStart="@dimen/space_xxxl"
                         android:text="@string/head_tracking"
-                        android:textAppearance="@style/TextAppearance.ZiggyMusic.LightGray.Sub"
+                        android:textAppearance="@style/TextAppearance.ZiggyMusic.NormalGray.Sub"
                         app:layout_constraintBottom_toBottomOf="parent"
                         app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toTopOf="parent" />
