@@ -23,8 +23,4 @@ class MainViewModel @Inject constructor(
     fun setTitle(title: MainTitle) {
         _currentTitle.value = title
     }
-
-    fun navigateBack() {
-        _currentTitle.value = MainTitle.MusicList
-    }
 }
