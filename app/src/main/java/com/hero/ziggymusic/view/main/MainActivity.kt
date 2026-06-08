@@ -120,8 +120,10 @@ class MainActivity : AppCompatActivity(),
         }
 
         supportFragmentManager.addOnBackStackChangedListener {
-            if (supportFragmentManager.backStackEntryCount == 0) {
-                vm.setTitle(getCurrentMainTitle())
+            when (supportFragmentManager.findFragmentById(binding.fcvMain.id)) {
+                is MusicListFragment -> vm.setTitle(MainTitle.MusicList)
+                is FavoritesFragment -> vm.setTitle(MainTitle.Favorites)
+                is SettingFragment -> vm.setTitle(MainTitle.Setting)
             }
         }
 
