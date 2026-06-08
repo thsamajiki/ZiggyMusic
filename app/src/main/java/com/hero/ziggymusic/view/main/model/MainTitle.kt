@@ -9,7 +9,7 @@ sealed class MainTitle(
     val showSettingButton: Boolean = true,
 ) {
     object MusicList : MainTitle(R.string.title_music_list)
-    object MyPlaylist : MainTitle(R.string.title_my_playlist)
+    object Favorites : MainTitle(R.string.title_favorites)
     object Setting : MainTitle(
         resId = R.string.title_setting,
         showBackButton = true,
