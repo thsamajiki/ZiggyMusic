@@ -26,9 +26,8 @@ class MusicListViewModel @Inject constructor(
     application: Application,
     private val musicRepository : MusicRepository
 ) : AndroidViewModel(application) {
-    private val myPlaylist = musicRepository.getMyPlaylistMusics()
-    private val myPlaylistObserver: (List<MusicModel>) -> Unit = {
-
+    private val favorites = musicRepository.getFavorites()
+    private val favoritesObserver: (List<MusicModel>) -> Unit = {
     }
 
     val allMusics = musicRepository.getAllMusic()
@@ -60,7 +59,7 @@ class MusicListViewModel @Inject constructor(
     init {
         // Observer 는 항상 활성 상태로 간주되므로 항상 수정 관련 알림을 받는다.
         allMusics.observeForever(allMusicsObserver)
-        myPlaylist.observeForever(myPlaylistObserver)
+        favorites.observeForever(favoritesObserver)
 
         viewModelScope.launch {
             runCatching {
@@ -100,25 +99,25 @@ class MusicListViewModel @Inject constructor(
         }
     }
 
-    fun addMusicToMyPlaylist(musicModel: MusicModel) {
+    fun addMusicToFavorites(musicModel: MusicModel) {
         viewModelScope.launch {
-            musicRepository.addMusicToMyPlaylist(musicModel)
+            musicRepository.addMusicToFavorites(musicModel)
         }
     }
 
-    fun isContainedInMyPlayList(musicId: String) : Boolean {
-        return myPlaylist.value.orEmpty().any { it.id == musicId }
+    fun isContainedInFavorites(musicId: String) : Boolean {
+        return favorites.value.orEmpty().any { it.id == musicId }
     }
 
-    fun deleteMusicFromMyPlaylist(musicModel: MusicModel) {
+    fun removeMusicFromMyFavorites(musicModel: MusicModel) {
         viewModelScope.launch {
-            musicRepository.deleteMusicFromMyPlaylist(musicModel)
+            musicRepository.removeMusicFromFavorites(musicModel)
         }
     }
 
     override fun onCleared() {
         allMusics.removeObserver(allMusicsObserver)
-        myPlaylist.removeObserver(myPlaylistObserver)
+        favorites.removeObserver(favoritesObserver)
         super.onCleared()
     }
 }
