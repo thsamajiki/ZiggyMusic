@@ -5,7 +5,7 @@ import androidx.room.*
 import com.hero.ziggymusic.database.music.entity.MusicModel
 
 @Dao
-interface PlaylistMusicDao {
+interface FavoritesDao {
     @Query("SELECT * FROM music_table ORDER BY id ASC")
     fun getAllFiles() : LiveData<List<MusicModel>>
 

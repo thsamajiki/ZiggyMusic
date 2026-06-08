@@ -3,7 +3,7 @@
     <item android:id="@+id/menu_music_list"
         android:title="@string/title_music_list"
         android:icon="@drawable/ic_music_list" />
-    <item android:id="@+id/menu_my_play_list"
-        android:title="@string/title_my_playlist"
-        android:icon="@drawable/ic_my_play_list" />
+    <item android:id="@+id/menu_favorites"
+        android:title="@string/title_favorites"
+        android:icon="@drawable/ic_favorites" />
 </menu>

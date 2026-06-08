@@ -1,4 +1,4 @@
-package com.hero.ziggymusic.view.main.myplaylist.viewmodel
+package com.hero.ziggymusic.view.main.favorites.viewmodel
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
@@ -14,22 +14,22 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-sealed class MyPlaylistUiState {
-    object Idle : MyPlaylistUiState()
-    data class Content(val data: List<MusicModel>) : MyPlaylistUiState()
-    object Empty : MyPlaylistUiState()
-    object Error : MyPlaylistUiState()
+sealed class FavoritesUiState {
+    object Idle : FavoritesUiState()
+    data class Content(val data: List<MusicModel>) : FavoritesUiState()
+    object Empty : FavoritesUiState()
+    object Error : FavoritesUiState()
 }
 
 @HiltViewModel
-class MyPlaylistViewModel @Inject constructor(
+class FavoritesViewModel @Inject constructor(
     application: Application,
     private val musicRepository: MusicRepository
 ) : AndroidViewModel(application) {
-    val myPlaylist : LiveData<List<MusicModel>> = musicRepository.getMyPlaylistMusics()
+    val favorites : LiveData<List<MusicModel>> = musicRepository.getFavorites()
 
-    private val _uiState = MutableLiveData<MyPlaylistUiState>(MyPlaylistUiState.Idle)
-    val uiState: LiveData<MyPlaylistUiState>
+    private val _uiState = MutableLiveData<FavoritesUiState>(FavoritesUiState.Idle)
+    val uiState: LiveData<FavoritesUiState>
         get() = _uiState
 
     private val _emptyStateMessage = MutableLiveData("")
@@ -40,33 +40,33 @@ class MyPlaylistViewModel @Inject constructor(
     val toastEvent: LiveData<SingleEvent<String>>
         get() = _toastEvent
 
-    private val myPlaylistObserver = Observer<List<MusicModel>> { musics ->
-        updateMyPlaylistUiState(musics)
+    private val favoritesObserver = Observer<List<MusicModel>> { musics ->
+        updateFavoritesUiState(musics)
     }
 
     init {
-        myPlaylist.observeForever(myPlaylistObserver)
+        favorites.observeForever(favoritesObserver)
     }
 
-    private fun updateMyPlaylistUiState(musics: List<MusicModel>) {
+    private fun updateFavoritesUiState(musics: List<MusicModel>) {
         if (musics.isEmpty()) {
             _emptyStateMessage.value =
                 getApplication<Application>().getString(R.string.no_music_found)
-            _uiState.value = MyPlaylistUiState.Empty
+            _uiState.value = FavoritesUiState.Empty
         } else {
             _emptyStateMessage.value = ""
-            _uiState.value = MyPlaylistUiState.Content(musics)
+            _uiState.value = FavoritesUiState.Content(musics)
         }
     }
 
-    fun deleteMusicFromMyPlaylist(musicModel: MusicModel) {
+    fun removeMusicFromFavorites(musicModel: MusicModel) {
         viewModelScope.launch {
-            musicRepository.deleteMusicFromMyPlaylist(musicModel)
+            musicRepository.removeMusicFromFavorites(musicModel)
         }
     }
 
     override fun onCleared() {
-        myPlaylist.removeObserver(myPlaylistObserver)
+        favorites.removeObserver(favoritesObserver)
         super.onCleared()
     }
 }

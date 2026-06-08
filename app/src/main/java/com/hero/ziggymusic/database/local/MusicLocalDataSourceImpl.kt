@@ -6,7 +6,7 @@ import androidx.lifecycle.LiveData
 import androidx.room.withTransaction
 import com.hero.ziggymusic.database.AppMusicDatabase
 import com.hero.ziggymusic.database.music.dao.MusicFileDao
-import com.hero.ziggymusic.database.music.dao.PlaylistMusicDao
+import com.hero.ziggymusic.database.music.dao.FavoritesDao
 import com.hero.ziggymusic.database.music.entity.MusicModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -16,7 +16,7 @@ class MusicLocalDataSourceImpl @Inject constructor(
     private val application: Application,
     private val appMusicDatabase: AppMusicDatabase,
     private val musicFileDao: MusicFileDao,
-    private val playlistMusicDao: PlaylistMusicDao,
+    private val favoritesDao: FavoritesDao,
 ) : MusicLocalDataSource {
     override suspend fun loadMusics() = withContext(Dispatchers.IO) {
         val musicListUri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
@@ -83,15 +83,15 @@ class MusicLocalDataSourceImpl @Inject constructor(
         return musicFileDao.getAllFiles()
     }
 
-    override fun getMyPlaylistMusics(): LiveData<List<MusicModel>> {
-        return playlistMusicDao.getAllFiles()
+    override fun getFavorites(): LiveData<List<MusicModel>> {
+        return favoritesDao.getAllFiles()
     }
 
-    override suspend fun addMusicToMyPlaylist(musicModel: MusicModel) {
-        playlistMusicDao.insertMusic(musicModel)
+    override suspend fun addMusicToFavorites(musicModel: MusicModel) {
+        favoritesDao.insertMusic(musicModel)
     }
 
-    override suspend fun deleteMusicFromMyPlaylist(musicModel: MusicModel) {
-        playlistMusicDao.deleteMusic(musicModel)
+    override suspend fun removeMusicFromFavorites(musicModel: MusicModel) {
+        favoritesDao.deleteMusic(musicModel)
     }
 }

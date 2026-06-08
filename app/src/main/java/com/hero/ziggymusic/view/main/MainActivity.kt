@@ -41,7 +41,7 @@ import com.hero.ziggymusic.service.MusicService
 import com.hero.ziggymusic.service.MusicServiceController
 import com.hero.ziggymusic.view.main.model.MainTitle
 import com.hero.ziggymusic.view.main.musiclist.MusicListFragment
-import com.hero.ziggymusic.view.main.myplaylist.MyPlaylistFragment
+import com.hero.ziggymusic.view.main.favorites.FavoritesFragment
 import com.hero.ziggymusic.view.main.player.PlaybackContentType
 import com.hero.ziggymusic.view.main.player.PlaybackStateStore
 import com.hero.ziggymusic.view.main.player.PlayerMotionManager
@@ -202,11 +202,11 @@ class MainActivity : AppCompatActivity(),
                 transaction.replace(binding.fcvMain.id, fragment, "music_list").commit()
                 vm.setTitle(MainTitle.MusicList)
             }
-            R.id.menu_my_play_list -> {
-                val fragment = supportFragmentManager.findFragmentByTag("my_play_list")
-                    ?: MyPlaylistFragment.newInstance()
-                transaction.replace(binding.fcvMain.id, fragment, "my_play_list").commit()
-                vm.setTitle(MainTitle.MyPlaylist)
+            R.id.menu_favorites -> {
+                val fragment = supportFragmentManager.findFragmentByTag("favorites")
+                    ?: FavoritesFragment.newInstance()
+                transaction.replace(binding.fcvMain.id, fragment, "favorites").commit()
+                vm.setTitle(MainTitle.Favorites)
             }
         }
         return true
@@ -214,7 +214,7 @@ class MainActivity : AppCompatActivity(),
 
     private fun getCurrentMainTitle(): MainTitle {
         return when (binding.bottomNavMain.selectedItemId) {
-            R.id.menu_my_play_list -> MainTitle.MyPlaylist
+            R.id.menu_favorites -> MainTitle.Favorites
             else -> MainTitle.MusicList
         }
     }

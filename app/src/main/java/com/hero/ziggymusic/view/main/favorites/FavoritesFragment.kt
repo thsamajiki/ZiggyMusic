@@ -1,4 +1,4 @@
-package com.hero.ziggymusic.view.main.myplaylist
+package com.hero.ziggymusic.view.main.favorites
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -13,27 +13,27 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.hero.ziggymusic.R
 import com.hero.ziggymusic.database.music.entity.MusicModel
-import com.hero.ziggymusic.databinding.FragmentMyPlaylistBinding
+import com.hero.ziggymusic.databinding.FragmentFavoritesBinding
 import com.hero.ziggymusic.event.EventBus
 import com.hero.ziggymusic.ext.playMusic
-import com.hero.ziggymusic.view.main.myplaylist.viewmodel.MyPlaylistUiState
-import com.hero.ziggymusic.view.main.myplaylist.viewmodel.MyPlaylistViewModel
+import com.hero.ziggymusic.view.main.favorites.viewmodel.FavoritesUiState
+import com.hero.ziggymusic.view.main.favorites.viewmodel.FavoritesViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-class MyPlaylistFragment : Fragment() {
-    private var _binding: FragmentMyPlaylistBinding? = null
+class FavoritesFragment : Fragment() {
+    private var _binding: FragmentFavoritesBinding? = null
     private val binding get() = _binding!!
 
-    private val vm by viewModels<MyPlaylistViewModel>()
+    private val vm by viewModels<FavoritesViewModel>()
 
-    private lateinit var myPlayListAdapter: MyPlaylistAdapter
+    private lateinit var favoritesAdapter: FavoritesAdapter
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        _binding = FragmentMyPlaylistBinding.inflate(inflater, container, false)
+        _binding = FragmentFavoritesBinding.inflate(inflater, container, false)
 
         return binding.root
     }
@@ -42,50 +42,50 @@ class MyPlaylistFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         EventBus.getInstance().register(this)
-        initRecyclerView(binding.rvMyPlayList)
+        initRecyclerView(binding.rvFavorites)
         collectUiState()
     }
 
     private fun initRecyclerView(recyclerView: RecyclerView) {
-        myPlayListAdapter = MyPlaylistAdapter(
+        favoritesAdapter = FavoritesAdapter(
             onItemClick = { music ->
                 playMusic(music.id)
             },
             onOptionClick = { music, view ->
-                openDeleteFromMyPlayListOptionMenu(music, view)
+                openDeleteFromFavoritesOptionMenu(music, view)
             }
         )
 
         recyclerView.run {
             layoutManager = LinearLayoutManager(context)
-            adapter = myPlayListAdapter
+            adapter = favoritesAdapter
         }
     }
 
     private fun collectUiState() {
         vm.uiState.observe(viewLifecycleOwner) { state ->
             when (state) {
-                is MyPlaylistUiState.Idle -> {
-                    binding.rvMyPlayList.isVisible = false
+                is FavoritesUiState.Idle -> {
+                    binding.rvFavorites.isVisible = false
                     binding.tvNothingFound.isVisible = false
                 }
 
-                is MyPlaylistUiState.Content -> {
-                    myPlayListAdapter.submitList(state.data)
-                    binding.rvMyPlayList.isVisible = true
+                is FavoritesUiState.Content -> {
+                    favoritesAdapter.submitList(state.data)
+                    binding.rvFavorites.isVisible = true
                     binding.tvNothingFound.isVisible = false
                 }
 
-                is MyPlaylistUiState.Empty -> {
-                    myPlayListAdapter.submitList(emptyList())
+                is FavoritesUiState.Empty -> {
+                    favoritesAdapter.submitList(emptyList())
                     binding.tvNothingFound.text = vm.emptyStateMessage.value.orEmpty()
-                    binding.rvMyPlayList.isVisible = false
+                    binding.rvFavorites.isVisible = false
                     binding.tvNothingFound.isVisible = true
                 }
 
-                is MyPlaylistUiState.Error -> {
-                    myPlayListAdapter.submitList(emptyList())
-                    binding.rvMyPlayList.isVisible = false
+                is FavoritesUiState.Error -> {
+                    favoritesAdapter.submitList(emptyList())
+                    binding.rvFavorites.isVisible = false
                 }
             }
         }
@@ -101,15 +101,15 @@ class MyPlaylistFragment : Fragment() {
         requireContext().playMusic(musicKey)
     }
 
-    private fun openDeleteFromMyPlayListOptionMenu(data: MusicModel, anchorView: View) {
+    private fun openDeleteFromFavoritesOptionMenu(data: MusicModel, anchorView: View) {
         val popupMenu = PopupMenu(requireActivity(), anchorView)
         popupMenu.menuInflater.inflate(
-            R.menu.menu_delete_music_from_myplaylist_option,
+            R.menu.menu_music_item_remove_from_favorites,
             popupMenu.menu
         )
         popupMenu.setOnMenuItemClickListener { item ->
             when (item?.itemId) {
-                R.id.delete_music_from_my_playlist -> deleteMusicFromMyPlayList(data)
+                R.id.remove_music_from_favorites -> removeMusicFromFavorites(data)
             }
 
             true
@@ -118,8 +118,8 @@ class MyPlaylistFragment : Fragment() {
         popupMenu.show()
     }
 
-    private fun deleteMusicFromMyPlayList(musicModel: MusicModel) {
-        vm.deleteMusicFromMyPlaylist(musicModel)
+    private fun removeMusicFromFavorites(musicModel: MusicModel) {
+        vm.removeMusicFromFavorites(musicModel)
     }
 
     override fun onDestroyView() {
@@ -129,6 +129,6 @@ class MyPlaylistFragment : Fragment() {
     }
 
     companion object {
-        fun newInstance() = MyPlaylistFragment()
+        fun newInstance() = FavoritesFragment()
     }
 }
