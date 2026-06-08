@@ -25,15 +25,15 @@ class MusicRepositoryImpl @Inject constructor(
         return musicLocalDataSource.getAllMusic()
     }
 
-    override fun getMyPlaylistMusics(): LiveData<List<MusicModel>> {
-        return musicLocalDataSource.getMyPlaylistMusics()
+    override fun getFavorites(): LiveData<List<MusicModel>> {
+        return musicLocalDataSource.getFavorites()
     }
 
-    override suspend fun addMusicToMyPlaylist(musicModel: MusicModel) {
-        musicLocalDataSource.addMusicToMyPlaylist(musicModel)
+    override suspend fun addMusicToFavorites(musicModel: MusicModel) {
+        musicLocalDataSource.addMusicToFavorites(musicModel)
     }
 
-    override suspend fun deleteMusicFromMyPlaylist(musicModel: MusicModel) {
-        musicLocalDataSource.deleteMusicFromMyPlaylist(musicModel)
+    override suspend fun removeMusicFromFavorites(musicModel: MusicModel) {
+        musicLocalDataSource.removeMusicFromFavorites(musicModel)
     }
 }

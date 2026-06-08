@@ -12,9 +12,9 @@ interface MusicRepository {
 
     fun getAllMusic(): LiveData<List<MusicModel>>
 
-    fun getMyPlaylistMusics(): LiveData<List<MusicModel>>
+    fun getFavorites(): LiveData<List<MusicModel>>
 
-    suspend fun addMusicToMyPlaylist(musicModel: MusicModel)
+    suspend fun addMusicToFavorites(musicModel: MusicModel)
 
-    suspend fun deleteMusicFromMyPlaylist(musicModel: MusicModel)
+    suspend fun removeMusicFromFavorites(musicModel: MusicModel)
 }
