@@ -83,7 +83,7 @@ class MusicListFragment : Fragment() {
                 playMusic(music.id)
             },
             onOptionClick = { music, view ->
-                openAddOrDeleteToFromMyPlaylistOptionMenu(music, view)
+                openAddOrDeleteToFromFavoritesOptionMenu(music, view)
             }
         )
 
@@ -172,19 +172,19 @@ class MusicListFragment : Fragment() {
         requireContext().playMusic(musicKey)
     }
 
-    private fun openAddOrDeleteToFromMyPlaylistOptionMenu(data: MusicModel, anchorView: View) {
+    private fun openAddOrDeleteToFromFavoritesOptionMenu(data: MusicModel, anchorView: View) {
         val popupMenu = PopupMenu(requireActivity(), anchorView)
-        val menuId: Int = if (vm.isContainedInMyPlayList(data.id)) {
-            R.menu.menu_delete_music_from_myplaylist_option
+        val menuId: Int = if (vm.isContainedInFavorites(data.id)) {
+            R.menu.menu_music_item_remove_from_favorites
         } else {
-            R.menu.menu_add_music_to_my_playlist_option
+            R.menu.menu_music_item_add_to_favorites
         }
 
         popupMenu.menuInflater.inflate(menuId, popupMenu.menu)
         popupMenu.setOnMenuItemClickListener { item ->
             when (item?.itemId) {
-                R.id.menu_add_music_to_my_playlist -> addMusicToMyPlaylist(data)
-                R.id.delete_music_from_my_playlist -> deleteMusicFromMyPlayList(data)
+                R.id.add_music_to_favorites -> addMusicToFavorites(data)
+                R.id.remove_music_from_favorites -> removeMusicFromFavorites(data)
             }
 
             true
@@ -193,14 +193,14 @@ class MusicListFragment : Fragment() {
         popupMenu.show()
     }
 
-    private fun addMusicToMyPlaylist(musicModel: MusicModel) {
+    private fun addMusicToFavorites(musicModel: MusicModel) {
         // Local DB에 저장한다.
-        vm.addMusicToMyPlaylist(musicModel)
+        vm.addMusicToFavorites(musicModel)
     }
 
-    private fun deleteMusicFromMyPlayList(musicModel: MusicModel) {
+    private fun removeMusicFromFavorites(musicModel: MusicModel) {
         // Local DB에서 삭제한다.
-        vm.deleteMusicFromMyPlaylist(musicModel)
+        vm.removeMusicFromMyFavorites(musicModel)
     }
 
     override fun onStop() {
