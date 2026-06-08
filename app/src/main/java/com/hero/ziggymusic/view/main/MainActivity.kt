@@ -214,13 +214,6 @@ class MainActivity : AppCompatActivity(),
         return true
     }
 
-    private fun getCurrentMainTitle(): MainTitle {
-        return when (binding.bottomNavMain.selectedItemId) {
-            R.id.menu_favorites -> MainTitle.Favorites
-            else -> MainTitle.MusicList
-        }
-    }
-
     private fun startMusicServiceIfNotificationAllowed() {
         if (!hasNotificationPermission()) return
 
