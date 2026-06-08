@@ -1,12 +1,12 @@
 <resources>
     <string name="app_name">ZiggyMusic</string>
-    <string name="title_music_list">음악 목록</string>
-    <string name="title_my_playlist">나의 플레이리스트</string>
+    <string name="title_music_list">음악</string>
+    <string name="title_favorites">즐겨찾기</string>
     <string name="title_setting">설정</string>
 
     <string-array name="title_array">
-        <item>음악 목록</item>
-        <item>나의 플레이리스트</item>
+        <item>음악</item>
+        <item>즐겨찾기</item>
         <item>설정</item>
     </string-array>
 
@@ -17,8 +17,8 @@
     <string name="current_song_artist">아티스트</string>
     <string name="current_song_album">앨범명</string>
 
-    <string name="add_music_to_my_playlist">플레이리스트에 추가</string>
-    <string name="delete_music_from_my_playlist">플레이리스트에서 제거</string>
+    <string name="add_music_to_favorites">즐겨찾기에 추가</string>
+    <string name="remove_music_from_favorites">즐겨찾기에서 제거</string>
 
     <string name="no_music_found">음원이 없습니다.</string>
     <string name="load_music_failed">음원 목록을 불러오는 데 실패했습니다.</string>
