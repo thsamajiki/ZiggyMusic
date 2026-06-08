@@ -120,8 +120,10 @@ class MainActivity : AppCompatActivity(),
         }
 
         supportFragmentManager.addOnBackStackChangedListener {
-            if (supportFragmentManager.backStackEntryCount == 0) {
-                vm.setTitle(getCurrentMainTitle())
+            when (supportFragmentManager.findFragmentById(binding.fcvMain.id)) {
+                is MusicListFragment -> vm.setTitle(MainTitle.MusicList)
+                is FavoritesFragment -> vm.setTitle(MainTitle.Favorites)
+                is SettingFragment -> vm.setTitle(MainTitle.Setting)
             }
         }
 
@@ -210,13 +212,6 @@ class MainActivity : AppCompatActivity(),
             }
         }
         return true
-    }
-
-    private fun getCurrentMainTitle(): MainTitle {
-        return when (binding.bottomNavMain.selectedItemId) {
-            R.id.menu_favorites -> MainTitle.Favorites
-            else -> MainTitle.MusicList
-        }
     }
 
     private fun startMusicServiceIfNotificationAllowed() {
