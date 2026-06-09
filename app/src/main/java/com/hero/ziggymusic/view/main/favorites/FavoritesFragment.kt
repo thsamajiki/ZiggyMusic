@@ -5,17 +5,16 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
-import androidx.appcompat.widget.PopupMenu
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.hero.ziggymusic.R
 import com.hero.ziggymusic.database.music.entity.MusicModel
 import com.hero.ziggymusic.databinding.FragmentFavoritesBinding
 import com.hero.ziggymusic.event.EventBus
 import com.hero.ziggymusic.ext.playMusic
+import com.hero.ziggymusic.view.main.popup.MusicOptionMenuPopup
 import com.hero.ziggymusic.view.main.favorites.viewmodel.FavoritesUiState
 import com.hero.ziggymusic.view.main.favorites.viewmodel.FavoritesViewModel
 import dagger.hilt.android.AndroidEntryPoint
@@ -52,7 +51,7 @@ class FavoritesFragment : Fragment() {
                 playMusic(music.id)
             },
             onOptionClick = { music, view ->
-                openDeleteFromFavoritesOptionMenu(music, view)
+                openMusicOptionMenuPopup(music, view)
             }
         )
 
@@ -101,21 +100,14 @@ class FavoritesFragment : Fragment() {
         requireContext().playMusic(musicKey)
     }
 
-    private fun openDeleteFromFavoritesOptionMenu(data: MusicModel, anchorView: View) {
-        val popupMenu = PopupMenu(requireActivity(), anchorView)
-        popupMenu.menuInflater.inflate(
-            R.menu.menu_music_item_remove_from_favorites,
-            popupMenu.menu
-        )
-        popupMenu.setOnMenuItemClickListener { item ->
-            when (item?.itemId) {
-                R.id.remove_music_from_favorites -> removeMusicFromFavorites(data)
-            }
-
-            true
-        }
-
-        popupMenu.show()
+    private fun openMusicOptionMenuPopup(data: MusicModel, anchorView: View) {
+        MusicOptionMenuPopup(
+            anchorView = anchorView,
+            showAddToFavorites = false,
+            showRemoveFromFavorites = true,
+            onAddToFavorites = {},
+            onRemoveFromFavorites = { removeMusicFromFavorites(data) }
+        ).show()
     }
 
     private fun removeMusicFromFavorites(musicModel: MusicModel) {

@@ -13,18 +13,17 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
-import androidx.appcompat.widget.PopupMenu
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.hero.ziggymusic.R
 import com.hero.ziggymusic.database.music.entity.MusicModel
 import com.hero.ziggymusic.databinding.FragmentMusicListBinding
 import com.hero.ziggymusic.event.EventBus
 import com.hero.ziggymusic.ext.playMusic
+import com.hero.ziggymusic.view.main.popup.MusicOptionMenuPopup
 import com.hero.ziggymusic.view.main.musiclist.viewmodel.MusicListUiState
 import com.hero.ziggymusic.view.main.musiclist.viewmodel.MusicListViewModel
 import dagger.hilt.android.AndroidEntryPoint
@@ -83,7 +82,7 @@ class MusicListFragment : Fragment() {
                 playMusic(music.id)
             },
             onOptionClick = { music, view ->
-                openAddOrDeleteToFromFavoritesOptionMenu(music, view)
+                openMusicOptionMenuPopup(music, view)
             }
         )
 
@@ -172,25 +171,16 @@ class MusicListFragment : Fragment() {
         requireContext().playMusic(musicKey)
     }
 
-    private fun openAddOrDeleteToFromFavoritesOptionMenu(data: MusicModel, anchorView: View) {
-        val popupMenu = PopupMenu(requireActivity(), anchorView)
-        val menuId: Int = if (vm.isContainedInFavorites(data.id)) {
-            R.menu.menu_music_item_remove_from_favorites
-        } else {
-            R.menu.menu_music_item_add_to_favorites
-        }
+    private fun openMusicOptionMenuPopup(data: MusicModel, anchorView: View) {
+        val isFavorite = vm.isContainedInFavorites(data.id)
 
-        popupMenu.menuInflater.inflate(menuId, popupMenu.menu)
-        popupMenu.setOnMenuItemClickListener { item ->
-            when (item?.itemId) {
-                R.id.add_music_to_favorites -> addMusicToFavorites(data)
-                R.id.remove_music_from_favorites -> removeMusicFromFavorites(data)
-            }
-
-            true
-        }
-
-        popupMenu.show()
+        MusicOptionMenuPopup(
+            anchorView = anchorView,
+            showAddToFavorites = !isFavorite,
+            showRemoveFromFavorites = isFavorite,
+            onAddToFavorites = { addMusicToFavorites(data) },
+            onRemoveFromFavorites = { removeMusicFromFavorites(data) }
+        ).show()
     }
 
     private fun addMusicToFavorites(musicModel: MusicModel) {
