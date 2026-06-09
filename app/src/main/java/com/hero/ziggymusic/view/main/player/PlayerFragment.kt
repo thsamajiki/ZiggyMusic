@@ -625,7 +625,8 @@ class PlayerFragment : Fragment() {
             latestAlbumBitmap = null
             resetVisualizerBarColor()
             albumGradientManager?.resetToDarkBackground(binding.albumBackground, animate = true)
-            binding.ivAlbumArt.setImageResource(R.drawable.ic_no_album_image)
+            binding.ivAlbumArt.setImageResource(R.drawable.placeholder_album_art)
+
             return
         }
 
@@ -648,8 +649,8 @@ class PlayerFragment : Fragment() {
             .asBitmap()
             .load(musicModel.getAlbumUri())
             .override(albumArtSize, albumArtSize)
-            .error(R.drawable.ic_no_album_image)
-            .fallback(R.drawable.ic_no_album_image)
+            .error(R.drawable.placeholder_album_art)
+            .fallback(R.drawable.placeholder_album_art)
             .transform(RoundedCorners(albumArtCornerRadius))
             .listener(object : RequestListener<Bitmap> {
                 override fun onLoadFailed(
