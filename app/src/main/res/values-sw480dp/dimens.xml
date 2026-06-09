@@ -52,6 +52,15 @@
     <dimen name="empty_height_sm">32dp</dimen>
     <dimen name="bottom_nav_height">64dp</dimen>
 
+    <!-- Music option popup -->
+    <dimen name="music_option_menu_popup_width">280dp</dimen>
+    <dimen name="music_option_menu_popup_vertical_padding">6dp</dimen>
+    <dimen name="music_option_menu_popup_item_height">64dp</dimen>
+    <dimen name="music_option_menu_popup_horizontal_padding">24dp</dimen>
+    <dimen name="music_option_menu_popup_icon_size">28dp</dimen>
+    <dimen name="music_option_menu_popup_text_margin_start">20dp</dimen>
+    <dimen name="music_option_menu_popup_divider_horizontal_margin">24dp</dimen>
+
     <!-- Components: exceptions -->
     <dimen name="icon_27">30dp</dimen>
 
