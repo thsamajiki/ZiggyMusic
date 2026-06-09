@@ -27,6 +27,8 @@
     <color name="setting_divider">#1FFFFFFF</color>
     <color name="bottom_nav_scrim">#CC101214</color>
     <color name="player_collapsed_scrim">#E6101214</color>
+    <color name="music_option_menu_popup_background">#F20F1012</color>
+    <color name="music_option_menu_popup_divider">#1FFFFFFF</color>
     <color name="dark_gray">#535353</color>
     <color name="gray_333">#333333</color>
     <color name="background1">#475263</color>
