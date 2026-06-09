@@ -26,7 +26,7 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             app:shapeAppearanceOverlay="@style/ShapeAppearance.ZiggyMusic.AlbumArt"
-            tools:src="@drawable/ic_no_album_image" />
+            tools:src="@drawable/placeholder_album_art" />
 
         <TextView
             android:id="@+id/tvSongTitle"
