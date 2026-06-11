@@ -29,7 +29,8 @@ sealed class MusicListUiState {
 
 data class MusicSearchResult(
     val items: List<MusicModel>,
-    val emptyMessage: String
+    val emptyMessage: String,
+    val hasOriginalItems: Boolean,
 )
 
 @HiltViewModel
@@ -174,7 +175,8 @@ class MusicListViewModel @Inject constructor(
 
         return MusicSearchResult(
             items = filteredItems,
-            emptyMessage = emptyMessage
+            emptyMessage = emptyMessage,
+            hasOriginalItems = musicList.isNotEmpty()
         )
     }
 

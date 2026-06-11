@@ -275,10 +275,15 @@ class MusicListFragment : Fragment() {
     }
 
     private fun showSearchResult(searchResult: MusicSearchResult) {
-        musicListAdapter.submitList(searchResult.items)
-        binding.rvMusicList.isVisible = searchResult.items.isNotEmpty()
-        binding.tvNothingFound.isVisible = searchResult.items.isEmpty()
         binding.tvNothingFound.text = searchResult.emptyMessage
+        if (searchResult.items.isNotEmpty()) {
+            binding.tvNothingFound.isVisible = false
+        }
+
+        musicListAdapter.submitList(searchResult.items) {
+            binding.rvMusicList.isVisible = searchResult.hasOriginalItems || searchResult.items.isNotEmpty()
+            binding.tvNothingFound.isVisible = searchResult.items.isEmpty()
+        }
     }
 
     private fun showSearchBar() {
