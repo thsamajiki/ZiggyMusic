@@ -62,7 +62,7 @@
             android:layout_width="@dimen/music_option_menu_popup_icon_size"
             android:layout_height="@dimen/music_option_menu_popup_icon_size"
             android:contentDescription="@null"
-            android:src="@drawable/ic_favorite_star_filled"
+            android:src="@drawable/ic_favorite_star_undo"
             app:tint="@color/colorPrimaryDark" />
 
         <TextView
