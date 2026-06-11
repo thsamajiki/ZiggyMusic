@@ -21,6 +21,11 @@ sealed class MusicListUiState {
     object Error : MusicListUiState()
 }
 
+data class MusicSearchResult(
+    val items: List<MusicModel>,
+    val emptyMessage: String
+)
+
 @HiltViewModel
 class MusicListViewModel @Inject constructor(
     application: Application,
@@ -97,6 +102,29 @@ class MusicListViewModel @Inject constructor(
                 _uiState.value = MusicListUiState.Error
             }
         }
+    }
+
+    fun searchMusicItems(query: String, musicList: List<MusicModel>): MusicSearchResult {
+        val keyword = query.trim()
+        val filteredItems = if (keyword.isBlank()) {
+            musicList
+        } else {
+            musicList.filter { music ->
+                music.title.orEmpty().contains(keyword, ignoreCase = true) ||
+                        music.artist.orEmpty().contains(keyword, ignoreCase = true)
+            }
+        }
+
+        val emptyMessage = if (keyword.isBlank()) {
+            _emptyStateMessage.value.orEmpty()
+        } else {
+            getApplication<Application>().getString(R.string.music_search_no_result)
+        }
+
+        return MusicSearchResult(
+            items = filteredItems,
+            emptyMessage = emptyMessage
+        )
     }
 
     fun addMusicToFavorites(musicModel: MusicModel) {

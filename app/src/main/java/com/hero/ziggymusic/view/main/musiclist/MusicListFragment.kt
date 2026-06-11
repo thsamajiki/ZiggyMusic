@@ -34,6 +34,7 @@ import com.hero.ziggymusic.databinding.FragmentMusicListBinding
 import com.hero.ziggymusic.event.EventBus
 import com.hero.ziggymusic.ext.playMusic
 import com.hero.ziggymusic.view.main.popup.MusicOptionMenuPopup
+import com.hero.ziggymusic.view.main.musiclist.viewmodel.MusicSearchResult
 import com.hero.ziggymusic.view.main.musiclist.viewmodel.MusicListUiState
 import com.hero.ziggymusic.view.main.musiclist.viewmodel.MusicListViewModel
 import dagger.hilt.android.AndroidEntryPoint
@@ -196,34 +197,6 @@ class MusicListFragment : Fragment() {
         }
     }
 
-    private inner class SearchRevealEdgeEffectFactory : RecyclerView.EdgeEffectFactory() {
-        override fun createEdgeEffect(recyclerView: RecyclerView, direction: Int): EdgeEffect {
-            if (direction != DIRECTION_TOP) {
-                return super.createEdgeEffect(recyclerView, direction)
-            }
-
-            return object : EdgeEffect(recyclerView.context) {
-                override fun onPull(deltaDistance: Float) {
-                    revealSearchFromTopPull(deltaDistance, recyclerView.height)
-                }
-
-                override fun onPull(deltaDistance: Float, displacement: Float) {
-                    revealSearchFromTopPull(deltaDistance, recyclerView.height)
-                }
-
-                override fun onRelease() {
-                    settleSearchBar()
-                }
-
-                override fun onAbsorb(velocity: Int) = Unit
-
-                override fun draw(canvas: Canvas): Boolean = false
-
-                override fun isFinished(): Boolean = true
-            }
-        }
-    }
-
     private fun revealSearchFromTopPull(deltaDistance: Float, recyclerViewHeight: Int) {
         if (recyclerViewHeight <= 0) return
 
@@ -304,30 +277,16 @@ class MusicListFragment : Fragment() {
     private fun debounceSearch(query: String) {
         searchRunnable?.let { searchHandler.removeCallbacks(it) }
         searchRunnable = Runnable {
-            applySearch(query)
+            showSearchResult(vm.searchMusicItems(query, allMusicItems))
         }
         searchHandler.postDelayed(searchRunnable!!, SEARCH_DEBOUNCE_MS)
     }
 
-    private fun applySearch(query: String) {
-        val keyword = query.trim()
-        val filteredItems = if (keyword.isBlank()) {
-            allMusicItems
-        } else {
-            allMusicItems.filter { music ->
-                music.title.orEmpty().contains(keyword, ignoreCase = true) ||
-                        music.artist.orEmpty().contains(keyword, ignoreCase = true)
-            }
-        }
-
-        musicListAdapter.submitList(filteredItems)
-        binding.rvMusicList.isVisible = filteredItems.isNotEmpty()
-        binding.tvNothingFound.isVisible = filteredItems.isEmpty()
-        binding.tvNothingFound.text = if (keyword.isBlank()) {
-            vm.emptyStateMessage.value.orEmpty()
-        } else {
-            getString(R.string.music_search_no_result)
-        }
+    private fun showSearchResult(searchResult: MusicSearchResult) {
+        musicListAdapter.submitList(searchResult.items)
+        binding.rvMusicList.isVisible = searchResult.items.isNotEmpty()
+        binding.tvNothingFound.isVisible = searchResult.items.isEmpty()
+        binding.tvNothingFound.text = searchResult.emptyMessage
     }
 
     private fun showSearchBar() {
@@ -491,20 +450,13 @@ class MusicListFragment : Fragment() {
 
                 is MusicListUiState.Content -> {
                     allMusicItems = state.data
-                    applySearch(currentSearchQuery)
+                    showSearchResult(vm.searchMusicItems(currentSearchQuery, allMusicItems))
                 }
 
                 is MusicListUiState.Empty -> {
                     allMusicItems = emptyList()
                     currentSearchQuery = binding.etSearch.text?.toString().orEmpty()
-                    musicListAdapter.submitList(emptyList())
-                    binding.rvMusicList.isVisible = false
-                    binding.tvNothingFound.isVisible = true
-                    binding.tvNothingFound.text = if (currentSearchQuery.isBlank()) {
-                        vm.emptyStateMessage.value.orEmpty()
-                    } else {
-                        getString(R.string.music_search_no_result)
-                    }
+                    showSearchResult(vm.searchMusicItems(currentSearchQuery, allMusicItems))
                 }
 
                 is MusicListUiState.Error -> {
@@ -600,6 +552,34 @@ class MusicListFragment : Fragment() {
         _binding = null
         EventBus.getInstance().unregister(this)
         super.onDestroyView()
+    }
+
+    private inner class SearchRevealEdgeEffectFactory : RecyclerView.EdgeEffectFactory() {
+        override fun createEdgeEffect(recyclerView: RecyclerView, direction: Int): EdgeEffect {
+            if (direction != DIRECTION_TOP) {
+                return super.createEdgeEffect(recyclerView, direction)
+            }
+
+            return object : EdgeEffect(recyclerView.context) {
+                override fun onPull(deltaDistance: Float) {
+                    revealSearchFromTopPull(deltaDistance, recyclerView.height)
+                }
+
+                override fun onPull(deltaDistance: Float, displacement: Float) {
+                    revealSearchFromTopPull(deltaDistance, recyclerView.height)
+                }
+
+                override fun onRelease() {
+                    settleSearchBar()
+                }
+
+                override fun onAbsorb(velocity: Int) = Unit
+
+                override fun draw(canvas: Canvas): Boolean = false
+
+                override fun isFinished(): Boolean = true
+            }
+        }
     }
 
     companion object {
