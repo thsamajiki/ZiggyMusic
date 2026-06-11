@@ -16,8 +16,14 @@ class SearchTouchFrameLayout @JvmOverloads constructor(
         isClickable = true
     }
 
-    override fun onTouchEvent(event: MotionEvent): Boolean {
+    // 검색창 영역에서 발생하는 터치를 관찰
+    override fun dispatchTouchEvent(event: MotionEvent): Boolean {
         onSearchTouchEvent?.invoke(event)
+        return super.dispatchTouchEvent(event)
+    }
+
+    // 빈 영역 터치 소비 및 클릭 처리
+    override fun onTouchEvent(event: MotionEvent): Boolean {
         if (event.actionMasked == MotionEvent.ACTION_UP) {
             performClick()
         }
