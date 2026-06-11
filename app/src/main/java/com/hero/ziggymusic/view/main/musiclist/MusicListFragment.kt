@@ -302,7 +302,7 @@ class MusicListFragment : Fragment() {
         requestId: Long,
         waitForListRemoval: Boolean
     ) {
-        // 이전 결과 아이템이 사라지는 중이면, 제거 애니메이션 이후에 검색 결과과 없다는 문구를 보여준다.
+        // 이전 결과 아이템이 사라지는 중이면, 제거 애니메이션 이후에 검색 결과가 없다는 문구를 보여준다.
         if (!waitForListRemoval) {
             binding.tvNothingFound.isVisible = requestId == searchRequestId
             return
