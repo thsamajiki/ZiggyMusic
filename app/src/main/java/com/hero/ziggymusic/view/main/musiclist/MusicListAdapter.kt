@@ -11,6 +11,7 @@ import com.bumptech.glide.Glide
 import com.hero.ziggymusic.R
 import com.hero.ziggymusic.database.music.entity.MusicModel
 import com.hero.ziggymusic.databinding.ItemMusicListBinding
+import com.hero.ziggymusic.ext.expandTouchArea
 import com.hero.ziggymusic.ext.toDurationText
 
 class MusicListAdapter(
@@ -59,6 +60,7 @@ class MusicListAdapter(
                 onItemClick(musicItem)
             }
 
+            binding.ivMusicOptionMenu.expandTouchArea()
             binding.ivMusicOptionMenu.setOnClickListener { view ->
                 onOptionClick(musicItem, view)
             }

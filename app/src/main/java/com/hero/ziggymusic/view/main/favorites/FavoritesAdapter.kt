@@ -12,6 +12,7 @@ import com.bumptech.glide.Glide
 import com.hero.ziggymusic.R
 import com.hero.ziggymusic.database.music.entity.MusicModel
 import com.hero.ziggymusic.databinding.ItemFavoritesBinding
+import com.hero.ziggymusic.ext.expandTouchArea
 import com.hero.ziggymusic.ext.toDurationText
 
 class FavoritesAdapter(
@@ -60,6 +61,7 @@ class FavoritesAdapter(
                 Log.d("onItemClick", "MusicModel: $favoriteItem, ${favoriteItem.id}")
             }
 
+            binding.ivMusicOptionMenu.expandTouchArea()
             binding.ivMusicOptionMenu.setOnClickListener { view ->
                 onOptionClick(favoriteItem, view)
             }
