@@ -178,8 +178,9 @@ class MusicListFragment : Fragment() {
             MotionEvent.ACTION_MOVE -> {
                 val deltaY = event.y - lastRecyclerTouchY
                 lastRecyclerTouchY = event.y
+                val collapseThresholdPx = resources.displayMetrics.density * SEARCH_TOUCH_COLLAPSE_DY_DP
 
-                if (deltaY < -SEARCH_TOUCH_COLLAPSE_DY && searchProgress > 0f) {
+                if (deltaY < -collapseThresholdPx && searchProgress > 0f) {
                     shouldCollapseSearchOnIdle = true
                     clearSearchFocusForScroll()
                     collapseSearchByScroll(-deltaY)
@@ -631,7 +632,12 @@ class MusicListFragment : Fragment() {
         private const val SEARCH_TRANSLATION_DP = 12f
         private const val SEARCH_SETTLE_EXPAND_PROGRESS = 0.5f
         private const val SEARCH_PROGRESS_EPSILON = 0.001f
-        private const val SEARCH_TOUCH_COLLAPSE_DY = 0f
+        /*
+        * 검색창을 완전히 연 상태에서 RecyclerView를 아주 살짝 터치하거나 미세하게 움직여 본다.
+        * 검색창이 너무 쉽게 닫히면 값이 아직 작다. 이 경우 4dp 또는 5dp로 올리는 게 좋다.
+        * 검색창을 완전히 연 상태에서 RecyclerView를 천천히 위로 스크롤했는데 검색창이 잘 안 닫히면 값이 너무 크다. 이 경우 2dp 또는 3dp가 맞다.
+        */
+        private const val SEARCH_TOUCH_COLLAPSE_DY_DP = 4f
         private const val TOP_PULL_RESISTANCE = 0.7f
 
         fun newInstance() = MusicListFragment()
