@@ -26,6 +26,9 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.hero.ziggymusic.R
@@ -38,6 +41,7 @@ import com.hero.ziggymusic.view.main.musiclist.viewmodel.MusicSearchResult
 import com.hero.ziggymusic.view.main.musiclist.viewmodel.MusicListUiState
 import com.hero.ziggymusic.view.main.musiclist.viewmodel.MusicListViewModel
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
 @AndroidEntryPoint
@@ -50,12 +54,8 @@ class MusicListFragment : Fragment() {
     private lateinit var musicListAdapter: MusicListAdapter
     private var mediaStoreObserver: ContentObserver? = null
     private var hasRefreshedAfterPermission = false
-    private val searchHandler = Handler(Looper.getMainLooper())
-    private var searchRunnable: Runnable? = null
     private var searchAnimator: ValueAnimator? = null
     private var isSearchVisible = false
-    private var currentSearchQuery = ""
-    private var allMusicItems: List<MusicModel> = emptyList()
     private var searchProgress = 0f
     private var topOverscrollDistance = 0f
     private var shouldCollapseSearchOnIdle = false
@@ -254,9 +254,9 @@ class MusicListFragment : Fragment() {
 
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
                 val query = s?.toString().orEmpty()
-                currentSearchQuery = query
                 binding.btnClearSearch.isVisible = query.isNotEmpty()
-                debounceSearch(query)
+                // debounce와 실제 필터링은 ViewModel의 StateFlow에서 처리한다.
+                vm.setSearchQuery(query)
             }
 
             override fun afterTextChanged(s: Editable?) = Unit
@@ -272,14 +272,6 @@ class MusicListFragment : Fragment() {
             clearSearchFocusForScroll()
             collapseSearchByScroll(-deltaY)
         }
-    }
-
-    private fun debounceSearch(query: String) {
-        searchRunnable?.let { searchHandler.removeCallbacks(it) }
-        searchRunnable = Runnable {
-            showSearchResult(vm.searchMusicItems(query, allMusicItems))
-        }
-        searchHandler.postDelayed(searchRunnable!!, SEARCH_DEBOUNCE_MS)
     }
 
     private fun showSearchResult(searchResult: MusicSearchResult) {
@@ -449,20 +441,28 @@ class MusicListFragment : Fragment() {
                 }
 
                 is MusicListUiState.Content -> {
-                    allMusicItems = state.data
-                    showSearchResult(vm.searchMusicItems(currentSearchQuery, allMusicItems))
+                    vm.setSearchMusicItems(state.data)
                 }
 
                 is MusicListUiState.Empty -> {
-                    allMusicItems = emptyList()
-                    currentSearchQuery = binding.etSearch.text?.toString().orEmpty()
-                    showSearchResult(vm.searchMusicItems(currentSearchQuery, allMusicItems))
+                    vm.setSearchMusicItems(emptyList())
                 }
 
                 is MusicListUiState.Error -> {
                     Log.e("MusicListFragment", getString(R.string.music_list_load_failed))
+                    vm.clearSearchResult()
                     musicListAdapter.submitList(emptyList())
                     binding.rvMusicList.isVisible = false
+                    binding.tvNothingFound.isVisible = false
+                }
+            }
+        }
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                // Fragment는 검색 결과를 화면에 반영하는 역할만 담당한다.
+                vm.searchResult.collect { searchResult ->
+                    searchResult?.let { showSearchResult(it) }
                 }
             }
         }
@@ -545,8 +545,6 @@ class MusicListFragment : Fragment() {
     }
 
     override fun onDestroyView() {
-        searchRunnable?.let { searchHandler.removeCallbacks(it) }
-        searchRunnable = null
         searchAnimator?.cancel()
         searchAnimator = null
         _binding = null
@@ -583,7 +581,6 @@ class MusicListFragment : Fragment() {
     }
 
     companion object {
-        private const val SEARCH_DEBOUNCE_MS = 200L
         private const val SEARCH_ANIMATION_DURATION_MS = 180L
         private const val SEARCH_TRANSLATION_DP = 12f
         private const val SEARCH_SETTLE_EXPAND_PROGRESS = 0.5f
