@@ -292,7 +292,7 @@ class MusicListFragment : Fragment() {
             if (searchResult.items.isEmpty()) {
                 showEmptySearchMessageAfterListSettled(
                     requestId = currentRequestId,
-                    waitForListRemoval = hadVisibleItems
+                    waitForListRemoval = hadVisibleItems && searchResult.hasOriginalItems
                 )
             }
         }
