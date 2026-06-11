@@ -23,6 +23,7 @@ import android.view.inputmethod.InputMethodManager
 import android.widget.EdgeEffect
 import android.widget.Toast
 import androidx.core.content.ContextCompat
+import androidx.core.view.doOnNextLayout
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -62,6 +63,7 @@ class MusicListFragment : Fragment() {
     private var isSearchCollapseAnimating = false
     private var lastRecyclerTouchY = 0f
     private var lastSearchContainerTouchY = 0f
+    private var searchRequestId = 0L
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -275,14 +277,53 @@ class MusicListFragment : Fragment() {
     }
 
     private fun showSearchResult(searchResult: MusicSearchResult) {
+        // 늦게 도착한 이전 검색 callback이 최신 결과 UI를 덮어쓰지 않도록 요청 id를 캡처한다.
+        val currentRequestId = ++searchRequestId
+        val hadVisibleItems = musicListAdapter.currentList.isNotEmpty()
+
         binding.tvNothingFound.text = searchResult.emptyMessage
-        if (searchResult.items.isNotEmpty()) {
-            binding.tvNothingFound.isVisible = false
-        }
+        binding.tvNothingFound.isVisible = false
 
         musicListAdapter.submitList(searchResult.items) {
+            if (currentRequestId != searchRequestId) return@submitList
+
             binding.rvMusicList.isVisible = searchResult.hasOriginalItems || searchResult.items.isNotEmpty()
-            binding.tvNothingFound.isVisible = searchResult.items.isEmpty()
+
+            if (searchResult.items.isEmpty()) {
+                showEmptySearchMessageAfterListSettled(
+                    requestId = currentRequestId,
+                    waitForListRemoval = hadVisibleItems
+                )
+            }
+        }
+    }
+
+    private fun showEmptySearchMessageAfterListSettled(
+        requestId: Long,
+        waitForListRemoval: Boolean
+    ) {
+        // 이전 결과 아이템이 사라지는 중이면, 제거 애니메이션 이후에 검색 결과과 없다는 문구를 보여준다.
+        if (!waitForListRemoval) {
+            binding.tvNothingFound.isVisible = requestId == searchRequestId
+            return
+        }
+
+        binding.rvMusicList.doOnNextLayout {
+            showEmptySearchMessageWhenItemAnimationsFinish(requestId)
+        }
+    }
+
+    private fun showEmptySearchMessageWhenItemAnimationsFinish(requestId: Long) {
+        val itemAnimator = binding.rvMusicList.itemAnimator
+        if (itemAnimator == null || !itemAnimator.isRunning) {
+            binding.tvNothingFound.isVisible = requestId == searchRequestId
+            return
+        }
+
+        itemAnimator.isRunning {
+            if (requestId == searchRequestId) {
+                binding.tvNothingFound.isVisible = true
+            }
         }
     }
 
