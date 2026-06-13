@@ -185,6 +185,10 @@ class PlayerFragment : Fragment() {
                         BottomSheetBehavior.STATE_HIDDEN -> {
                             playerBottomSheetManager.collapse()
                         }
+
+                        BottomSheetBehavior.STATE_DRAGGING -> {}
+                        BottomSheetBehavior.STATE_HALF_EXPANDED -> {}
+                        BottomSheetBehavior.STATE_SETTLING -> {}
                     }
                 }
 
