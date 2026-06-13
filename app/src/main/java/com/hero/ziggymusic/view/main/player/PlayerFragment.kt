@@ -635,9 +635,9 @@ class PlayerFragment : Fragment() {
         }
         lastRenderedMusicId = musicModel.id
 
-        binding.tvSongTitle.text = musicModel?.title.orEmpty()
-        binding.tvSongArtist.text = musicModel?.artist.orEmpty()
-        binding.tvSongAlbum.text = musicModel?.album.orEmpty()
+        binding.tvSongTitle.text = musicModel.title.orEmpty()
+        binding.tvSongArtist.text = musicModel.artist.orEmpty()
+        binding.tvSongAlbum.text = musicModel.album.orEmpty()
         updatePlayerTextMarquee(vm.motionState.value)
 
         latestAlbumBitmap = null
