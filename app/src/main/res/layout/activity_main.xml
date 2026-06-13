@@ -22,15 +22,16 @@
 
             <ImageView
                 android:id="@+id/ivBack"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="@dimen/space_xl"
+                android:layout_width="@dimen/toolbar_icon_touch_size"
+                android:layout_height="@dimen/toolbar_icon_touch_size"
+                android:layout_marginStart="@dimen/space_sm"
+                android:padding="@dimen/toolbar_icon_padding"
                 android:src="@drawable/ic_left_arrow"
+                android:scaleType="fitCenter"
                 android:visibility="invisible"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                tools:ignore="TouchTargetSizeCheck" />
+                app:layout_constraintTop_toTopOf="parent" />
 
             <TextView
                 android:id="@+id/tvMainTitle"
@@ -45,10 +46,12 @@
 
             <ImageView
                 android:id="@+id/ivSetting"
-                android:layout_width="@dimen/icon_md"
-                android:layout_height="@dimen/icon_md"
-                android:layout_marginEnd="@dimen/space_xl"
+                android:layout_width="@dimen/toolbar_icon_touch_size"
+                android:layout_height="@dimen/toolbar_icon_touch_size"
+                android:layout_marginEnd="@dimen/space_sm"
+                android:padding="@dimen/toolbar_icon_padding"
                 android:src="@drawable/ic_setting"
+                android:scaleType="fitCenter"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
