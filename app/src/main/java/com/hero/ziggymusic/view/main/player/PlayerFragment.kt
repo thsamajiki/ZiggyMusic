@@ -32,7 +32,6 @@ import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.source.ProgressiveMediaSource
 import androidx.media3.exoplayer.source.ShuffleOrder
 import com.bumptech.glide.Glide
-import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetBehavior.BottomSheetCallback
 import com.hero.ziggymusic.R
@@ -186,6 +185,10 @@ class PlayerFragment : Fragment() {
                         BottomSheetBehavior.STATE_HIDDEN -> {
                             playerBottomSheetManager.collapse()
                         }
+
+                        BottomSheetBehavior.STATE_DRAGGING -> {}
+                        BottomSheetBehavior.STATE_HALF_EXPANDED -> {}
+                        BottomSheetBehavior.STATE_SETTLING -> {}
                     }
                 }
 
@@ -197,7 +200,8 @@ class PlayerFragment : Fragment() {
 
         playerMotionManager = PlayerMotionManager(
             binding.motionLayout,
-            playerBottomSheetManager
+            playerBottomSheetManager,
+            onProgressChanged = ::updateAlbumArtCornerRadius
         )
 
         binding.motionLayout.post {
@@ -635,23 +639,44 @@ class PlayerFragment : Fragment() {
         }
         lastRenderedMusicId = musicModel.id
 
-        binding.tvSongTitle.text = musicModel?.title.orEmpty()
-        binding.tvSongArtist.text = musicModel?.artist.orEmpty()
-        binding.tvSongAlbum.text = musicModel?.album.orEmpty()
+        binding.tvSongTitle.text = musicModel.title.orEmpty()
+        binding.tvSongArtist.text = musicModel.artist.orEmpty()
+        binding.tvSongAlbum.text = musicModel.album.orEmpty()
         updatePlayerTextMarquee(vm.motionState.value)
 
         latestAlbumBitmap = null
+
         // Expanded 상태에서 Decode -> Startup/Collapsed 상태에서 로드할 때 나중에 stretch되지 않게 함
         val albumArtSize = resources.getDimensionPixelSize(R.dimen.album_art_size_expanded)
-        val albumArtCornerRadius = resources.getDimensionPixelSize(R.dimen.album_art_corner_radius)
+        val albumUri = musicModel.getAlbumUri()
+
+        if (albumUri == null) {
+            Glide.with(binding.ivAlbumArt.context).clear(binding.ivAlbumArt)
+            binding.ivAlbumArt.setImageResource(R.drawable.placeholder_album_art)
+
+            latestAlbumBitmap = null
+            resetVisualizerBarColor()
+
+            if (vm.motionState.value == PlayerMotionManager.State.EXPANDED) {
+                albumGradientManager?.resetToDarkBackground(
+                    binding.albumBackground,
+                    animate = false
+                )
+            } else {
+                binding.albumBackground.setBackgroundResource(R.color.dark_black)
+            }
+
+            return
+        }
 
         Glide.with(binding.ivAlbumArt.context)
             .asBitmap()
-            .load(musicModel.getAlbumUri())
+            .load(albumUri)
             .override(albumArtSize, albumArtSize)
+            .placeholder(binding.ivAlbumArt.drawable)
             .error(R.drawable.placeholder_album_art)
             .fallback(R.drawable.placeholder_album_art)
-            .transform(RoundedCorners(albumArtCornerRadius))
+            .dontAnimate()
             .listener(object : RequestListener<Bitmap> {
                 override fun onLoadFailed(
                     e: GlideException?,
@@ -666,7 +691,7 @@ class PlayerFragment : Fragment() {
                     if (vm.motionState.value == PlayerMotionManager.State.EXPANDED) {
                         albumGradientManager?.resetToDarkBackground(
                             binding.albumBackground,
-                            animate = true
+                            animate = false
                         )
                     } else {
                         binding.albumBackground.setBackgroundResource(R.color.dark_black)
@@ -711,6 +736,22 @@ class PlayerFragment : Fragment() {
         } else {
             binding.tvSongTitle.isSelected = false
         }
+    }
+
+    private fun updateAlbumArtCornerRadius(progress: Float) {
+        val expandedRadius = resources.getDimension(R.dimen.album_art_corner_radius)
+        val expandedSize = resources.getDimension(R.dimen.album_art_size_expanded)
+        val collapsedSize = resources.getDimension(R.dimen.album_art_size_collapsed)
+        val scaledCollapsedRadius = expandedRadius * (collapsedSize / expandedSize)
+        val minCollapsedRadius = expandedRadius * MIN_COLLAPSED_ALBUM_ART_RADIUS_RATIO
+        val collapsedRadius = max(scaledCollapsedRadius, minCollapsedRadius)
+        val coercedProgress = progress.coerceIn(0f, 1f)
+        val currentRadius = collapsedRadius + (expandedRadius - collapsedRadius) * coercedProgress
+
+        binding.ivAlbumArt.shapeAppearanceModel = binding.ivAlbumArt.shapeAppearanceModel
+            .toBuilder()
+            .setAllCornerSizes(currentRadius)
+            .build()
     }
 
     private fun savePlaybackState(immediate: Boolean = false) {
@@ -1012,6 +1053,8 @@ class PlayerFragment : Fragment() {
         private const val SEEK_UPDATE_AFTER_TRANSITION_MS = 100L
 
         private const val PLAYER_TEXT_MARQUEE_START_DELAY_MS = 700L
+
+        private const val MIN_COLLAPSED_ALBUM_ART_RADIUS_RATIO = 0.5f
 
         fun newInstance(musicId: String): PlayerFragment =
             PlayerFragment().apply {

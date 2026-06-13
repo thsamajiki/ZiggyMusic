@@ -53,12 +53,14 @@
             app:layout_constraintTop_toBottomOf="@id/playerTopHandleContainer"
             tools:text="Out Of Time" />
 
-        <androidx.appcompat.widget.AppCompatImageView
+        <com.google.android.material.imageview.ShapeableImageView
             android:id="@+id/ivAlbumArt"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginHorizontal="@dimen/space_xxxl"
             android:layout_marginTop="@dimen/space_xl"
+            android:scaleType="centerCrop"
+            app:shapeAppearanceOverlay="@style/ShapeAppearance.ZiggyMusic.AlbumArt"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/tvSongTitle" />

@@ -6,7 +6,8 @@ import com.hero.ziggymusic.R
 
 class PlayerMotionManager(
     private val motionLayout: MotionLayout,
-    private val bottomSheetManager: PlayerBottomSheetManager
+    private val bottomSheetManager: PlayerBottomSheetManager,
+    private val onProgressChanged: (Float) -> Unit = {}
 ) {
     enum class State {
         COLLAPSED,
@@ -26,17 +27,21 @@ class PlayerMotionManager(
     }
 
     fun updateProgress(slideOffset: Float) {
+        val progress = slideOffset.coerceIn(0f, 1f)
         motionLayout.setTransition(R.id.collapsedToExpanded)
-        motionLayout.progress = slideOffset.coerceIn(0f, 1f)
+        motionLayout.progress = progress
+        onProgressChanged(progress)
     }
 
     // 애니메이션 없이 Motion 상태로 맞춘다
     fun snapToState(state: State) {
         motionLayout.setTransition(R.id.collapsedToExpanded)
-        motionLayout.progress = when (state) {
+        val progress = when (state) {
             State.COLLAPSED -> COLLAPSED_PROGRESS
             State.EXPANDED -> EXPANDED_PROGRESS
         }
+        motionLayout.progress = progress
+        onProgressChanged(progress)
     }
 
     private fun collapse() {
