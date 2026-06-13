@@ -25,6 +25,8 @@
     <dimen name="icon_sm">16dp</dimen>
     <dimen name="icon_md">24dp</dimen>
     <dimen name="icon_lg">32dp</dimen>
+    <dimen name="toolbar_icon_touch_size">48dp</dimen>
+    <dimen name="toolbar_icon_padding">14dp</dimen>
     <dimen name="music_search_horizontal_inset_start">15dp</dimen>
     <dimen name="music_search_horizontal_inset_end">18dp</dimen>
     <dimen name="music_search_container_height">52dp</dimen>
