@@ -646,6 +646,25 @@ class PlayerFragment : Fragment() {
         val albumArtSize = resources.getDimensionPixelSize(R.dimen.album_art_size_expanded)
         val albumUri = musicModel.getAlbumUri()
 
+        if (albumUri == null) {
+            Glide.with(binding.ivAlbumArt.context).clear(binding.ivAlbumArt)
+            binding.ivAlbumArt.setImageResource(R.drawable.placeholder_album_art)
+
+            latestAlbumBitmap = null
+            resetVisualizerBarColor()
+
+            if (vm.motionState.value == PlayerMotionManager.State.EXPANDED) {
+                albumGradientManager?.resetToDarkBackground(
+                    binding.albumBackground,
+                    animate = false
+                )
+            } else {
+                binding.albumBackground.setBackgroundResource(R.color.dark_black)
+            }
+
+            return
+        }
+
         Glide.with(binding.ivAlbumArt.context)
             .asBitmap()
             .load(albumUri)
