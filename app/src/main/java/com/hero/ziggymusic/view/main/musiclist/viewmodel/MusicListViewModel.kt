@@ -63,6 +63,7 @@ class MusicListViewModel @Inject constructor(
         get() = _searchResult
 
     private var isInitialized = false
+    private var isObservingMediaStore = false
     private var hasSearchMusicItems = false
 
     private val allMusicsObserver = Observer<List<MusicModel>> { musics ->
@@ -104,6 +105,8 @@ class MusicListViewModel @Inject constructor(
                 _uiState.value = MusicListUiState.Error
             }
         }
+
+
     }
 
     @OptIn(FlowPreview::class)
@@ -136,6 +139,23 @@ class MusicListViewModel @Inject constructor(
                 _uiState.value = MusicListUiState.Error
             }
         }
+    }
+
+    @OptIn(FlowPreview::class)
+    private fun observeMediaStoreChanges() {
+        viewModelScope.launch {
+            musicRepository.observeMusicChanges()
+                .debounce(MEDIA_STORE_REFRESH_DELAY_MS.milliseconds)
+                .collect {
+                    refreshMusicList()
+                }
+        }
+    }
+
+    fun startObservingMediaStoreChanges() {
+        if (isObservingMediaStore) return
+        isObservingMediaStore = true
+        observeMediaStoreChanges()
     }
 
     fun setSearchQuery(query: String) {
@@ -203,6 +223,7 @@ class MusicListViewModel @Inject constructor(
     }
 
     companion object {
+        private const val MEDIA_STORE_REFRESH_DELAY_MS = 500L
         private const val SEARCH_DEBOUNCE_MS = 200L
     }
 }
