@@ -68,8 +68,14 @@ class MusicLocalDataSourceImpl @Inject constructor(
         }
 
         appMusicDatabase.withTransaction {
-            musicFileDao.clearAll()
             musicFileDao.insertAll(musicList)
+
+            val musicIdList = musicList.map { it.id }
+            if (musicIdList.isEmpty()) {
+                musicFileDao.clearAll()
+            } else {
+                musicFileDao.deleteFilesExcept(musicIdList)
+            }
         }
     }
 
