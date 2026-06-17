@@ -102,6 +102,8 @@ class MusicListFragment : Fragment() {
         } else {
             hasRefreshedAfterPermission = false
         }
+
+        vm.startObservingMediaStoreChanges()
     }
 
     private fun initRecyclerView(recyclerView: RecyclerView) {
