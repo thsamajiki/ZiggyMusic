@@ -4,6 +4,7 @@ import androidx.lifecycle.LiveData
 import com.hero.ziggymusic.database.local.MusicLocalDataSource
 import com.hero.ziggymusic.database.music.entity.MusicModel
 import com.hero.ziggymusic.domain.music.repository.MusicRepository
+import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
 class MusicRepositoryImpl @Inject constructor(
@@ -28,6 +29,8 @@ class MusicRepositoryImpl @Inject constructor(
     override fun getFavorites(): LiveData<List<MusicModel>> {
         return musicLocalDataSource.getFavorites()
     }
+
+    override fun observeMusicChanges(): Flow<Unit> = musicLocalDataSource.observeMusicChanges()
 
     override suspend fun addMusicToFavorites(musicModel: MusicModel) {
         musicLocalDataSource.addMusicToFavorites(musicModel)
