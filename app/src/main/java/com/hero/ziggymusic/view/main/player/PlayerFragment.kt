@@ -281,6 +281,8 @@ class PlayerFragment : Fragment() {
                 // 이미 재생 중인 곡이 있으면 playMusic을 다시 호출하지 않는다.
                 if (player.currentMediaItem == null && nowMusic != null) {
                     playMusic(musicList, nowMusic)
+                } else {
+                    syncPlaybackQueueIfNeeded(musicList)
                 }
             }
         }
@@ -295,15 +297,16 @@ class PlayerFragment : Fragment() {
     }
 
     fun changeMusic(musicId: String) {
-        val findIndex = vm.musicList.value.orEmpty()
-            .indexOfFirst {
-                it.id == musicId
-            }
+        val latestMusicList = vm.musicList.value.orEmpty()
+        if (latestMusicList.isEmpty()) return
 
-        if (findIndex != -1) {
-            player.seekTo(findIndex, 0)
-            player.play()
-        }
+        syncPlaybackQueueIfNeeded(latestMusicList)
+
+        val targetIndex = player.findMediaItemIndexById(musicId)
+        if (targetIndex == -1) return
+
+        player.seekTo(targetIndex, 0L)
+        player.play()
     }
 
     private fun initSeekBar() {
@@ -788,24 +791,7 @@ class PlayerFragment : Fragment() {
         }
 
         val musicMediaItems = musicList.map { music ->
-            val defaultDataSourceFactory =
-                DefaultDataSource.Factory(requireContext())
-            val musicFileUri = music.getMusicFileUri()
-            val mediaItem = MediaItem.Builder()
-                .setMediaId(music.id)
-                .setUri(musicFileUri)
-                .setMediaMetadata(
-                    MediaMetadata.Builder()
-                        .setTitle(music.title)
-                        .setArtist(music.artist)
-                        .setAlbumTitle(music.album)
-                        .setArtworkUri(music.getAlbumUri())
-                        .build()
-                )
-                .build()
-
-            ProgressiveMediaSource.Factory(defaultDataSourceFactory)
-                .createMediaSource(mediaItem)
+            music.toProgressiveMediaSource(requireContext())
         }
 
         val playIndex = musicList.indexOf(nowPlayMusic)
@@ -828,6 +814,33 @@ class PlayerFragment : Fragment() {
             setMediaSources(musicMediaItems)
             prepare()
             seekTo(max(playIndex, 0), resumePositionMs) // 마지막 재생 위치에서 시작
+        }
+    }
+
+    private fun syncPlaybackQueueIfNeeded(latestMusicList: List<MusicModel>) {
+        if (latestMusicList.isEmpty()) return
+
+        val currentQueueMediaIds = player.currentMediaIds()
+        val latestLibraryMediaIds = latestMusicList.map { it.id }
+
+        if (currentQueueMediaIds == latestLibraryMediaIds) return
+
+        val currentMediaId = player.currentMediaItem?.mediaId
+        val currentPositionMs = player.currentPosition
+        val wasPlaying = player.isPlaying
+
+        val mediaItems = latestMusicList.map { it.toMediaItem() }
+
+        val restoredIndex = currentMediaId
+            ?.let { mediaId -> latestMusicList.indexOfFirst { it.id == mediaId } }
+            ?.takeIf { index -> index >= 0 }
+            ?: 0
+
+        player.setMediaItems(mediaItems, restoredIndex, currentPositionMs)
+        player.prepare()
+
+        if (wasPlaying) {
+            player.play()
         }
     }
 
