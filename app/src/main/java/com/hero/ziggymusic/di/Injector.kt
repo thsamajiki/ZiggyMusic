@@ -3,6 +3,7 @@ package com.hero.ziggymusic.di
 import com.hero.ziggymusic.ZiggyMusicApp
 import com.hero.ziggymusic.database.AppMusicDatabase
 import com.hero.ziggymusic.database.AppFavoritesDatabase
+import com.hero.ziggymusic.database.local.MediaStoreMusicObserver
 import com.hero.ziggymusic.database.local.MusicLocalDataSourceImpl
 import com.hero.ziggymusic.domain.music.repository.MusicRepository
 import com.hero.ziggymusic.database.music.repository.MusicRepositoryImpl
@@ -21,7 +22,8 @@ object Injector {
                 AppMusicDatabase.Companion.getInstance(ZiggyMusicApp.Companion.getInstance())
                     .musicFileDao(),
                 AppFavoritesDatabase.Companion.getInstance(ZiggyMusicApp.Companion.getInstance())
-                    .favoritesDao()
+                    .favoritesDao(),
+                MediaStoreMusicObserver(ZiggyMusicApp.getInstance())
             )
         )
 }
