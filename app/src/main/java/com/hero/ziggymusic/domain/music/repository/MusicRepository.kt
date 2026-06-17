@@ -2,6 +2,7 @@ package com.hero.ziggymusic.domain.music.repository
 
 import androidx.lifecycle.LiveData
 import com.hero.ziggymusic.database.music.entity.MusicModel
+import kotlinx.coroutines.flow.Flow
 
 interface MusicRepository {
     suspend fun loadMusics()
@@ -13,6 +14,8 @@ interface MusicRepository {
     fun getAllMusic(): LiveData<List<MusicModel>>
 
     fun getFavorites(): LiveData<List<MusicModel>>
+
+    fun observeMusicChanges(): Flow<Unit>
 
     suspend fun addMusicToFavorites(musicModel: MusicModel)
 

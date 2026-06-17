@@ -24,12 +24,9 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.MediaItem
-import androidx.media3.common.MediaMetadata
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
-import androidx.media3.datasource.DefaultDataSource
 import androidx.media3.exoplayer.ExoPlayer
-import androidx.media3.exoplayer.source.ProgressiveMediaSource
 import androidx.media3.exoplayer.source.ShuffleOrder
 import com.bumptech.glide.Glide
 import com.google.android.material.bottomsheet.BottomSheetBehavior
@@ -50,6 +47,9 @@ import androidx.fragment.app.activityViewModels
 import com.bumptech.glide.load.DataSource
 import com.bumptech.glide.load.engine.GlideException
 import com.bumptech.glide.request.RequestListener
+import com.hero.ziggymusic.playback.PlaybackQueueManager
+import com.hero.ziggymusic.playback.currentMediaIds
+import com.hero.ziggymusic.playback.toMediaItem
 import com.hero.ziggymusic.service.MusicMediaControllerConnector
 import com.hero.ziggymusic.service.MusicServiceController
 import com.hero.ziggymusic.view.main.player.model.LastPlayedMedia
@@ -66,6 +66,9 @@ class PlayerFragment : Fragment() {
 
     @Inject
     lateinit var player: ExoPlayer
+
+    @Inject
+    lateinit var playbackQueueManager: PlaybackQueueManager
 
     private var currentMusic: MusicModel? = null // 현재 재생 중인 음원
     private val playbackStateStore by lazy { PlaybackStateStore(requireContext()) }
@@ -263,6 +266,7 @@ class PlayerFragment : Fragment() {
         viewLifecycleOwner.lifecycleScope.launch {
             vm.musicList.observe(viewLifecycleOwner) { musicList ->
                 if (_binding == null) return@observe
+                if (musicList.isEmpty()) return@observe
 
                 playerModel.replaceMusicList(musicList)
 
@@ -281,6 +285,9 @@ class PlayerFragment : Fragment() {
                 // 이미 재생 중인 곡이 있으면 playMusic을 다시 호출하지 않는다.
                 if (player.currentMediaItem == null && nowMusic != null) {
                     playMusic(musicList, nowMusic)
+                } else {
+                    // 목록이 변경되면 현재 재생 상태를 유지한 채 Player 큐만 최신 목록으로 맞춘다.
+                    playbackQueueManager.syncQueue(musicList)
                 }
             }
         }
@@ -295,14 +302,18 @@ class PlayerFragment : Fragment() {
     }
 
     fun changeMusic(musicId: String) {
-        val findIndex = vm.musicList.value.orEmpty()
-            .indexOfFirst {
-                it.id == musicId
-            }
+        val latestMusicList = vm.musicList.value.orEmpty()
+        // 재생 요청 전에 큐를 최신 목록으로 동기화하여 새로 추가된 음원도 바로 재생되게 한다.
+        val startedPlayback = playbackQueueManager.playMusic(
+            musicList = latestMusicList,
+            musicId = musicId
+        )
 
-        if (findIndex != -1) {
-            player.seekTo(findIndex, 0)
-            player.play()
+        if (!startedPlayback) return
+
+        playerModel.changedMusic(musicId)
+        playerModel.currentMusic?.let { music ->
+            updatePlayerView(music)
         }
     }
 
@@ -403,16 +414,12 @@ class PlayerFragment : Fragment() {
     }
 
     private fun moveToFirstTrack(): Boolean {
-        if (player.repeatMode != Player.REPEAT_MODE_OFF) return false
-        if (player.mediaItemCount <= 0) return false
-        if (player.currentMediaItemIndex != player.mediaItemCount - 1) return false
+        // 마지막 곡에서 다음 버튼을 누른 경우의 Player 조작은 PlaybackQueueManager에 위임한다.
+        val firstId = playbackQueueManager.moveToFirstTrackAndPauseIfAtEnd()
+            ?: return false
 
-        player.playWhenReady = false
-        player.seekTo(0, 0)
-        player.pause()
-
-        val firstId = player.getMediaItemAt(0).mediaId
         playerModel.changedMusic(firstId)
+
         playbackStateStore.saveLastPlayedMedia(
             LastPlayedMedia(
                 type = PlaybackContentType.MUSIC,
@@ -422,6 +429,7 @@ class PlayerFragment : Fragment() {
                 updatedAtMs = System.currentTimeMillis()
             )
         )
+
         updatePlayerView(playerModel.currentMusic)
         updatePlaybackProgress()
         syncPlayerUi()
@@ -779,56 +787,40 @@ class PlayerFragment : Fragment() {
         )
     }
 
-    @OptIn(UnstableApi::class)
     private fun playMusic(musicList: List<MusicModel>, nowPlayMusic: MusicModel?) {
-        if (nowPlayMusic != null) {
-            currentMusic = nowPlayMusic
-            playerModel.updateCurrentMusic(nowPlayMusic)
-            playbackStateStore.saveLastPlayedId(PlaybackContentType.MUSIC, nowPlayMusic.id)
-        }
+        if (nowPlayMusic == null) return
 
-        val musicMediaItems = musicList.map { music ->
-            val defaultDataSourceFactory =
-                DefaultDataSource.Factory(requireContext())
-            val musicFileUri = music.getMusicFileUri()
-            val mediaItem = MediaItem.Builder()
-                .setMediaId(music.id)
-                .setUri(musicFileUri)
-                .setMediaMetadata(
-                    MediaMetadata.Builder()
-                        .setTitle(music.title)
-                        .setArtist(music.artist)
-                        .setAlbumTitle(music.album)
-                        .setArtworkUri(music.getAlbumUri())
-                        .build()
-                )
-                .build()
-
-            ProgressiveMediaSource.Factory(defaultDataSourceFactory)
-                .createMediaSource(mediaItem)
-        }
-
-        val playIndex = musicList.indexOf(nowPlayMusic)
-
-        // 마지막 재생 상태를 로드하고 position을 복원
-        val lastPlayed = playbackStateStore.loadLastPlayedMedia()
+        val lastPlayedMedia = playbackStateStore.loadLastPlayedMedia()
+        // 이전에 같은 음원을 듣고 있었다면 저장된 재생 위치부터 이어서 준비한다.
         val resumePositionMs =
-            if (lastPlayed != null &&
-                lastPlayed.type == PlaybackContentType.MUSIC &&
-                lastPlayed.id.isNotBlank() &&
-                nowPlayMusic != null &&
-                lastPlayed.id == nowPlayMusic.id
+            if (
+                lastPlayedMedia?.type == PlaybackContentType.MUSIC &&
+                lastPlayedMedia.id == nowPlayMusic.id
             ) {
-                lastPlayed.positionMs.coerceAtLeast(0L)
+                lastPlayedMedia.positionMs
             } else {
                 0L
             }
 
-        player.run {
-            setMediaSources(musicMediaItems)
-            prepare()
-            seekTo(max(playIndex, 0), resumePositionMs) // 마지막 재생 위치에서 시작
-        }
+        playerModel.updateCurrentMusic(nowPlayMusic)
+
+        playbackStateStore.saveLastPlayedMedia(
+            LastPlayedMedia(
+                type = PlaybackContentType.MUSIC,
+                id = nowPlayMusic.id,
+                positionMs = resumePositionMs,
+                playWhenReady = player.playWhenReady,
+                updatedAtMs = System.currentTimeMillis()
+            )
+        )
+
+        playbackQueueManager.prepareQueue(
+            musicList = musicList,
+            selectedMusic = nowPlayMusic,
+            startPositionMs = resumePositionMs
+        )
+
+        updatePlayerView(nowPlayMusic)
     }
 
     private fun drawableToBitmap(drawable: Drawable): Bitmap {

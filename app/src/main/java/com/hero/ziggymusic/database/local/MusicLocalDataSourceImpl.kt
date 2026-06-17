@@ -9,6 +9,7 @@ import com.hero.ziggymusic.database.music.dao.MusicFileDao
 import com.hero.ziggymusic.database.music.dao.FavoritesDao
 import com.hero.ziggymusic.database.music.entity.MusicModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
@@ -17,6 +18,7 @@ class MusicLocalDataSourceImpl @Inject constructor(
     private val appMusicDatabase: AppMusicDatabase,
     private val musicFileDao: MusicFileDao,
     private val favoritesDao: FavoritesDao,
+    private val mediaStoreMusicObserver: MediaStoreMusicObserver,
 ) : MusicLocalDataSource {
     override suspend fun loadMusics() = withContext(Dispatchers.IO) {
         val musicListUri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
@@ -66,8 +68,14 @@ class MusicLocalDataSourceImpl @Inject constructor(
         }
 
         appMusicDatabase.withTransaction {
-            musicFileDao.clearAll()
             musicFileDao.insertAll(musicList)
+
+            val musicIdList = musicList.map { it.id }
+            if (musicIdList.isEmpty()) {
+                musicFileDao.clearAll()
+            } else {
+                musicFileDao.deleteFilesExcept(musicIdList)
+            }
         }
     }
 
@@ -86,6 +94,8 @@ class MusicLocalDataSourceImpl @Inject constructor(
     override fun getFavorites(): LiveData<List<MusicModel>> {
         return favoritesDao.getAllFiles()
     }
+
+    override fun observeMusicChanges(): Flow<Unit> = mediaStoreMusicObserver.observeMusicChanges()
 
     override suspend fun addMusicToFavorites(musicModel: MusicModel) {
         favoritesDao.insertMusic(musicModel)

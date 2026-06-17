@@ -26,4 +26,7 @@ interface MusicFileDao {
 
     @Delete
     fun deleteMusic(musicModel: MusicModel)
+
+    @Query("DELETE FROM music_table WHERE id NOT IN (:musicIdList)")
+    suspend fun deleteFilesExcept(musicIdList: List<String>)
 }

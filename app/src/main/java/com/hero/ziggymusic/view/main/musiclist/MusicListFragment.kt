@@ -54,7 +54,7 @@ class MusicListFragment : Fragment() {
 
     private lateinit var musicListAdapter: MusicListAdapter
     private var mediaStoreObserver: ContentObserver? = null
-    private var hasRefreshedAfterPermission = false
+    private var isRefreshedAfterPermission = false
     private var searchAnimator: ValueAnimator? = null
     private var isSearchVisible = false
     private var searchProgress = 0f
@@ -95,13 +95,15 @@ class MusicListFragment : Fragment() {
         if (hasAudioPermission()) {
             registerMediaStoreObserverIfNeeded()
 
-            if (!hasRefreshedAfterPermission) {
-                hasRefreshedAfterPermission = true
+            if (!isRefreshedAfterPermission) {
+                isRefreshedAfterPermission = true
                 vm.refreshMusicList()
             }
         } else {
-            hasRefreshedAfterPermission = false
+            isRefreshedAfterPermission = false
         }
+
+        vm.startObservingMediaStoreChanges()
     }
 
     private fun initRecyclerView(recyclerView: RecyclerView) {

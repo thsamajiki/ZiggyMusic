@@ -24,6 +24,7 @@ import androidx.media3.session.MediaStyleNotificationHelper
 import com.hero.ziggymusic.R
 import com.hero.ziggymusic.database.music.entity.MusicModel
 import com.hero.ziggymusic.database.music.entity.PlayerModel
+import com.hero.ziggymusic.playback.PlaybackQueueManager
 import com.hero.ziggymusic.view.main.MainActivity
 import javax.inject.Inject
 import dagger.hilt.android.AndroidEntryPoint
@@ -32,6 +33,9 @@ import dagger.hilt.android.AndroidEntryPoint
 class MusicService : MediaLibraryService() {
     @Inject
     lateinit var player: ExoPlayer
+
+    @Inject
+    lateinit var playbackQueueManager: PlaybackQueueManager
 
     private val playerModel: PlayerModel = PlayerModel.getInstance()
 
@@ -162,17 +166,16 @@ class MusicService : MediaLibraryService() {
     }
 
     private fun skipToNextOrMoveToFirstTrack() {
-        if (shouldMoveFromLastTrackToFirstTrack()) {
-            player.playWhenReady = false
-            player.seekTo(0, 0)
-            player.pause()
+        // 반복 재생이 꺼진 마지막 곡에서는 큐 정책에 따라 첫 곡으로 이동만 한다.
+        val firstMediaId = playbackQueueManager.moveToFirstTrackAndPauseIfAtEnd()
 
-            if (player.mediaItemCount > 0) {
-                playerModel.changedMusic(player.getMediaItemAt(0).mediaId)
-            }
-        } else {
-            player.seekToNextMediaItem()
+        if (firstMediaId != null) {
+            playerModel.changedMusic(firstMediaId)
+            updateNotification()
+            return
         }
+
+        player.seekToNextMediaItem()
     }
 
     private fun shouldMoveFromLastTrackToFirstTrack(): Boolean {
