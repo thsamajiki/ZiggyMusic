@@ -33,18 +33,24 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import com.hero.ziggymusic.R
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import java.util.Locale
+import kotlin.time.Duration.Companion.milliseconds
 
 class PlayerBluetoothManager(
     private val fragment: Fragment,
     private val audioManager: AudioManager,
+    private val coroutineScope: CoroutineScope,
     private val rootViewProvider: () -> View?,
     private val setBluetoothIcon: (Int) -> Unit,
     private val onMessage: (String) -> Unit,
 ) {
-    private val updateBluetoothRunnable = Runnable {
-        updateBluetoothIcon()
-    }
+    // 예약된 블루투스 아이콘 갱신 작업.
+    // 새로운 갱신 요청이 들어오면 이전 작업을 취소하기 위해 보관한다.
+    private var updateBluetoothJob: Job? = null
 
     private val audioDeviceCallback = object : AudioDeviceCallback() {
         override fun onAudioDevicesAdded(addedDevices: Array<out AudioDeviceInfo>) {
@@ -91,7 +97,8 @@ class PlayerBluetoothManager(
             if (!isPairingTarget(device, pendingAddress)) return
 
             val deviceName = getBluetoothDeviceLogName(device)
-            val bondState = intent.getIntExtra(BluetoothDevice.EXTRA_BOND_STATE, BluetoothDevice.ERROR)
+            val bondState =
+                intent.getIntExtra(BluetoothDevice.EXTRA_BOND_STATE, BluetoothDevice.ERROR)
             when (bondState) {
                 BluetoothDevice.BOND_BONDING -> {
                     Log.d(TAG, "Bluetooth pairing in progress: $deviceName ($pendingAddress)")
@@ -108,7 +115,10 @@ class PlayerBluetoothManager(
                 BluetoothDevice.BOND_NONE -> {
                     pendingPairingDeviceAddress = null
                     onMessage("블루투스 페어링에 실패했습니다.")
-                    Log.w(TAG, "Bluetooth pairing failed or canceled: $deviceName ($pendingAddress)")
+                    Log.w(
+                        TAG,
+                        "Bluetooth pairing failed or canceled: $deviceName ($pendingAddress)"
+                    )
                     updateBluetoothIcon()
                 }
             }
@@ -193,16 +203,26 @@ class PlayerBluetoothManager(
     }
 
     fun refreshBluetoothIcon() {
-        val rootView = rootViewProvider() ?: return
+        // 활성화된 View가 없다면 UI 갱신을 예약하지 않는다.
+        if (!hasActiveView()) return
 
-        rootView.removeCallbacks(updateBluetoothRunnable)
-        rootView.postDelayed(updateBluetoothRunnable, BLUETOOTH_STATUS_UPDATE_DELAY_MS)
+        // 아직 실행되지 않은 이전 갱신 작업을 취소한다.
+        updateBluetoothJob?.cancel()
+
+        // 블루투스 연결 상태가 시스템에 반영될 시간을 기다린 뒤 다시 확인한다.
+        updateBluetoothJob = coroutineScope.launch {
+            delay(BLUETOOTH_STATUS_UPDATE_DELAY_MS.milliseconds)
+            updateBluetoothIcon()
+        }
     }
 
     fun registerAudioDeviceCallback() {
         if (isAudioDeviceCallbackRegistered) return
 
-        audioManager.registerAudioDeviceCallback(audioDeviceCallback, Handler(Looper.getMainLooper()))
+        audioManager.registerAudioDeviceCallback(
+            audioDeviceCallback,
+            Handler(Looper.getMainLooper())
+        )
         isAudioDeviceCallbackRegistered = true
     }
 
@@ -214,7 +234,10 @@ class PlayerBluetoothManager(
     }
 
     fun release() {
-        rootViewProvider()?.removeCallbacks(updateBluetoothRunnable)
+        // View가 해제된 이후 예약 작업이 UI를 갱신하지 않도록 취소한다.
+        updateBluetoothJob?.cancel()
+        updateBluetoothJob = null
+
         unregisterAudioDeviceCallback()
         unregisterBluetoothBondStateReceiver()
         bluetoothPermissionLauncher.unregister()

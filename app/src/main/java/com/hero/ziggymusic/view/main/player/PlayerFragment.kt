@@ -143,9 +143,19 @@ class PlayerFragment : Fragment() {
         playerBluetoothManager = PlayerBluetoothManager(
             fragment = this,
             audioManager = audioManager,
+
+            // Fragment의 View가 파괴되면 예약된 코루틴도 자동으로 취소된다.
+            coroutineScope = viewLifecycleOwner.lifecycleScope,
+
             rootViewProvider = { _binding?.root },
-            setBluetoothIcon = { resId -> _binding?.bluetooth?.setImageResource(resId) },
-            onMessage = { message -> context?.let { Toast.makeText(it, message, Toast.LENGTH_SHORT).show() } }
+            setBluetoothIcon = { resId ->
+                _binding?.bluetooth?.setImageResource(resId)
+            },
+            onMessage = { message ->
+                context?.let {
+                    Toast.makeText(it, message, Toast.LENGTH_SHORT).show()
+                }
+            }
         )
     }
 
