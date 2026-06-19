@@ -83,6 +83,7 @@ class PlayerFragment : Fragment() {
     // position 저장 쓰로틀링으로 불필요한 prefs write를 줄인다.
     private var lastSavedAtMs: Long = 0L
     private var lastSavedPositionMs: Long = -1L
+    private var isUserSeeking = false // 사용자가 재생바를 조작하는 동안 자동 진행률 갱신이 선택 위치를 덮어쓰지 않도록 추적
 
     private val saveIntervalMs = 3_000L   // 최소 3초 간격으로 저장
     private val saveMinDeltaMs = 1_000L   // 위치가 1초 이상 변했을 때만 저장
@@ -358,10 +359,12 @@ class PlayerFragment : Fragment() {
             }
 
             override fun onStartTrackingTouch(seekBar: SeekBar?) {
+                isUserSeeking = true // 사용자 조작이 끝날 때까지 Flow의 자동 진행률 반영을 중단
             }
 
             override fun onStopTrackingTouch(seekBar: SeekBar) {
-                player.seekTo(seekBar.progress * 1000L)
+                isUserSeeking = false // 사용자 조작이 끝났으므로 자동 진행률 반영을 다시 허용
+                player.seekTo(seekBar.progress.toLong())
                 savePlaybackState(immediate = true)
             }
         })
@@ -593,13 +596,32 @@ class PlayerFragment : Fragment() {
 
         // 초 경계 근처에서 시간 텍스트가 늦게 바뀌는 느낌을 줄이기 위한 표시 보정치
         val displayPositionMs = if (durationMs > 0L) {
-            (positionMs + POSITION_DISPLAY_OFFSET_MS).coerceAtMost(durationMs)
+            positionMs.coerceAtMost(durationMs)
         } else {
             positionMs
         }
 
-        binding.sbPlayer.max = (durationMs / ONE_SECOND_MS).toInt() // 전체 길이를 초 단위로 설정
-        binding.sbPlayer.progress = (positionMs / ONE_SECOND_MS).toInt() // 현재 위치를 초 단위로 설정
+        // 재생바가 초 단위로 끊기지 않도록 전체 길이와 현재 위치를 밀리초 단위로 반영한다.
+        val seekBarMax = durationMs
+            .coerceAtMost(Int.MAX_VALUE.toLong())
+            .toInt()
+
+        // 현재 위치가 전체 재생 시간과 SeekBar의 Int 범위를 넘지 않도록 보정한다.
+        // 전체 재생 시간을 확인할 수 없는 경우 진행률을 0으로 초기화한다.
+        val seekBarProgress = if (durationMs > 0L) {
+            positionMs
+                .coerceAtMost(durationMs)
+                .coerceAtMost(Int.MAX_VALUE.toLong())
+                .toInt()
+        } else {
+            0
+        }
+
+        // 드래그 중에는 Player의 주기적 갱신이 사용자가 선택한 위치를 덮어쓰지 않도록 한다.
+        if (!isUserSeeking) {
+            binding.sbPlayer.max = seekBarMax
+            binding.sbPlayer.progress = seekBarProgress
+        }
 
         binding.tvCurrentPlayTime.text = String.format(
             Locale.KOREA,
