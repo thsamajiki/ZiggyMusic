@@ -44,15 +44,19 @@ import kotlin.math.max
 import kotlin.random.Random
 import androidx.core.graphics.createBitmap
 import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.repeatOnLifecycle
 import com.bumptech.glide.load.DataSource
 import com.bumptech.glide.load.engine.GlideException
 import com.bumptech.glide.request.RequestListener
 import com.hero.ziggymusic.playback.PlaybackQueueManager
-import com.hero.ziggymusic.playback.currentMediaIds
-import com.hero.ziggymusic.playback.toMediaItem
+import com.hero.ziggymusic.playback.currentPlaybackProgress
+import com.hero.ziggymusic.playback.playbackProgressUpdates
 import com.hero.ziggymusic.service.MusicMediaControllerConnector
 import com.hero.ziggymusic.service.MusicServiceController
 import com.hero.ziggymusic.view.main.player.model.LastPlayedMedia
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import java.util.Locale
 
 @AndroidEntryPoint
@@ -77,6 +81,7 @@ class PlayerFragment : Fragment() {
     // position 저장 쓰로틀링으로 불필요한 prefs write를 줄인다.
     private var lastSavedAtMs: Long = 0L
     private var lastSavedPositionMs: Long = -1L
+    private var isUserSeeking = false // 사용자가 재생바를 조작하는 동안 자동 진행률 갱신이 선택 위치를 덮어쓰지 않도록 추적
 
     private val saveIntervalMs = 3_000L   // 최소 3초 간격으로 저장
     private val saveMinDeltaMs = 1_000L   // 위치가 1초 이상 변했을 때만 저장
@@ -97,10 +102,6 @@ class PlayerFragment : Fragment() {
 
     private val musicKey: String
         get() = requireArguments().getString(EXTRA_MUSIC_FILE_ID).orEmpty()
-
-    private val updateSeekRunnable = Runnable {
-        updatePlaybackProgress()
-    }
 
     private val startPlayerTextMarqueeRunnable = Runnable {
         if (_binding == null || vm.motionState.value != PlayerMotionManager.State.EXPANDED) return@Runnable
@@ -128,6 +129,7 @@ class PlayerFragment : Fragment() {
         initSeekBar()
         initPlayerManager()
         initViewModel()
+        observePlaybackProgress()
         initListeners()
     }
 
@@ -236,8 +238,6 @@ class PlayerFragment : Fragment() {
                     updatePlayerTextMarquee(state)
 
                     if (state == PlayerMotionManager.State.EXPANDED) {
-                        startSeekUpdates()
-
                         // MotionLayout 배경을 제거해 containerPlayer의 그라데이션 배경이 보이게
                         binding.motionLayout.background = null
 
@@ -257,8 +257,6 @@ class PlayerFragment : Fragment() {
                         // 플레이어가 접히면 root gradient 위에 반투명 surface로 표시한다.
                         binding.motionLayout.setBackgroundResource(R.color.player_collapsed_scrim)
                         binding.albumBackground.setBackgroundResource(R.color.dark_black)
-
-                        stopSeekUpdates()
                     }
                 }
         }
@@ -301,6 +299,36 @@ class PlayerFragment : Fragment() {
         }
     }
 
+    /**
+     * 화면이 STARTED인 동안 재생 진행률을 관찰해 UI에 반영.
+     * 주기적인 위치 갱신은 플레이어가 펼쳐진 상태에서만 활성화.
+     */
+    private fun observePlaybackProgress() {
+        // 플레이어가 펼쳐진 상태에서만 주기적인 진행률 갱신을 허용.
+        val updatesEnabled = vm.motionState
+            .map { state ->
+                state == PlayerMotionManager.State.EXPANDED
+            }
+            .distinctUntilChanged()
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                player.playbackProgressUpdates(
+                    updatesEnabled = updatesEnabled,
+                ).collect { progress ->
+                    updatePlaybackProgressUi(
+                        duration = progress.durationMs,
+                        position = progress.positionMs,
+                    )
+
+                    if (player.isPlaying) {
+                        savePlaybackState(immediate = false)
+                    }
+                }
+            }
+        }
+    }
+
     fun changeMusic(musicId: String) {
         val latestMusicList = vm.musicList.value.orEmpty()
         // 재생 요청 전에 큐를 최신 목록으로 동기화하여 새로 추가된 음원도 바로 재생되게 한다.
@@ -326,16 +354,32 @@ class PlayerFragment : Fragment() {
                 progress: Int,
                 fromUser: Boolean,
             ) {
+                if (!fromUser) return
+
+                binding.tvCurrentPlayTime.text = formatPlaybackTime(progress.toLong())
             }
 
             override fun onStartTrackingTouch(seekBar: SeekBar?) {
+                isUserSeeking = true // 사용자 조작이 끝날 때까지 Flow의 자동 진행률 반영을 중단
             }
 
             override fun onStopTrackingTouch(seekBar: SeekBar) {
-                player.seekTo(seekBar.progress * 1000L)
+                isUserSeeking = false // 사용자 조작이 끝났으므로 자동 진행률 반영을 다시 허용
+                player.seekTo(seekBar.progress.toLong())
                 savePlaybackState(immediate = true)
             }
         })
+    }
+
+    private fun formatPlaybackTime(positionMs: Long): String {
+        val normalizedPositionMs = positionMs.coerceAtLeast(0L)
+
+        return String.format(
+            Locale.KOREA,
+            "%02d:%02d",
+            TimeUnit.MILLISECONDS.toMinutes(normalizedPositionMs),
+            TimeUnit.MILLISECONDS.toSeconds(normalizedPositionMs) % 60,
+        )
     }
 
     private fun changeVolume() {
@@ -431,7 +475,6 @@ class PlayerFragment : Fragment() {
         )
 
         updatePlayerView(playerModel.currentMusic)
-        updatePlaybackProgress()
         syncPlayerUi()
 
         return true
@@ -448,7 +491,6 @@ class PlayerFragment : Fragment() {
 
         resetVisualizerBarColor()
         syncPlayerUi()
-        startSeekUpdates() // 포그라운드 진입 직후 진행바를 시작
 
         // 화면 재진입 등으로 initPlayView()가 여러 번 호출될 때 리스너 중복 등록을 막는다.
         playerListener?.let { player.removeListener(it) }
@@ -457,18 +499,15 @@ class PlayerFragment : Fragment() {
             override fun onIsPlayingChanged(isPlaying: Boolean) {
                 super.onIsPlayingChanged(isPlaying)
 
-                // 재생 아이콘과 비주얼라이저 상태를 동기화
+                // 재생 상태에 맞춰 재생 아이콘과 비주얼라이저 상태를 동기화
                 syncPlayerUi()
-                if (isPlaying) {
-                    startSeekUpdates()
-                } else {
-                    // 일시정지/정지 시 현재 position을 저장
+                if (!isPlaying) {
+                    // 일시정지/정지 시 마지막 재생 위치를 즉시 저장.
                     savePlaybackState(immediate = true)
-                    stopSeekUpdates()
                 }
             }
 
-            // 미디어 아이템이 바뀔 때 상태를 갱신
+            // 트랙 전환 시 저장 상태와 화면 정보를 새 트랙 기준으로 초기화
             override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
                 super.onMediaItemTransition(mediaItem, reason)
 
@@ -488,21 +527,18 @@ class PlayerFragment : Fragment() {
                 latestAlbumBitmap = null
 
                 updatePlayerView(playerModel.currentMusic)
-                binding.root.removeCallbacks(updateSeekRunnable)
+                // 새 트랙 정보가 반영되기 전 이전 트랙의 진행률이 노출되지 않도록 초기화
                 updatePlaybackProgressUi(duration = 0L, position = 0L)
 
-                // 트랙 전환 후 제목, 아티스트, 앨범 아트와 재생 UI를 동기화
+                // 재생 상태에 맞춰 재생 아이콘과 비주얼라이저 상태를 동기화
                 syncPlayerUi()
-                if (player.isPlaying) {
-                    binding.root.postDelayed(updateSeekRunnable, SEEK_UPDATE_AFTER_TRANSITION_MS)
-                }
             }
 
             // 재생, 종료, 버퍼링 상태를 처리
             override fun onPlaybackStateChanged(state: Int) {
                 super.onPlaybackStateChanged(state)
 
-                updatePlaybackProgress()
+                syncPlaybackProgressUi()
 
                 // 반복 해제 상태에서 마지막 트랙이 끝나면 첫 트랙으로 이동하고 일시정지
                 if (player.repeatMode == Player.REPEAT_MODE_OFF &&
@@ -555,41 +591,14 @@ class PlayerFragment : Fragment() {
         updateVisualizerBarColor(ContextCompat.getColor(requireContext(), R.color.dark_gray))
     }
 
-    private fun startSeekUpdates() {
-        if (_binding == null) return
+    // 플레이어의 현재 진행률을 읽어 재생바와 시간 UI를 즉시 동기화
+    private fun syncPlaybackProgressUi() {
+        val progress = player.currentPlaybackProgress()
 
-        binding.root.removeCallbacks(updateSeekRunnable)
-
-        updatePlaybackProgress() // 즉시 한 번 갱신하고 다음 주기를 예약
-    }
-
-    private fun stopSeekUpdates() {
-        if (_binding == null) return
-
-        binding.root.removeCallbacks(updateSeekRunnable)
-    }
-
-    private fun updatePlaybackProgress() {
-        if (_binding == null) return
-        val player = this.player
-        val duration = if (player.duration >= 0) player.duration else 0 // 전체 음악 길이
-        val position = player.currentPosition
-
-        updatePlaybackProgressUi(duration, position)
-
-        if (player.isPlaying) {
-            savePlaybackState(immediate = false)
-        }
-
-        val view = binding.root
-        view.removeCallbacks(updateSeekRunnable)
-
-        if (player.isPlaying) {
-            val currentPositionMs = position.coerceAtLeast(0L)
-            val delay = (ONE_SECOND_MS - (currentPositionMs % ONE_SECOND_MS) + SEEK_UPDATE_BOUNDARY_OFFSET_MS)
-                .coerceIn(MIN_SEEK_UPDATE_DELAY_MS, MAX_SEEK_UPDATE_DELAY_MS) // 다음 갱신까지 기다릴 시간(ms)
-            view.postDelayed(updateSeekRunnable, delay)
-        }
+        updatePlaybackProgressUi(
+            duration = progress.durationMs,
+            position = progress.positionMs,
+        )
     }
 
     private fun updatePlaybackProgressUi(duration: Long, position: Long) {
@@ -599,27 +608,36 @@ class PlayerFragment : Fragment() {
 
         // 초 경계 근처에서 시간 텍스트가 늦게 바뀌는 느낌을 줄이기 위한 표시 보정치
         val displayPositionMs = if (durationMs > 0L) {
-            (positionMs + POSITION_DISPLAY_OFFSET_MS).coerceAtMost(durationMs)
+            positionMs.coerceAtMost(durationMs)
         } else {
             positionMs
         }
 
-        binding.sbPlayer.max = (durationMs / ONE_SECOND_MS).toInt() // 전체 길이를 초 단위로 설정
-        binding.sbPlayer.progress = (positionMs / ONE_SECOND_MS).toInt() // 현재 위치를 초 단위로 설정
+        // 재생바가 초 단위로 끊기지 않도록 전체 길이와 현재 위치를 밀리초 단위로 반영한다.
+        val seekBarMax = durationMs
+            .coerceAtMost(Int.MAX_VALUE.toLong())
+            .toInt()
 
-        binding.tvCurrentPlayTime.text = String.format(
-            Locale.KOREA,
-            "%02d:%02d",
-            TimeUnit.MINUTES.convert(displayPositionMs, TimeUnit.MILLISECONDS), // 현재 분
-            (displayPositionMs / ONE_SECOND_MS) % 60 // 현재 초
-        )
+        // 현재 위치가 전체 재생 시간과 SeekBar의 Int 범위를 넘지 않도록 보정한다.
+        // 전체 재생 시간을 확인할 수 없는 경우 진행률을 0으로 초기화한다.
+        val seekBarProgress = if (durationMs > 0L) {
+            positionMs
+                .coerceAtMost(durationMs)
+                .coerceAtMost(Int.MAX_VALUE.toLong())
+                .toInt()
+        } else {
+            0
+        }
 
-        binding.tvTotalTime.text = String.format(
-            Locale.KOREA,
-            "%02d:%02d",
-            TimeUnit.MINUTES.convert(durationMs, TimeUnit.MILLISECONDS), // 전체 분
-            (durationMs / ONE_SECOND_MS) % 60 // 전체 초
-        )
+        // 드래그 중에는 Player의 주기적 갱신이 사용자가 선택한 위치를 덮어쓰지 않도록 한다.
+        if (!isUserSeeking) {
+            binding.sbPlayer.max = seekBarMax
+            binding.sbPlayer.progress = seekBarProgress
+        }
+
+        binding.tvCurrentPlayTime.text = formatPlaybackTime(displayPositionMs)
+
+        binding.tvTotalTime.text = formatPlaybackTime(durationMs)
     }
 
     private fun updatePlayerView(musicModel: MusicModel?) {
@@ -930,8 +948,6 @@ class PlayerFragment : Fragment() {
         }
         playerBluetoothManager.registerAudioDeviceCallback()
 
-        // 포그라운드 복귀 시 진행 루프를 다시 시작
-        startSeekUpdates()
         startVolumeObserver()   // 하드웨어 볼륨 변경 감지 시작
     }
 
@@ -939,7 +955,6 @@ class PlayerFragment : Fragment() {
         super.onStop()
 
         savePlaybackState(immediate = true)
-        stopSeekUpdates()
         playerBluetoothManager.unregisterAudioDeviceCallback()
         stopVolumeObserver()    // 하드웨어 볼륨 변경 감지 중지
     }
@@ -953,7 +968,6 @@ class PlayerFragment : Fragment() {
 
         // View가 파괴된 뒤 player가 Surface를 붙잡지 않도록 분리
         _binding?.vPlayer?.player = null
-        stopSeekUpdates()
         playerBluetoothManager.release()
         binding.root.removeCallbacks(startPlayerTextMarqueeRunnable)
 
@@ -1033,16 +1047,6 @@ class PlayerFragment : Fragment() {
 
         // 시간 텍스트 표시를 초 경계에 가깝게 맞추기 위한 보정값
         private const val POSITION_DISPLAY_OFFSET_MS = 80L
-
-        // 다음 초가 지난 직후 UI를 갱신하기 위한 지연값
-        private const val SEEK_UPDATE_BOUNDARY_OFFSET_MS = 50L
-
-        // 다음 갱신이 너무 잦거나 1초보다 늦게 밀리지 않도록 제한하는 범위
-        private const val MIN_SEEK_UPDATE_DELAY_MS = 100L // 너무 빠르지 않게
-        private const val MAX_SEEK_UPDATE_DELAY_MS = 1_000L // 너무 늦지 않게
-
-        // 자동 다음 곡 전환 직후 새 트랙 position을 다시 읽기까지 기다리는 시간
-        private const val SEEK_UPDATE_AFTER_TRANSITION_MS = 100L
 
         private const val PLAYER_TEXT_MARQUEE_START_DELAY_MS = 700L
 
