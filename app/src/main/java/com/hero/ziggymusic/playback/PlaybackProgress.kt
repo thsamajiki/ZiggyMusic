@@ -132,31 +132,43 @@ private fun Player.playingStateUpdates(): Flow<Boolean> =
         }
     }.distinctUntilChanged()
 
-/** 현재 재생 위치를 즉시 방출하고, 이후 초 단위 표시 경계에 맞춰
- * 재생 진행률을 주기적으로 방출.
- * 상위 Flow가 취소되면 반복 갱신도 함께 종료.
+/**
+ * 현재 진행률을 즉시 방출하고, 이후 갱신 시점을 재생 위치에 맞춰 조정한다.
+ *
+ * 초 경계를 바로 앞두고 갱신된 경우 250ms 전체를 기다리지 않고
+ * 짧은 지연 후 다시 확인해 시간 표시가 늦어지는 것을 방지한다.
  */
 private fun Player.progressTicker(): Flow<PlaybackProgress> =
     flow {
         while (true) {
             val progress = currentPlaybackProgress()
             emit(progress)
-            delay(calculateProgressUpdateDelay(progress.positionMs).milliseconds)
+
+            delay(
+                calculateProgressUpdateDelay(
+                    positionMs = progress.positionMs,
+                ).milliseconds
+            )
         }
     }
 
-/* 현재 위치를 기준으로 다음 초 경계 직후까지의 지연 시간을 계산하고 허용 범위로 제한. */
+/**
+ * 현재 재생 위치를 기준으로 다음 250ms 경계 직후까지의 지연 시간을 계산한다.
+ */
 private fun calculateProgressUpdateDelay(positionMs: Long): Long =
-    (PROGRESS_UPDATE_INTERVAL_MS - positionMs % PROGRESS_UPDATE_INTERVAL_MS + PROGRESS_UPDATE_BOUNDARY_OFFSET_MS)
-        .coerceIn(
+    (
+            PROGRESS_UPDATE_INTERVAL_MS -
+                    positionMs % PROGRESS_UPDATE_INTERVAL_MS +
+                    PROGRESS_UPDATE_BOUNDARY_OFFSET_MS
+            ).coerceIn(
             MIN_PROGRESS_UPDATE_DELAY_MS,
             MAX_PROGRESS_UPDATE_DELAY_MS,
         )
 
-private const val PROGRESS_UPDATE_INTERVAL_MS = 1_000L // 초 단위 표시 경계를 계산하기 위한 기준 간격
-private const val PROGRESS_UPDATE_BOUNDARY_OFFSET_MS = 50L // 초 경계가 지난 직후 UI가 갱신되도록 추가하는 보정값
+private const val PROGRESS_UPDATE_INTERVAL_MS = 250L // 초 단위 표시 경계를 계산하기 위한 기준 간격
+private const val PROGRESS_UPDATE_BOUNDARY_OFFSET_MS = 30L // 초 경계가 지난 직후 UI가 갱신되도록 추가하는 보정값
 private const val MEDIA_TRANSITION_PROGRESS_REFRESH_DELAY_MS = 100L // 트랙 전환 후 Player의 위치 정보가 갱신되기를 기다리는 시간
 
 // 계산된 갱신 지연 시간의 최소·최대 허용값
-private const val MIN_PROGRESS_UPDATE_DELAY_MS = 100L // ticker의 계산 결과가 너무 짧지 않게
-private const val MAX_PROGRESS_UPDATE_DELAY_MS = 1_000L // ticker의 계산 결과가 너무 길지 않게
+private const val MIN_PROGRESS_UPDATE_DELAY_MS = 50L // ticker의 계산 결과가 너무 짧지 않게
+private const val MAX_PROGRESS_UPDATE_DELAY_MS = 280L // ticker의 계산 결과가 너무 길지 않게
