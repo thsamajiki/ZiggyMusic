@@ -50,10 +50,8 @@ import com.bumptech.glide.load.DataSource
 import com.bumptech.glide.load.engine.GlideException
 import com.bumptech.glide.request.RequestListener
 import com.hero.ziggymusic.playback.PlaybackQueueManager
-import com.hero.ziggymusic.playback.currentMediaIds
 import com.hero.ziggymusic.playback.currentPlaybackProgress
 import com.hero.ziggymusic.playback.playbackProgressUpdates
-import com.hero.ziggymusic.playback.toMediaItem
 import com.hero.ziggymusic.service.MusicMediaControllerConnector
 import com.hero.ziggymusic.service.MusicServiceController
 import com.hero.ziggymusic.view.main.player.model.LastPlayedMedia
@@ -356,6 +354,9 @@ class PlayerFragment : Fragment() {
                 progress: Int,
                 fromUser: Boolean,
             ) {
+                if (!fromUser) return
+
+                binding.tvCurrentPlayTime.text = formatPlaybackTime(progress.toLong())
             }
 
             override fun onStartTrackingTouch(seekBar: SeekBar?) {
@@ -368,6 +369,17 @@ class PlayerFragment : Fragment() {
                 savePlaybackState(immediate = true)
             }
         })
+    }
+
+    private fun formatPlaybackTime(positionMs: Long): String {
+        val normalizedPositionMs = positionMs.coerceAtLeast(0L)
+
+        return String.format(
+            Locale.KOREA,
+            "%02d:%02d",
+            TimeUnit.MILLISECONDS.toMinutes(normalizedPositionMs),
+            TimeUnit.MILLISECONDS.toSeconds(normalizedPositionMs) % 60,
+        )
     }
 
     private fun changeVolume() {
@@ -623,19 +635,9 @@ class PlayerFragment : Fragment() {
             binding.sbPlayer.progress = seekBarProgress
         }
 
-        binding.tvCurrentPlayTime.text = String.format(
-            Locale.KOREA,
-            "%02d:%02d",
-            TimeUnit.MINUTES.convert(displayPositionMs, TimeUnit.MILLISECONDS), // 현재 분
-            (displayPositionMs / ONE_SECOND_MS) % 60 // 현재 초
-        )
+        binding.tvCurrentPlayTime.text = formatPlaybackTime(displayPositionMs)
 
-        binding.tvTotalTime.text = String.format(
-            Locale.KOREA,
-            "%02d:%02d",
-            TimeUnit.MINUTES.convert(durationMs, TimeUnit.MILLISECONDS), // 전체 분
-            (durationMs / ONE_SECOND_MS) % 60 // 전체 초
-        )
+        binding.tvTotalTime.text = formatPlaybackTime(durationMs)
     }
 
     private fun updatePlayerView(musicModel: MusicModel?) {
