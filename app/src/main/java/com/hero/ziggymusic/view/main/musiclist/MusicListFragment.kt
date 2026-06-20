@@ -516,6 +516,10 @@ class MusicListFragment : Fragment() {
             }
         }
 
+        vm.favoriteMusicIds.observe(viewLifecycleOwner) { musicIds ->
+            musicListAdapter.updateFavoriteMusicIds(musicIds)
+        }
+
         vm.toastEvent.observe(viewLifecycleOwner) { event ->
             event.getContentIfNotHandled()?.let { message ->
                 Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
