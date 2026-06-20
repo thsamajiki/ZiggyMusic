@@ -37,10 +37,18 @@
     <dimen name="music_search_clear_button_padding">6dp</dimen>
     <dimen name="btn_height">56dp</dimen>
     <dimen name="toolbar_height">66dp</dimen>
-    <dimen name="card_padding">22dp</dimen>
+    <dimen name="card_padding">4dp</dimen>
+    <dimen name="music_list_item_album_art_margin_vertical">4dp</dimen>
+    <dimen name="music_list_item_album_art_margin_start">22dp</dimen>
+    <dimen name="music_list_item_title_artist_spacing">6dp</dimen>
+    <dimen name="music_list_item_text_margin_start">16dp</dimen>
+    <dimen name="music_list_item_text_margin_end">12dp</dimen>
+    <dimen name="music_list_item_top_inset">10dp</dimen>
+    <dimen name="music_list_item_bottom_inset">10dp</dimen>
+    <dimen name="music_list_item_end_inset">14dp</dimen>
     <dimen name="album_art_corner_radius">11dp</dimen>
     <dimen name="card_elevation">4dp</dimen>
-    <dimen name="list_item_height">112dp</dimen>
+    <dimen name="list_item_height">96dp</dimen>
     <dimen name="spinner_height">48dp</dimen>
     <dimen name="setting_spinner_width">148dp</dimen>
     <dimen name="setting_spinner_dropdown_width">184dp</dimen>
@@ -76,7 +84,7 @@
 
     <!-- Player & Navigation -->
     <dimen name="view_supporter">1dp</dimen>
-    <dimen name="album_art_size">108dp</dimen>
+    <dimen name="album_art_size">88dp</dimen>
     <dimen name="album_art_size_expanded">360dp</dimen>
     <dimen name="album_art_size_collapsed">72dp</dimen>
     <dimen name="player_peek_height">160dp</dimen>
