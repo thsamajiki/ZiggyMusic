@@ -40,6 +40,8 @@
     <dimen name="card_padding">4dp</dimen>
     <dimen name="music_list_item_album_art_margin_vertical">4dp</dimen>
     <dimen name="music_list_item_album_art_margin_start">20dp</dimen>
+    <dimen name="music_list_item_favorite_icon_size">12dp</dimen>
+    <dimen name="music_list_item_favorite_icon_margin_end">5dp</dimen>
     <dimen name="music_list_item_title_artist_spacing">4dp</dimen>
     <dimen name="music_list_item_text_margin_start">10dp</dimen>
     <dimen name="music_list_item_text_margin_end">8dp</dimen>
