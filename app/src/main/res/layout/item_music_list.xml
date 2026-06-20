@@ -16,6 +16,20 @@
         android:layout_width="match_parent"
         android:layout_height="@dimen/list_item_height">
 
+        <ImageView
+            android:id="@+id/ivFavoriteStar"
+            android:layout_width="@dimen/music_list_item_favorite_icon_size"
+            android:layout_height="@dimen/music_list_item_favorite_icon_size"
+            android:layout_marginEnd="@dimen/music_list_item_favorite_icon_margin_end"
+            android:scaleType="fitCenter"
+            android:src="@drawable/ic_favorite_star_filled"
+            android:visibility="invisible"
+            app:tint="@color/colorPrimaryDark"
+            app:layout_constraintBottom_toBottomOf="@id/ivAlbum"
+            app:layout_constraintEnd_toStartOf="@id/ivAlbum"
+            app:layout_constraintTop_toTopOf="@id/ivAlbum"
+            tools:visibility="visible" />
+
         <com.google.android.material.imageview.ShapeableImageView
             android:id="@+id/ivAlbum"
             android:layout_width="@dimen/album_art_size"
