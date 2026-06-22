@@ -5,5 +5,5 @@
         android:icon="@drawable/ic_music_list" />
     <item android:id="@+id/menu_favorites"
         android:title="@string/title_favorites"
-        android:icon="@drawable/ic_favorites" />
+        android:icon="@drawable/ic_favorite_star_outlined" />
 </menu>
