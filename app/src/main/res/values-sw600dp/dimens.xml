@@ -90,6 +90,8 @@
     <dimen name="album_art_size_expanded">360dp</dimen>
     <dimen name="album_art_size_collapsed">72dp</dimen>
     <dimen name="player_peek_height">160dp</dimen>
+    <dimen name="player_collapsed_album_art_margin_start">26dp</dimen>
+    <dimen name="player_collapsed_text_margin_start">10dp</dimen>
     <dimen name="seekbar_container_height">260dp</dimen>
     <dimen name="seekbar_padding">66dp</dimen>
     <dimen name="icon_play_pause">56dp</dimen>
