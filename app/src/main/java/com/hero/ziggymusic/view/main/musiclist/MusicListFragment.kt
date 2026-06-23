@@ -516,7 +516,7 @@ class MusicListFragment : Fragment() {
             }
         }
 
-        vm.favoriteMusicIds.observe(viewLifecycleOwner) { musicIds ->
+        vm.favoriteMusicIdList.observe(viewLifecycleOwner) { musicIds ->
             musicListAdapter.updateFavoriteMusicIds(musicIds)
         }
 
@@ -570,26 +570,26 @@ class MusicListFragment : Fragment() {
         requireContext().playMusic(musicKey)
     }
 
-    private fun openMusicOptionMenuPopup(data: MusicModel, anchorView: View) {
-        val isFavorite = vm.isContainedInFavorites(data.id)
+    private fun openMusicOptionMenuPopup(music: MusicModel, anchorView: View) {
+        val isFavorite = vm.isContainedInFavorites(music.id)
 
         MusicOptionMenuPopup(
             anchorView = anchorView,
             showAddToFavorites = !isFavorite,
             showRemoveFromFavorites = isFavorite,
-            onAddToFavorites = { addMusicToFavorites(data) },
-            onRemoveFromFavorites = { removeMusicFromFavorites(data) }
+            onAddToFavorites = { addMusicToFavorites(music.id) },
+            onRemoveFromFavorites = { removeMusicFromFavorites(music.id) }
         ).show()
     }
 
-    private fun addMusicToFavorites(musicModel: MusicModel) {
+    private fun addMusicToFavorites(id: String) {
         // Local DB에 저장한다.
-        vm.addMusicToFavorites(musicModel)
+        vm.addMusicToFavorites(id)
     }
 
-    private fun removeMusicFromFavorites(musicModel: MusicModel) {
+    private fun removeMusicFromFavorites(id: String) {
         // Local DB에서 삭제한다.
-        vm.removeMusicFromMyFavorites(musicModel)
+        vm.removeMusicFromMyFavorites(id)
     }
 
     override fun onStop() {
