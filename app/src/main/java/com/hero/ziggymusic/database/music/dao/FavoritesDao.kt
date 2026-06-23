@@ -2,25 +2,32 @@ package com.hero.ziggymusic.database.music.dao
 
 import androidx.lifecycle.LiveData
 import androidx.room.*
+import com.hero.ziggymusic.database.music.entity.FavoriteMusicEntity
 import com.hero.ziggymusic.database.music.entity.MusicModel
 
 @Dao
 interface FavoritesDao {
-    @Query("SELECT * FROM music_table ORDER BY id ASC")
-    fun getAllFiles() : LiveData<List<MusicModel>>
+    @Query("""
+        SELECT music.*
+        FROM music
+        INNER JOIN favorite_music
+        ON music.id = favorite_music.id
+        ORDER BY favorite_music.created_at DESC
+    """)
+    fun getFavoriteMusicList(): LiveData<List<MusicModel>>
 
-    @Query("SELECT * FROM music_table WHERE id = :key limit 1")
-    suspend fun getMusicFileFromKey(key: String?): MusicModel?
+    @Query("SELECT id FROM favorite_music")
+    fun getFavoriteMusicIdList(): LiveData<List<String>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertMusic(musicModel: MusicModel)
+    suspend fun insertFavoriteMusic(favoriteMusic: FavoriteMusicEntity)
 
-    @Delete
-    suspend fun deleteMusic(musicModel: MusicModel)
+    @Query("DELETE FROM favorite_music WHERE id = :id")
+    suspend fun deleteFavoriteMusic(id: String)
 
-    @Query("DELETE FROM music_table WHERE id NOT IN (:musicIdList)")
+    @Query("DELETE FROM favorite_music WHERE id NOT IN (:musicIdList)")
     suspend fun deleteFavoritesExcept(musicIdList: List<String>)
 
-    @Query("DELETE FROM music_table")
+    @Query("DELETE FROM favorite_music")
     suspend fun clearAll()
 }
