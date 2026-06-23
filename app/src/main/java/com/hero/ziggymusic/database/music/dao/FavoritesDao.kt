@@ -17,4 +17,10 @@ interface FavoritesDao {
 
     @Delete
     suspend fun deleteMusic(musicModel: MusicModel)
+
+    @Query("DELETE FROM music_table WHERE id NOT IN (:musicIdList)")
+    suspend fun deleteFavoritesExcept(musicIdList: List<String>)
+
+    @Query("DELETE FROM music_table")
+    suspend fun clearAll()
 }
