@@ -146,8 +146,10 @@ class PlaybackQueueManager @Inject constructor(
         musicList: List<MusicModel>,
         musicId: String
     ): Boolean {
-        if (musicList.isEmpty()) return false
+        // 요청한 musicId가 현재 재생 가능한 음악 목록에 없으면 실패로 처리한다
+        if (musicList.none { it.id == musicId }) return false
 
+        // 유효한 재생 요청일 때만 큐를 동기화한다.
         syncQueue(musicList)
 
         // 큐 동기화 이후 실제 Player 큐에서 선택한 곡의 위치를 다시 찾는다.
