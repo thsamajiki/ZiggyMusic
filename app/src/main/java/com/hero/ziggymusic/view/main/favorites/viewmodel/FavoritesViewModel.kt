@@ -69,9 +69,9 @@ class FavoritesViewModel @Inject constructor(
         }
     }
 
-    fun removeMusicFromFavorites(musicModel: MusicModel) {
+    fun removeMusicFromFavorites(id: String) {
         viewModelScope.launch {
-            musicRepository.removeMusicFromFavorites(musicModel)
+            musicRepository.removeMusicFromFavorites(id)
         }
     }
 }
