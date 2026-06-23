@@ -187,7 +187,13 @@ class MainActivity : AppCompatActivity(),
     }
 
     fun playMusic(musicId: String) {
-        playerController.changeMusic(musicId)
+        // 요청한 음악으로 실제 재생 전환이 성공했을 때만 이후 처리를 계속한다는 가드 역할
+        val changedMusic = playerController.changeMusic(musicId)
+
+        if (!changedMusic) {
+            return
+        }
+
         MusicServiceController.dispatchAction(
             context = this,
             action = MusicService.ACTION_REFRESH_NOTIFICATION,
