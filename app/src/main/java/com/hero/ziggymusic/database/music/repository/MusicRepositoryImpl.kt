@@ -18,8 +18,8 @@ class MusicRepositoryImpl @Inject constructor(
         return musicLocalDataSource.getMusicCount()
     }
 
-    override suspend fun getMusic(key: String): MusicModel? {
-        return musicLocalDataSource.getMusic(key)
+    override suspend fun getMusic(id: String): MusicModel? {
+        return musicLocalDataSource.getMusic(id)
     }
 
     override fun getAllMusic(): LiveData<List<MusicModel>> {
@@ -30,13 +30,17 @@ class MusicRepositoryImpl @Inject constructor(
         return musicLocalDataSource.getFavorites()
     }
 
-    override fun observeMusicChanges(): Flow<Unit> = musicLocalDataSource.observeMusicChanges()
-
-    override suspend fun addMusicToFavorites(musicModel: MusicModel) {
-        musicLocalDataSource.addMusicToFavorites(musicModel)
+    override fun getFavoriteMusicIdList(): LiveData<List<String>> {
+        return musicLocalDataSource.getFavoriteMusicIdList()
     }
 
-    override suspend fun removeMusicFromFavorites(musicModel: MusicModel) {
-        musicLocalDataSource.removeMusicFromFavorites(musicModel)
+    override fun observeMusicChanges(): Flow<Unit> = musicLocalDataSource.observeMusicChanges()
+
+    override suspend fun addMusicToFavorites(id: String) {
+        musicLocalDataSource.addMusicToFavorites(id)
+    }
+
+    override suspend fun removeMusicFromFavorites(id: String) {
+        musicLocalDataSource.removeMusicFromFavorites(id)
     }
 }
