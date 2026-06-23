@@ -339,20 +339,23 @@ class PlayerFragment : Fragment() {
         }
     }
 
-    fun changeMusic(musicId: String) {
+    fun changeMusic(musicId: String): Boolean {
         val latestMusicList = vm.musicList.value.orEmpty()
+
         // 재생 요청 전에 큐를 최신 목록으로 동기화하여 새로 추가된 음원도 바로 재생되게 한다.
         val startedPlayback = playbackQueueManager.playMusic(
             musicList = latestMusicList,
             musicId = musicId
         )
 
-        if (!startedPlayback) return
+        if (!startedPlayback) return false
 
         playerModel.changedMusic(musicId)
         playerModel.currentMusic?.let { music ->
             updatePlayerView(music)
         }
+
+        return true
     }
 
     private fun initSeekBar() {
