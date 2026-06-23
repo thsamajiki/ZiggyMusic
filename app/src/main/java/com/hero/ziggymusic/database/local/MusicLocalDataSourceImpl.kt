@@ -71,10 +71,13 @@ class MusicLocalDataSourceImpl @Inject constructor(
             musicFileDao.insertAll(musicList)
 
             val musicIdList = musicList.map { it.id }
+
             if (musicIdList.isEmpty()) {
                 musicFileDao.clearAll()
+                favoritesDao.clearAll()
             } else {
                 musicFileDao.deleteFilesExcept(musicIdList)
+                favoritesDao.deleteFavoritesExcept(musicIdList)
             }
         }
     }
