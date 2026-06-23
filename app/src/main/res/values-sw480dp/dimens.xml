@@ -44,7 +44,8 @@
     <dimen name="music_list_item_favorite_icon_margin_end">5dp</dimen>
     <dimen name="music_list_item_title_artist_spacing">4dp</dimen>
     <dimen name="music_list_item_text_margin_start">12dp</dimen>
-    <dimen name="music_list_item_text_margin_end">10dp</dimen>
+    <dimen name="music_list_item_title_margin_end">17dp</dimen>
+    <dimen name="music_list_item_artist_margin_end">14dp</dimen>
     <dimen name="music_list_item_top_inset">10dp</dimen>
     <dimen name="music_list_item_bottom_inset">10dp</dimen>
     <dimen name="music_list_item_end_inset">12dp</dimen>
