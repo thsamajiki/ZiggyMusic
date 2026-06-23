@@ -10,9 +10,10 @@ import kotlinx.parcelize.Parcelize
 import androidx.core.net.toUri
 
 @Parcelize
-@Entity(tableName = "music_table")
+@Entity(tableName = "music")
 data class MusicModel(
     @PrimaryKey
+    @ColumnInfo(name = "id")
     val id: String,    // 음원 자체의 ID
     @ColumnInfo(name = "title")
     val title: String? = "",   // 음원 제목

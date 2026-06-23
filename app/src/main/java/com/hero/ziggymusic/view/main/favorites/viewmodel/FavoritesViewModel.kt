@@ -3,8 +3,8 @@ package com.hero.ziggymusic.view.main.favorites.viewmodel
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
+import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.Observer
 import androidx.lifecycle.viewModelScope
 import com.hero.ziggymusic.R
 import com.hero.ziggymusic.common.SingleEvent
@@ -26,9 +26,10 @@ class FavoritesViewModel @Inject constructor(
     application: Application,
     private val musicRepository: MusicRepository
 ) : AndroidViewModel(application) {
-    val favorites : LiveData<List<MusicModel>> = musicRepository.getFavorites()
+    private val favorites : LiveData<List<MusicModel>> = musicRepository.getFavorites()
+    private val allMusics : LiveData<List<MusicModel>> = musicRepository.getAllMusic()
 
-    private val _uiState = MutableLiveData<FavoritesUiState>(FavoritesUiState.Idle)
+    private val _uiState = MediatorLiveData<FavoritesUiState>(FavoritesUiState.Idle)
     val uiState: LiveData<FavoritesUiState>
         get() = _uiState
 
@@ -40,33 +41,37 @@ class FavoritesViewModel @Inject constructor(
     val toastEvent: LiveData<SingleEvent<String>>
         get() = _toastEvent
 
-    private val favoritesObserver = Observer<List<MusicModel>> { musics ->
-        updateFavoritesUiState(musics)
-    }
-
     init {
-        favorites.observeForever(favoritesObserver)
+        _uiState.addSource(favorites) {
+            updateFavoritesUiState()
+        }
+
+        _uiState.addSource(allMusics) {
+            updateFavoritesUiState()
+        }
     }
 
-    private fun updateFavoritesUiState(musics: List<MusicModel>) {
-        if (musics.isEmpty()) {
+    private fun updateFavoritesUiState() {
+        val favoriteItems = favorites.value ?: return
+        val availableItems = allMusics.value ?: return
+        val availableIds = availableItems.mapTo(mutableSetOf()) { it.id }
+
+        // 기기에 남아 있는 즐겨찾기만 표시한다.
+        val newFavorites = favoriteItems.filter { it.id in availableIds }
+
+        if (newFavorites.isEmpty()) {
             _emptyStateMessage.value =
                 getApplication<Application>().getString(R.string.no_music_found)
             _uiState.value = FavoritesUiState.Empty
         } else {
             _emptyStateMessage.value = ""
-            _uiState.value = FavoritesUiState.Content(musics)
+            _uiState.value = FavoritesUiState.Content(newFavorites)
         }
     }
 
-    fun removeMusicFromFavorites(musicModel: MusicModel) {
+    fun removeMusicFromFavorites(id: String) {
         viewModelScope.launch {
-            musicRepository.removeMusicFromFavorites(musicModel)
+            musicRepository.removeMusicFromFavorites(id)
         }
-    }
-
-    override fun onCleared() {
-        favorites.removeObserver(favoritesObserver)
-        super.onCleared()
     }
 }

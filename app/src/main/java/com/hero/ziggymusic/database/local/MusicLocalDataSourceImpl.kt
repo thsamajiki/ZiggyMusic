@@ -7,6 +7,7 @@ import androidx.room.withTransaction
 import com.hero.ziggymusic.database.AppMusicDatabase
 import com.hero.ziggymusic.database.music.dao.MusicFileDao
 import com.hero.ziggymusic.database.music.dao.FavoritesDao
+import com.hero.ziggymusic.database.music.entity.FavoriteMusicEntity
 import com.hero.ziggymusic.database.music.entity.MusicModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -71,10 +72,13 @@ class MusicLocalDataSourceImpl @Inject constructor(
             musicFileDao.insertAll(musicList)
 
             val musicIdList = musicList.map { it.id }
+
             if (musicIdList.isEmpty()) {
                 musicFileDao.clearAll()
+                favoritesDao.clearAll()
             } else {
                 musicFileDao.deleteFilesExcept(musicIdList)
+                favoritesDao.deleteFavoritesExcept(musicIdList)
             }
         }
     }
@@ -83,8 +87,8 @@ class MusicLocalDataSourceImpl @Inject constructor(
         musicFileDao.getMusicCount()
     }
 
-    override suspend fun getMusic(key: String): MusicModel? {
-        return musicFileDao.getMusicFileFromKey(key)
+    override suspend fun getMusic(id: String): MusicModel? {
+        return musicFileDao.getMusicFileFromKey(id)
     }
 
     override fun getAllMusic(): LiveData<List<MusicModel>> {
@@ -92,16 +96,20 @@ class MusicLocalDataSourceImpl @Inject constructor(
     }
 
     override fun getFavorites(): LiveData<List<MusicModel>> {
-        return favoritesDao.getAllFiles()
+        return favoritesDao.getFavoriteMusicList()
+    }
+
+    override fun getFavoriteMusicIdList(): LiveData<List<String>> {
+        return favoritesDao.getFavoriteMusicIdList()
     }
 
     override fun observeMusicChanges(): Flow<Unit> = mediaStoreMusicObserver.observeMusicChanges()
 
-    override suspend fun addMusicToFavorites(musicModel: MusicModel) {
-        favoritesDao.insertMusic(musicModel)
+    override suspend fun addMusicToFavorites(id: String) {
+        favoritesDao.insertFavoriteMusic(FavoriteMusicEntity(id = id))
     }
 
-    override suspend fun removeMusicFromFavorites(musicModel: MusicModel) {
-        favoritesDao.deleteMusic(musicModel)
+    override suspend fun removeMusicFromFavorites(id: String) {
+        favoritesDao.deleteFavoriteMusic(id)
     }
 }

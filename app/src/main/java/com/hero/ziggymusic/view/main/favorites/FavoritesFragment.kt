@@ -100,18 +100,18 @@ class FavoritesFragment : Fragment() {
         requireContext().playMusic(musicKey)
     }
 
-    private fun openMusicOptionMenuPopup(data: MusicModel, anchorView: View) {
+    private fun openMusicOptionMenuPopup(music: MusicModel, anchorView: View) {
         MusicOptionMenuPopup(
             anchorView = anchorView,
             showAddToFavorites = false,
             showRemoveFromFavorites = true,
             onAddToFavorites = {},
-            onRemoveFromFavorites = { removeMusicFromFavorites(data) }
+            onRemoveFromFavorites = { removeMusicFromFavorites(music) }
         ).show()
     }
 
-    private fun removeMusicFromFavorites(musicModel: MusicModel) {
-        vm.removeMusicFromFavorites(musicModel)
+    private fun removeMusicFromFavorites(music: MusicModel) {
+        vm.removeMusicFromFavorites(music.id)
     }
 
     override fun onDestroyView() {

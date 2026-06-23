@@ -9,15 +9,17 @@ interface MusicRepository {
 
     suspend fun getMusicCount(): Int
 
-    suspend fun getMusic(key: String): MusicModel?
+    suspend fun getMusic(id: String): MusicModel?
 
     fun getAllMusic(): LiveData<List<MusicModel>>
 
     fun getFavorites(): LiveData<List<MusicModel>>
 
+    fun getFavoriteMusicIdList(): LiveData<List<String>>
+
     fun observeMusicChanges(): Flow<Unit>
 
-    suspend fun addMusicToFavorites(musicModel: MusicModel)
+    suspend fun addMusicToFavorites(id: String)
 
-    suspend fun removeMusicFromFavorites(musicModel: MusicModel)
+    suspend fun removeMusicFromFavorites(id: String)
 }
