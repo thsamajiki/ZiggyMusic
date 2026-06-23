@@ -17,7 +17,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.toSet
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import kotlin.time.Duration.Companion.milliseconds
@@ -44,8 +43,8 @@ class MusicListViewModel @Inject constructor(
     private val favoritesObserver: (List<MusicModel>) -> Unit = {
     }
 
-    val favoriteMusicIds: LiveData<Set<String>> = favorites.map { items ->
-        items.map { it.id }.toSet()
+    val favoriteMusicIdList: LiveData<Set<String>> = musicRepository.getFavoriteMusicIdList().map { musicIdList ->
+        musicIdList.toSet()
     } // 전체 음악 목록에서 각 음악의 즐겨찾기 여부를 확인하기 위해 즐겨찾기 음악 목록을 중복 없는 ID 집합으로 변환
 
     val allMusics = musicRepository.getAllMusic()
@@ -206,19 +205,19 @@ class MusicListViewModel @Inject constructor(
         )
     }
 
-    fun addMusicToFavorites(musicModel: MusicModel) {
+    fun addMusicToFavorites(id: String) {
         viewModelScope.launch {
-            musicRepository.addMusicToFavorites(musicModel)
+            musicRepository.addMusicToFavorites(id)
         }
     }
 
-    fun isContainedInFavorites(musicId: String) : Boolean {
-        return favorites.value.orEmpty().any { it.id == musicId }
+    fun isContainedInFavorites(id: String) : Boolean {
+        return id in favoriteMusicIdList.value.orEmpty()
     }
 
-    fun removeMusicFromMyFavorites(musicModel: MusicModel) {
+    fun removeMusicFromMyFavorites(id: String) {
         viewModelScope.launch {
-            musicRepository.removeMusicFromFavorites(musicModel)
+            musicRepository.removeMusicFromFavorites(id)
         }
     }
 
