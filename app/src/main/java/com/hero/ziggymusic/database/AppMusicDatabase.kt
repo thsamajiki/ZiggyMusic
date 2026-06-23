@@ -4,12 +4,15 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import com.hero.ziggymusic.database.music.dao.FavoritesDao
 import com.hero.ziggymusic.database.music.dao.MusicFileDao
+import com.hero.ziggymusic.database.music.entity.FavoriteMusicEntity
 import com.hero.ziggymusic.database.music.entity.MusicModel
 
-@Database(entities = [MusicModel::class], version = 1, exportSchema = false)
+@Database(entities = [MusicModel::class, FavoriteMusicEntity::class], version = 1, exportSchema = false)
 abstract class AppMusicDatabase : RoomDatabase() {
     abstract fun musicFileDao(): MusicFileDao
+    abstract fun favoritesDao(): FavoritesDao
 
     companion object {
         @Volatile
@@ -22,7 +25,7 @@ abstract class AppMusicDatabase : RoomDatabase() {
         private fun buildDatabase(context: Context) =
             Room.databaseBuilder(
                 context.applicationContext,
-                AppMusicDatabase::class.java, "music_table.db"
+                AppMusicDatabase::class.java, "ziggy_music.db"
             ).build()
     }
 }
