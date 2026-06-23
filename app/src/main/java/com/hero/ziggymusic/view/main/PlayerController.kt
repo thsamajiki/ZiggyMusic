@@ -54,7 +54,7 @@ class PlayerController(
         }
     }
 
-    fun changeMusic(musicId: String) {
-        playerFragment?.changeMusic(musicId)
+    fun changeMusic(musicId: String): Boolean {
+        return playerFragment?.changeMusic(musicId) ?: false
     }
 }
