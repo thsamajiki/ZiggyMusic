@@ -39,9 +39,6 @@ class MusicListViewModel @Inject constructor(
     application: Application,
     private val musicRepository : MusicRepository
 ) : AndroidViewModel(application) {
-    private val favorites = musicRepository.getFavorites()
-    private val favoritesObserver: (List<MusicModel>) -> Unit = {
-    }
 
     val favoriteMusicIdList: LiveData<Set<String>> = musicRepository.getFavoriteMusicIdList().map { musicIdList ->
         musicIdList.toSet()
@@ -84,7 +81,6 @@ class MusicListViewModel @Inject constructor(
     init {
         // Observer 는 항상 활성 상태로 간주되므로 항상 수정 관련 알림을 받는다.
         allMusics.observeForever(allMusicsObserver)
-        favorites.observeForever(favoritesObserver)
         observeSearchQuery()
 
         viewModelScope.launch {
@@ -223,7 +219,6 @@ class MusicListViewModel @Inject constructor(
 
     override fun onCleared() {
         allMusics.removeObserver(allMusicsObserver)
-        favorites.removeObserver(favoritesObserver)
         super.onCleared()
     }
 
