@@ -13,6 +13,7 @@ import com.hero.ziggymusic.database.music.entity.MusicModel
 import com.hero.ziggymusic.domain.music.repository.MusicRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.debounce
@@ -39,12 +40,14 @@ class MusicListViewModel @Inject constructor(
     application: Application,
     private val musicRepository : MusicRepository
 ) : AndroidViewModel(application) {
+    private var musicLibrarySyncJob: Job? = null // 음악 목록 동기화 중복 실행을 방지한다.
+    private var mediaStoreChangesJob: Job? = null // MediaStore 변경 감지 작업의 중복 실행을 방지한다.
 
     val favoriteMusicIdList: LiveData<Set<String>> = musicRepository.getFavoriteMusicIdList().map { musicIdList ->
         musicIdList.toSet()
     } // 전체 음악 목록에서 각 음악의 즐겨찾기 여부를 확인하기 위해 즐겨찾기 음악 목록을 중복 없는 ID 집합으로 변환
 
-    val allMusics = musicRepository.getAllMusic()
+    val allMusicList = musicRepository.getAllMusic()
 
     private val _uiState = MutableLiveData<MusicListUiState>(MusicListUiState.Idle)
     val uiState: LiveData<MusicListUiState>
@@ -64,50 +67,56 @@ class MusicListViewModel @Inject constructor(
     val searchResult: StateFlow<MusicSearchResult?>
         get() = _searchResult
 
-    private var isInitialized = false
-    private var isObservingMediaStore = false
     private var hasSearchMusicItems = false
 
-    private val allMusicsObserver = Observer<List<MusicModel>> { musics ->
-        if (!isInitialized) return@Observer
-
-        _uiState.value = if (musics.isEmpty()) {
-            MusicListUiState.Empty
-        } else {
-            MusicListUiState.Content(musics)
+    private val allMusicListObserver = Observer<List<MusicModel>> { musicList ->
+        if (musicList.isNotEmpty()) {
+            updateMusicListUiState(musicList)
         }
     }
 
     init {
         // Observer 는 항상 활성 상태로 간주되므로 항상 수정 관련 알림을 받는다.
-        allMusics.observeForever(allMusicsObserver)
+        allMusicList.observeForever(allMusicListObserver)
         observeSearchQuery()
+    }
 
-        viewModelScope.launch {
+    // MediaStore에서 최신 음악 목록을 조회하고, UI 갱신 후 Room 캐시를 갱신한다.
+    fun syncMusicLibrary() {
+        // 이미 동기화 중이면 새 요청은 무시한다.
+        if (musicLibrarySyncJob?.isActive == true) {
+            return
+        }
+
+        musicLibrarySyncJob = viewModelScope.launch {
             runCatching {
-                if (musicRepository.getMusicCount() == 0) {
-                    musicRepository.loadMusics()
-                }
-            }.onSuccess {
-                isInitialized = true
+                musicRepository.getMusicList()
+            }.onSuccess { musicList ->
+                updateMusicListUiState(musicList)
 
-                val musics = allMusics.value.orEmpty()
-                if (musics.isEmpty()) {
-                    _emptyStateMessage.value =
-                        getApplication<Application>().getString(R.string.no_music_found)
-                    _uiState.value = MusicListUiState.Empty
-                } else {
-                    _emptyStateMessage.value = ""
-                    _uiState.value = MusicListUiState.Content(musics)
-                }
+                // 사용자에게 먼저 목록을 보여준 뒤 캐시를 저장한다.
+                musicRepository.replaceCachedMusicList(musicList)
             }.onFailure {
-                isInitialized = true
-                _toastEvent.value = SingleEvent(getApplication<Application>().getString(R.string.load_music_failed))
+                _toastEvent.value = SingleEvent(getApplication<Application>()
+                        .getString(R.string.load_music_failed)
+                )
                 _uiState.value = MusicListUiState.Error
             }
         }
+    }
 
+    private fun updateMusicListUiState(
+        musicList: List<MusicModel>
+    ) {
+        if (musicList.isEmpty()) {
+            _emptyStateMessage.value =
+                getApplication<Application>().getString(R.string.no_music_found)
 
+            _uiState.value = MusicListUiState.Empty
+        } else {
+            _emptyStateMessage.value = ""
+            _uiState.value = MusicListUiState.Content(musicList)
+        }
     }
 
     @OptIn(FlowPreview::class)
@@ -129,34 +138,21 @@ class MusicListViewModel @Inject constructor(
         }
     }
 
-    fun refreshMusicList() {
-        viewModelScope.launch {
-            runCatching {
-                musicRepository.loadMusics()
-            }.onFailure {
-                _toastEvent.value = SingleEvent(
-                    getApplication<Application>().getString(R.string.load_music_failed)
-                )
-                _uiState.value = MusicListUiState.Error
-            }
-        }
-    }
-
+    // MediaStore 변경을 감지해 음악 목록을 최신 상태로 동기화한다.
     @OptIn(FlowPreview::class)
-    private fun observeMediaStoreChanges() {
-        viewModelScope.launch {
+    fun startObservingMediaStoreChanges() {
+        if (mediaStoreChangesJob?.isActive == true) {
+            return
+        }
+
+        // 짧은 시간에 여러 변경 이벤트가 발생해도 한 번만 동기화한다.
+        mediaStoreChangesJob = viewModelScope.launch {
             musicRepository.observeMusicChanges()
                 .debounce(MEDIA_STORE_REFRESH_DELAY_MS.milliseconds)
                 .collect {
-                    refreshMusicList()
+                    syncMusicLibrary()
                 }
         }
-    }
-
-    fun startObservingMediaStoreChanges() {
-        if (isObservingMediaStore) return
-        isObservingMediaStore = true
-        observeMediaStoreChanges()
     }
 
     fun setSearchQuery(query: String) {
@@ -218,7 +214,7 @@ class MusicListViewModel @Inject constructor(
     }
 
     override fun onCleared() {
-        allMusics.removeObserver(allMusicsObserver)
+        allMusicList.removeObserver(allMusicListObserver)
         super.onCleared()
     }
 
