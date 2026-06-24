@@ -25,7 +25,7 @@ import kotlin.time.Duration.Companion.milliseconds
 sealed class MusicListUiState {
     object Idle : MusicListUiState()
     data class Content(val data: List<MusicModel>) : MusicListUiState()
-    object Empty : MusicListUiState()
+    data class Empty(val message: String) : MusicListUiState()
     object Error : MusicListUiState()
 }
 
@@ -53,9 +53,7 @@ class MusicListViewModel @Inject constructor(
     val uiState: LiveData<MusicListUiState>
         get() = _uiState
 
-    private val _emptyStateMessage = MutableLiveData("")
-    val emptyStateMessage: LiveData<String>
-        get() = _emptyStateMessage
+    private var currentStateMessage: String = "" // 현재 상태를 나타내는 메시지
 
     private val _toastEvent = MutableLiveData<SingleEvent<String>>()
     val toastEvent: LiveData<SingleEvent<String>>
@@ -109,12 +107,9 @@ class MusicListViewModel @Inject constructor(
         musicList: List<MusicModel>
     ) {
         if (musicList.isEmpty()) {
-            _emptyStateMessage.value =
-                getApplication<Application>().getString(R.string.no_music_found)
-
-            _uiState.value = MusicListUiState.Empty
+            val message = getApplication<Application>().getString(R.string.no_music_found)
+            _uiState.value = MusicListUiState.Empty(message)
         } else {
-            _emptyStateMessage.value = ""
             _uiState.value = MusicListUiState.Content(musicList)
         }
     }
@@ -159,8 +154,13 @@ class MusicListViewModel @Inject constructor(
         _searchQuery.value = query
     }
 
-    fun setSearchMusicItems(musicItems: List<MusicModel>) {
+    fun setSearchMusicItems(
+        musicItems: List<MusicModel>,
+        emptyStateMessage: String = ""
+    ) {
         hasSearchMusicItems = true
+        currentStateMessage = emptyStateMessage
+
         _searchMusicItems.value = musicItems
         // 목록이 갱신되면 현재 검색어를 즉시 다시 적용해 화면 상태를 맞춘다.
         _searchResult.value = searchMusicItems(_searchQuery.value, musicItems)
@@ -168,6 +168,7 @@ class MusicListViewModel @Inject constructor(
 
     fun clearSearchResult() {
         hasSearchMusicItems = false
+        currentStateMessage = ""
         _searchMusicItems.value = emptyList()
         _searchResult.value = null
     }
@@ -185,7 +186,7 @@ class MusicListViewModel @Inject constructor(
         }
 
         val emptyMessage = if (keyword.isBlank()) {
-            _emptyStateMessage.value.orEmpty()
+            currentStateMessage
         } else {
             getApplication<Application>().getString(R.string.music_search_no_result)
         }

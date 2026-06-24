@@ -482,7 +482,10 @@ class MusicListFragment : Fragment() {
                 }
 
                 is MusicListUiState.Empty -> {
-                    vm.setSearchMusicItems(emptyList())
+                    vm.setSearchMusicItems(
+                        musicItems = emptyList(),
+                        emptyStateMessage = state.message
+                    )
                 }
 
                 is MusicListUiState.Error -> {
