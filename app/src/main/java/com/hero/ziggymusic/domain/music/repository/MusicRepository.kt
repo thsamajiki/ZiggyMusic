@@ -5,7 +5,9 @@ import com.hero.ziggymusic.database.music.entity.MusicModel
 import kotlinx.coroutines.flow.Flow
 
 interface MusicRepository {
-    suspend fun loadMusics()
+    suspend fun getMusicList(): List<MusicModel>
+
+    suspend fun replaceCachedMusicList(musicList: List<MusicModel>)
 
     suspend fun getMusicCount(): Int
 
