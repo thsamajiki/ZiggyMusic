@@ -19,7 +19,6 @@ import androidx.core.net.toUri
 import androidx.core.view.isGone
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
-import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
@@ -37,6 +36,9 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
+import androidx.core.view.doOnPreDraw
+import androidx.fragment.app.Fragment
+import androidx.lifecycle.Lifecycle
 import com.hero.ziggymusic.service.MusicService
 import com.hero.ziggymusic.service.MusicServiceController
 import com.hero.ziggymusic.view.main.model.MainTitle
@@ -50,9 +52,7 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 
 @AndroidEntryPoint
-class MainActivity : AppCompatActivity(),
-    NavigationBarView.OnItemSelectedListener {
-
+class MainActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedListener {
     private lateinit var binding: ActivityMainBinding
     private val vm by viewModels<MainViewModel>()
     private val playerVm by viewModels<PlayerViewModel>()
@@ -62,15 +62,6 @@ class MainActivity : AppCompatActivity(),
     private val playerModel: PlayerModel = PlayerModel.getInstance()
     private lateinit var playerController: PlayerController
     private val playbackStateStore by lazy { PlaybackStateStore(this) }
-
-    private val playerListener = object : Player.Listener {
-        // 미디어 아이템이 바뀔 때
-        override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
-            super.onMediaItemTransition(mediaItem, reason)
-            val newMusicKey: String = mediaItem?.mediaId ?: return
-            playerModel.changedMusic(newMusicKey)
-        }
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -119,29 +110,86 @@ class MainActivity : AppCompatActivity(),
             supportFragmentManager.popBackStack()
         }
 
+        // 백스택 변화에 맞춰 현재 화면의 타이틀과 상단 버튼 상태를 동기화한다.
         supportFragmentManager.addOnBackStackChangedListener {
-            when (supportFragmentManager.findFragmentById(binding.fcvMain.id)) {
+            val currentFragment =
+                supportFragmentManager.fragments
+                    .lastOrNull { fragment ->
+                        fragment.id == binding.fcvMain.id &&
+                                fragment.isAdded &&
+                                !fragment.isHidden
+                    }
+
+            when (currentFragment) {
                 is MusicListFragment -> vm.setTitle(MainTitle.MusicList)
                 is FavoritesFragment -> vm.setTitle(MainTitle.Favorites)
                 is SettingFragment -> vm.setTitle(MainTitle.Setting)
             }
         }
 
+        // 현재 메인 탭을 숨기고 설정 화면을 백스택 위에 표시한다.
         binding.ivSetting.setOnClickListener {
-            val settingFragment = supportFragmentManager.findFragmentByTag("setting")
-                ?: SettingFragment.newInstance()
+            // 설정 화면이 이미 표시 중이면 중복 실행하지 않는다.
+            val existingSettingFragment =
+                supportFragmentManager.findFragmentByTag(TAG_SETTING)
+
+            if (
+                existingSettingFragment != null &&
+                existingSettingFragment.isAdded &&
+                !existingSettingFragment.isHidden
+            ) {
+                return@setOnClickListener
+            }
+
+            val currentMainFragment =
+                findCurrentMainTabFragment()
+                    ?: return@setOnClickListener
+
+            val settingFragment = existingSettingFragment ?: SettingFragment.newInstance()
 
             supportFragmentManager.beginTransaction()
-                .replace(binding.fcvMain.id, settingFragment, "setting")
-                .addToBackStack("setting")
+                .setReorderingAllowed(true)
+                .hide(currentMainFragment)
+                .setMaxLifecycle(
+                    currentMainFragment,
+                    Lifecycle.State.STARTED
+                )
+                .apply {
+                    if (settingFragment.isAdded) {
+                        show(settingFragment)
+                    } else {
+                        add(
+                            binding.fcvMain.id,
+                            settingFragment,
+                            TAG_SETTING
+                        )
+                    }
+                }
+                .setMaxLifecycle(
+                    settingFragment,
+                    Lifecycle.State.RESUMED
+                )
+                .setPrimaryNavigationFragment(settingFragment)
+                .addToBackStack(TAG_SETTING)
                 .commit()
-            supportFragmentManager.executePendingTransactions()
-
-            vm.setTitle(MainTitle.Setting)
         }
 
+        initMainTabFragments()
+
         binding.bottomNavMain.setOnItemSelectedListener(this)
-        binding.bottomNavMain.selectedItemId = R.id.menu_music_list
+        binding.bottomNavMain.setOnItemReselectedListener {
+            val settingFragment = supportFragmentManager.findFragmentByTag(TAG_SETTING)
+
+            if (
+                settingFragment != null &&
+                settingFragment.isAdded &&
+                !settingFragment.isHidden
+            ) {
+                supportFragmentManager.popBackStackImmediate()
+            }
+        }
+
+        prepareFavoritesTabAfterFirstDraw()
     }
 
     override fun onStart() {
@@ -151,12 +199,7 @@ class MainActivity : AppCompatActivity(),
     override fun onResume() {
         super.onResume()
 
-        if (hasAudioPermission()) {
-            playerController.startPlayer(
-                playbackStateStore.loadLastPlayedId(PlaybackContentType.MUSIC).orEmpty()
-            )
-            startMusicServiceIfNotificationAllowed()
-        }
+        startPlayerIfAudioPermissionGranted()
     }
 
     private fun initViewModel() {
@@ -202,22 +245,184 @@ class MainActivity : AppCompatActivity(),
     }
 
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
-        val transaction = supportFragmentManager.beginTransaction()
-        when (item.itemId) {
+        val settingFragment = supportFragmentManager.findFragmentByTag(TAG_SETTING)
+
+        // 설정 화면 위에서 탭을 누르면 설정을 닫고 선택한 탭으로 돌아간다.
+        if (
+            settingFragment != null &&
+            settingFragment.isAdded &&
+            !settingFragment.isHidden
+        ) {
+            supportFragmentManager.popBackStackImmediate()
+        }
+
+        return when (item.itemId) {
             R.id.menu_music_list -> {
-                val fragment = supportFragmentManager.findFragmentByTag("music_list")
-                    ?: MusicListFragment.newInstance()
-                transaction.replace(binding.fcvMain.id, fragment, "music_list").commit()
+                showMainTab(
+                    tag = TAG_MUSIC_LIST,
+                    createFragment = { MusicListFragment.newInstance() }
+                )
                 vm.setTitle(MainTitle.MusicList)
+                true
             }
+
             R.id.menu_favorites -> {
-                val fragment = supportFragmentManager.findFragmentByTag("favorites")
-                    ?: FavoritesFragment.newInstance()
-                transaction.replace(binding.fcvMain.id, fragment, "favorites").commit()
+                showMainTab(
+                    tag = TAG_FAVORITES,
+                    createFragment = { FavoritesFragment.newInstance() }
+                )
                 vm.setTitle(MainTitle.Favorites)
+                true
+            }
+
+            else -> false
+        }
+    }
+
+    // 복원된 화면이 있으면 UI 상태를 맞추고, 없으면 음악 탭을 초기 화면으로 표시한다.
+    private fun initMainTabFragments() {
+        val restoredFragment = findCurrentMainTabFragment()
+
+        if (restoredFragment != null) {
+            when (restoredFragment.tag) {
+                TAG_FAVORITES -> {
+                    binding.bottomNavMain.selectedItemId = R.id.menu_favorites
+                    vm.setTitle(MainTitle.Favorites)
+                }
+
+                else -> {
+                    binding.bottomNavMain.selectedItemId = R.id.menu_music_list
+                    vm.setTitle(MainTitle.MusicList)
+                }
             }
         }
-        return true
+
+        val musicListFragment =
+            supportFragmentManager.findFragmentByTag(TAG_MUSIC_LIST)
+                ?: MusicListFragment.newInstance()
+
+        supportFragmentManager.beginTransaction()
+            .setReorderingAllowed(true)
+            .apply {
+                if (musicListFragment.isAdded) {
+                    show(musicListFragment)
+                } else {
+                    add(
+                        binding.fcvMain.id,
+                        musicListFragment,
+                        TAG_MUSIC_LIST
+                    )
+                }
+
+                setMaxLifecycle(
+                    musicListFragment,
+                    Lifecycle.State.RESUMED
+                )
+                setPrimaryNavigationFragment(musicListFragment)
+            }
+            .commitNow()
+
+        binding.bottomNavMain.selectedItemId = R.id.menu_music_list
+    }
+
+    // 현재 탭을 숨기고 요청한 메인 탭을 표시한다.
+    private fun showMainTab(
+        tag: String,
+        createFragment: () -> Fragment
+    ) {
+        val fragmentManager = supportFragmentManager
+        val currentFragment = findCurrentMainTabFragment()
+        val targetFragment =
+            fragmentManager.findFragmentByTag(tag) ?: createFragment()
+
+        // 현재 표시 중인 탭을 다시 선택한 경우
+        if (currentFragment === targetFragment) {
+            return
+        }
+
+        fragmentManager.beginTransaction()
+            .setReorderingAllowed(true)
+            .apply {
+                if (currentFragment != null) {
+                    hide(currentFragment)
+                    setMaxLifecycle(
+                        currentFragment,
+                        Lifecycle.State.STARTED
+                    )
+                }
+
+                if (targetFragment.isAdded) {
+                    show(targetFragment)
+                } else {
+                    add(
+                        binding.fcvMain.id,
+                        targetFragment,
+                        tag
+                    )
+                }
+
+                setMaxLifecycle(
+                    targetFragment,
+                    Lifecycle.State.RESUMED
+                )
+                setPrimaryNavigationFragment(targetFragment)
+            }
+            .commit()
+    }
+
+    private fun findCurrentMainTabFragment(): Fragment? {
+        return supportFragmentManager.fragments
+            .lastOrNull { fragment ->
+                fragment.id == binding.fcvMain.id &&
+                        fragment.isAdded &&
+                        !fragment.isHidden &&
+                        (
+                                fragment.tag == TAG_MUSIC_LIST ||
+                                        fragment.tag == TAG_FAVORITES
+                                )
+            }
+    }
+
+    // 첫 화면 렌더링 이후 즐겨찾기 탭을 미리 준비한다.
+    private fun prepareFavoritesTabAfterFirstDraw() {
+        binding.root.doOnPreDraw {
+            binding.root.post {
+                prepareFavoritesTabFragment()
+            }
+        }
+    }
+
+    // 즐겨찾기 탭 프래그먼트를 숨긴 상태로 미리 추가한다.
+    private fun prepareFavoritesTabFragment() {
+        if (isFinishing || isDestroyed) {
+            return
+        }
+
+        // 화면 상태가 이미 저장된 이후에는 Fragment 트랜잭션을 실행하지 않는다.
+        if (supportFragmentManager.isStateSaved) {
+            return
+        }
+
+        // 화면 회전 복원이나 이전 초기화로 이미 존재하면 재생성하지 않는다.
+        if (supportFragmentManager.findFragmentByTag(TAG_FAVORITES) != null) {
+            return
+        }
+
+        val favoritesFragment = FavoritesFragment.newInstance()
+
+        supportFragmentManager.beginTransaction()
+            .setReorderingAllowed(true)
+            .add(
+                binding.fcvMain.id,
+                favoritesFragment,
+                TAG_FAVORITES
+            )
+            .hide(favoritesFragment)
+            .setMaxLifecycle(
+                favoritesFragment,
+                Lifecycle.State.STARTED
+            )
+            .commitNow()
     }
 
     private fun startMusicServiceIfNotificationAllowed() {
@@ -265,8 +470,7 @@ class MainActivity : AppCompatActivity(),
             }
         }
         if (needs.isEmpty()) {
-            playerController.startPlayer(playbackStateStore.loadLastPlayedId(PlaybackContentType.MUSIC).orEmpty())
-            startMusicServiceIfNotificationAllowed()
+            startPlayerIfAudioPermissionGranted()
         } else {
             permissionLauncher.launch(needs.toTypedArray())
         }
@@ -290,8 +494,7 @@ class MainActivity : AppCompatActivity(),
         }
 
         // 오디오 권한 허용됨 -> 핵심 기능 시작
-        playerController.startPlayer(playbackStateStore.loadLastPlayedId(PlaybackContentType.MUSIC).orEmpty())
-        startMusicServiceIfNotificationAllowed()
+        startPlayerIfAudioPermissionGranted()
 
         // 알림 권한 선택적 처리
         if (!notifGranted) {
@@ -302,6 +505,15 @@ class MainActivity : AppCompatActivity(),
                 showPermissionDeniedPermanentlyDialog(forNotification = true)
             }
         }
+    }
+
+    private fun startPlayerIfAudioPermissionGranted() {
+        if (!hasAudioPermission()) return
+
+        playerController.startPlayer(
+            playbackStateStore.loadLastPlayedId(PlaybackContentType.MUSIC).orEmpty()
+        )
+        startMusicServiceIfNotificationAllowed()
     }
 
     // Rationale 필요 여부 판단
@@ -456,5 +668,11 @@ class MainActivity : AppCompatActivity(),
                 }
             })
         }
+    }
+
+    companion object {
+        private const val TAG_MUSIC_LIST = "music_list"
+        private const val TAG_FAVORITES = "favorites"
+        private const val TAG_SETTING = "setting"
     }
 }

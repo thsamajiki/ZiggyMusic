@@ -5,7 +5,11 @@ import com.hero.ziggymusic.database.music.entity.MusicModel
 import kotlinx.coroutines.flow.Flow
 
 interface MusicLocalDataSource {
-    suspend fun loadMusics()
+    // MediaStore에서 현재 음원 목록 조회
+    suspend fun getMusicList(): List<MusicModel>
+
+    // Room 캐시를 최신 목록으로 교체
+    suspend fun replaceCachedMusicList(musicList: List<MusicModel>)
 
     suspend fun getMusicCount(): Int
 

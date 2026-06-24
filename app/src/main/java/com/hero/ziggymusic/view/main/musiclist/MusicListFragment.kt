@@ -4,14 +4,10 @@ import android.Manifest
 import android.animation.ValueAnimator
 import android.content.Context
 import android.content.pm.PackageManager
-import android.database.ContentObserver
 import android.graphics.Canvas
 import android.graphics.Rect
 import android.os.Build
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
-import android.provider.MediaStore
 import android.text.Editable
 import android.text.TextWatcher
 import android.util.Log
@@ -53,7 +49,6 @@ class MusicListFragment : Fragment() {
     private val vm by viewModels<MusicListViewModel>()
 
     private lateinit var musicListAdapter: MusicListAdapter
-    private var mediaStoreObserver: ContentObserver? = null
     private var isRefreshedAfterPermission = false
     private var searchAnimator: ValueAnimator? = null
     private var isSearchVisible = false
@@ -84,26 +79,19 @@ class MusicListFragment : Fragment() {
         collectUiState()
     }
 
-    override fun onStart() {
-        super.onStart()
-        registerMediaStoreObserverIfNeeded()
-    }
-
     override fun onResume() {
         super.onResume()
 
         if (hasAudioPermission()) {
-            registerMediaStoreObserverIfNeeded()
-
             if (!isRefreshedAfterPermission) {
                 isRefreshedAfterPermission = true
-                vm.refreshMusicList()
+                vm.syncMusicLibrary()
             }
+
+            vm.startObservingMediaStoreChanges()
         } else {
             isRefreshedAfterPermission = false
         }
-
-        vm.startObservingMediaStoreChanges()
     }
 
     private fun initRecyclerView(recyclerView: RecyclerView) {
@@ -494,7 +482,10 @@ class MusicListFragment : Fragment() {
                 }
 
                 is MusicListUiState.Empty -> {
-                    vm.setSearchMusicItems(emptyList())
+                    vm.setSearchMusicItems(
+                        musicItems = emptyList(),
+                        emptyStateMessage = state.message
+                    )
                 }
 
                 is MusicListUiState.Error -> {
@@ -525,31 +516,6 @@ class MusicListFragment : Fragment() {
                 Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
             }
         }
-    }
-
-    private fun registerMediaStoreObserverIfNeeded() {
-        if (!hasAudioPermission()) return
-        if (mediaStoreObserver != null) return
-
-        mediaStoreObserver = object : ContentObserver(Handler(Looper.getMainLooper())) {
-            override fun onChange(selfChange: Boolean) {
-                super.onChange(selfChange)
-                vm.refreshMusicList()
-            }
-        }
-
-        requireContext().contentResolver.registerContentObserver(
-            MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
-            true,
-            mediaStoreObserver!!
-        )
-    }
-
-    private fun unregisterMediaStoreObserver() {
-        mediaStoreObserver?.let { observer ->
-            requireContext().contentResolver.unregisterContentObserver(observer)
-        }
-        mediaStoreObserver = null
     }
 
     private fun hasAudioPermission(): Boolean {
@@ -590,11 +556,6 @@ class MusicListFragment : Fragment() {
     private fun removeMusicFromFavorites(id: String) {
         // Local DB에서 삭제한다.
         vm.removeMusicFromMyFavorites(id)
-    }
-
-    override fun onStop() {
-        unregisterMediaStoreObserver()
-        super.onStop()
     }
 
     override fun onDestroyView() {
