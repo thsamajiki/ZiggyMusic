@@ -27,8 +27,8 @@
     <dimen name="icon_lg">34dp</dimen>
     <dimen name="toolbar_icon_touch_size">50dp</dimen>
     <dimen name="toolbar_icon_padding">14dp</dimen>
-    <dimen name="music_search_horizontal_inset_start">20dp</dimen>
-    <dimen name="music_search_horizontal_inset_end">24dp</dimen>
+    <dimen name="music_search_horizontal_inset_start">24dp</dimen>
+    <dimen name="music_search_horizontal_inset_end">14dp</dimen>
     <dimen name="music_search_container_height">56dp</dimen>
     <dimen name="music_search_field_height">46dp</dimen>
     <dimen name="music_search_list_safe_gap">2dp</dimen>
