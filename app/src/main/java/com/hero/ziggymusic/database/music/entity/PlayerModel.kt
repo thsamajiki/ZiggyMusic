@@ -14,13 +14,13 @@ data class PlayerModel (
     }
 
     fun updateCurrentMusic(musicModel: MusicModel) {
-//        어차피 id 값이 인덱스 값이다.
+        // 어차피 id 값이 인덱스 값이다.
         currentMusic = musicModel
     }
 
-    fun changedMusic(newMusicKey: String) {
+    fun changedMusic(newMusicId: String) {
         val newMusic = playMusicList.find {
-            it.id == newMusicKey
+            it.id == newMusicId
         }
 
         if (newMusic != null) {
@@ -28,16 +28,13 @@ data class PlayerModel (
         }
     }
 
+    fun clearCurrentMusic() {
+        currentMusic = null
+    }
+
     companion object {
         private var instance: PlayerModel? = null
 
-//        fun getInstance(): PlayerModel {
-//            if (instance == null) {
-//                instance = PlayerModel()
-//            }
-//
-//            return instance as PlayerModel
-//        }
         fun getInstance(): PlayerModel = instance
             ?: PlayerModel().apply { instance = this }
     }
