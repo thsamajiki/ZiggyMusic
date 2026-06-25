@@ -14,6 +14,7 @@ import com.hero.ziggymusic.database.music.entity.MusicModel
 import com.hero.ziggymusic.databinding.FragmentFavoritesBinding
 import com.hero.ziggymusic.event.EventBus
 import com.hero.ziggymusic.ext.playMusic
+import com.hero.ziggymusic.playback.PlaybackQueueSource
 import com.hero.ziggymusic.view.main.popup.MusicOptionMenuPopup
 import com.hero.ziggymusic.view.main.favorites.viewmodel.FavoritesUiState
 import com.hero.ziggymusic.view.main.favorites.viewmodel.FavoritesViewModel
@@ -96,8 +97,11 @@ class FavoritesFragment : Fragment() {
         }
     }
 
-    private fun playMusic(musicKey: String) {
-        requireContext().playMusic(musicKey)
+    private fun playMusic(id: String) {
+        requireContext().playMusic(
+            id = id,
+            queueSource = PlaybackQueueSource.FAVORITES
+        )
     }
 
     private fun openMusicOptionMenuPopup(music: MusicModel, anchorView: View) {

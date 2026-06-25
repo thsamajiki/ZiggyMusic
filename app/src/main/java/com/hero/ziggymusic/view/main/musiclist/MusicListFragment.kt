@@ -33,6 +33,7 @@ import com.hero.ziggymusic.database.music.entity.MusicModel
 import com.hero.ziggymusic.databinding.FragmentMusicListBinding
 import com.hero.ziggymusic.event.EventBus
 import com.hero.ziggymusic.ext.playMusic
+import com.hero.ziggymusic.playback.PlaybackQueueSource
 import com.hero.ziggymusic.view.main.popup.MusicOptionMenuPopup
 import com.hero.ziggymusic.view.main.musiclist.viewmodel.MusicSearchResult
 import com.hero.ziggymusic.view.main.musiclist.viewmodel.MusicListUiState
@@ -532,8 +533,11 @@ class MusicListFragment : Fragment() {
         }
     }
 
-    private fun playMusic(musicKey: String) {
-        requireContext().playMusic(musicKey)
+    private fun playMusic(id: String) {
+        requireContext().playMusic(
+            id = id,
+            queueSource = PlaybackQueueSource.MUSIC_LIST
+        )
     }
 
     private fun openMusicOptionMenuPopup(music: MusicModel, anchorView: View) {

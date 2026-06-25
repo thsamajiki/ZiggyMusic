@@ -1,6 +1,7 @@
 package com.hero.ziggymusic.view.main.player.viewmodel
 
 import androidx.lifecycle.LiveData
+import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.ViewModel
 import com.hero.ziggymusic.database.music.entity.MusicModel
 import com.hero.ziggymusic.domain.music.repository.MusicRepository
@@ -20,6 +21,29 @@ class PlayerViewModel @Inject constructor(
     val motionState: StateFlow<PlayerMotionManager.State> = _motionState.asStateFlow()
 
     val musicList: LiveData<List<MusicModel>> = musicRepository.getAllMusic()
+
+    private val favoriteMusicList: LiveData<List<MusicModel>> =
+        musicRepository.getFavorites()
+
+    // 실제 파일이 남아 있는 즐겨찾기만 재생 큐에 사용한다.
+    val availableFavoriteMusicList: LiveData<List<MusicModel>> =
+        MediatorLiveData<List<MusicModel>>().apply {
+            fun updateAvailableFavorites() {
+                val favorites = favoriteMusicList.value ?: return
+                val allMusic = musicList.value ?: return
+                val availableIds = allMusic.mapTo(mutableSetOf()) { it.id }
+
+                value = favorites.filter { it.id in availableIds }
+            }
+
+            addSource(favoriteMusicList) {
+                updateAvailableFavorites()
+            }
+
+            addSource(musicList) {
+                updateAvailableFavorites()
+            }
+        }
 
     fun changeState(toggleState: PlayerMotionManager.State) {
         _motionState.value = toggleState

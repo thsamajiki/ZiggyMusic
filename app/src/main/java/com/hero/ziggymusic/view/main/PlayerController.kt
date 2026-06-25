@@ -7,6 +7,7 @@ import androidx.fragment.app.commit
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import com.google.android.material.bottomsheet.BottomSheetBehavior
+import com.hero.ziggymusic.playback.PlaybackQueueSource
 import com.hero.ziggymusic.view.main.player.PlayerFragment
 
 class PlayerController(
@@ -54,7 +55,13 @@ class PlayerController(
         }
     }
 
-    fun changeMusic(musicId: String): Boolean {
-        return playerFragment?.changeMusic(musicId) ?: false
+    fun changeMusic(
+        id: String,
+        queueSource: PlaybackQueueSource
+    ): Boolean {
+        return playerFragment?.changeMusic(
+            id = id,
+            queueSource = queueSource
+        ) ?: false
     }
 }
