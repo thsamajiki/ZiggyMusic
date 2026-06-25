@@ -39,6 +39,7 @@ import androidx.core.view.WindowInsetsControllerCompat
 import androidx.core.view.doOnPreDraw
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
+import com.hero.ziggymusic.playback.PlaybackQueueSource
 import com.hero.ziggymusic.service.MusicService
 import com.hero.ziggymusic.service.MusicServiceController
 import com.hero.ziggymusic.view.main.model.MainTitle
@@ -229,9 +230,15 @@ class MainActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedListen
         }
     }
 
-    fun playMusic(musicId: String) {
+    fun playMusic(
+        id: String,
+        queueSource: PlaybackQueueSource = PlaybackQueueSource.MUSIC_LIST
+    ) {
         // 요청한 음악으로 실제 재생 전환이 성공했을 때만 이후 처리를 계속한다는 가드 역할
-        val changedMusic = playerController.changeMusic(musicId)
+        val changedMusic = playerController.changeMusic(
+            id = id,
+            queueSource = queueSource
+        )
 
         if (!changedMusic) {
             return
@@ -240,7 +247,7 @@ class MainActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedListen
         MusicServiceController.dispatchAction(
             context = this,
             action = MusicService.ACTION_REFRESH_NOTIFICATION,
-            mediaId = musicId
+            mediaId = id
         )
     }
 
