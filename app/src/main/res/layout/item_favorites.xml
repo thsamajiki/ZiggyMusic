@@ -9,7 +9,7 @@
     app:cardCornerRadius="@dimen/album_art_corner_radius"
     app:cardElevation="0dp"
     app:cardUseCompatPadding="false"
-    app:contentPadding="@dimen/card_padding"
+    app:contentPadding="@dimen/music_list_item_card_content_padding"
     app:rippleColor="@color/colorPrimary30">
 
     <androidx.constraintlayout.widget.ConstraintLayout
