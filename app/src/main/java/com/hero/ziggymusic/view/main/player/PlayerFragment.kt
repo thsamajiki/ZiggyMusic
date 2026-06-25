@@ -78,7 +78,6 @@ class PlayerFragment : Fragment() {
     @Inject
     lateinit var playbackQueueManager: PlaybackQueueManager
 
-    private var currentMusic: MusicModel? = null // 현재 재생 중인 음원
     private val playbackStateStore by lazy { PlaybackStateStore(requireContext()) }
     private var visualizerBarColor: Int? = null
 
@@ -1090,12 +1089,6 @@ class PlayerFragment : Fragment() {
     companion object {
         const val TAG = "PlayerFragment"
         const val EXTRA_MUSIC_FILE_ID: String = "id"
-
-        // 재생 시간 계산의 기본 단위
-        private const val ONE_SECOND_MS = 1_000L
-
-        // 시간 텍스트 표시를 초 경계에 가깝게 맞추기 위한 보정값
-        private const val POSITION_DISPLAY_OFFSET_MS = 80L
 
         private const val PLAYER_TEXT_MARQUEE_START_DELAY_MS = 700L
 
