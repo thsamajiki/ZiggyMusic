@@ -37,7 +37,7 @@
     <dimen name="music_search_clear_button_padding">5dp</dimen>
     <dimen name="btn_height">48dp</dimen>
     <dimen name="toolbar_height">56dp</dimen>
-    <dimen name="card_padding">4dp</dimen>
+    <dimen name="music_list_item_card_content_padding">4dp</dimen>
     <dimen name="music_list_item_album_art_margin_vertical">4dp</dimen>
     <dimen name="music_list_item_album_art_margin_start">18dp</dimen>
     <dimen name="music_list_item_favorite_icon_size">12dp</dimen>
