@@ -50,6 +50,7 @@ import com.bumptech.glide.load.DataSource
 import com.bumptech.glide.load.engine.GlideException
 import com.bumptech.glide.request.RequestListener
 import com.hero.ziggymusic.playback.PlaybackQueueManager
+import com.hero.ziggymusic.playback.PlaybackQueueSource
 import com.hero.ziggymusic.playback.currentPlaybackProgress
 import com.hero.ziggymusic.playback.playbackProgressUpdates
 import com.hero.ziggymusic.service.MusicMediaControllerConnector
@@ -67,6 +68,9 @@ class PlayerFragment : Fragment() {
     private var playerModel: PlayerModel = PlayerModel.getInstance()
     private val vm by activityViewModels<PlayerViewModel>()
     private var playerListener: Player.Listener? = null
+
+    // 사용자가 마지막으로 선택한 목록 기준으로 재생 큐를 유지한다.
+    private var currentQueueSource: PlaybackQueueSource = PlaybackQueueSource.MUSIC_LIST
 
     @Inject
     lateinit var player: ExoPlayer
@@ -273,29 +277,14 @@ class PlayerFragment : Fragment() {
 
         viewLifecycleOwner.lifecycleScope.launch {
             vm.musicList.observe(viewLifecycleOwner) { musicList ->
-                if (_binding == null) return@observe
-                if (musicList.isEmpty()) return@observe
-
-                playerModel.replaceMusicList(musicList)
-
-                // 현재 ExoPlayer가 재생 중인 곡의 id를 우선 사용
-                val currentMediaId = player.currentMediaItem?.mediaId
-                val nowMusic = musicList.find { it.id == currentMediaId }
-                    ?: musicList.find { it.id == musicKey }
-                    ?: musicList.getOrNull(0)
-
-                // PlayerModel과 UI를 동기화
-                if (nowMusic != null) {
-                    playerModel.updateCurrentMusic(nowMusic)
-                    updatePlayerView(nowMusic)
+                if (currentQueueSource == PlaybackQueueSource.MUSIC_LIST) {
+                    syncPlaybackQueue(musicList)
                 }
+            }
 
-                // 이미 재생 중인 곡이 있으면 playMusic을 다시 호출하지 않는다.
-                if (player.currentMediaItem == null && nowMusic != null) {
-                    playMusic(musicList, nowMusic)
-                } else {
-                    // 목록이 변경되면 현재 재생 상태를 유지한 채 Player 큐만 최신 목록으로 맞춘다.
-                    playbackQueueManager.syncQueue(musicList)
+            vm.availableFavoriteMusicList.observe(viewLifecycleOwner) { favoriteMusicList ->
+                if (currentQueueSource == PlaybackQueueSource.FAVORITES) {
+                    syncPlaybackQueue(favoriteMusicList)
                 }
             }
         }
@@ -307,6 +296,44 @@ class PlayerFragment : Fragment() {
                 updatePlayerView(music)
             }
         }
+    }
+
+    // 현재 큐 출처에 맞춰 Player 큐와 화면에 표시되는 곡 정보를 함께 동기화한다.
+    private fun syncPlaybackQueue(musicList: List<MusicModel>) {
+        if (_binding == null) return
+
+        playerModel.replaceMusicList(musicList)
+
+        if (musicList.isEmpty()) {
+            playbackQueueManager.syncQueue(musicList)
+            playerModel.clearCurrentMusic()
+            updatePlayerView(null)
+            syncPlayerUi()
+            return
+        }
+
+        if (player.currentMediaItem == null) {
+            val initialMusic = musicList.find { it.id == musicKey }
+                ?: musicList.firstOrNull()
+
+            playMusic(musicList, initialMusic)
+            return
+        }
+
+        val syncResult = playbackQueueManager.syncQueue(musicList)
+        val selectedMusic = syncResult.selectedMediaId
+            ?.let { mediaId -> musicList.find { it.id == mediaId } }
+
+        // PlayerModel과 UI를 동기화
+        if (selectedMusic != null) {
+            playerModel.updateCurrentMusic(selectedMusic)
+            updatePlayerView(selectedMusic)
+        } else {
+            playerModel.clearCurrentMusic()
+            updatePlayerView(null)
+        }
+
+        syncPlayerUi()
     }
 
     /**
@@ -339,18 +366,27 @@ class PlayerFragment : Fragment() {
         }
     }
 
-    fun changeMusic(musicId: String): Boolean {
-        val latestMusicList = vm.musicList.value.orEmpty()
+    fun changeMusic(
+        id: String,
+        queueSource: PlaybackQueueSource
+    ): Boolean {
+        currentQueueSource = queueSource
+
+        val latestMusicList = when (queueSource) {
+            PlaybackQueueSource.MUSIC_LIST -> vm.musicList.value.orEmpty()
+            PlaybackQueueSource.FAVORITES -> vm.availableFavoriteMusicList.value.orEmpty()
+        }
 
         // 재생 요청 전에 큐를 최신 목록으로 동기화하여 새로 추가된 음원도 바로 재생되게 한다.
         val startedPlayback = playbackQueueManager.playMusic(
             musicList = latestMusicList,
-            musicId = musicId
+            id = id
         )
 
         if (!startedPlayback) return false
 
-        playerModel.changedMusic(musicId)
+        playerModel.replaceMusicList(latestMusicList)
+        playerModel.changedMusic(id)
         playerModel.currentMusic?.let { music ->
             updatePlayerView(music)
         }
