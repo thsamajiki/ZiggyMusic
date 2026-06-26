@@ -7,8 +7,8 @@ import androidx.room.withTransaction
 import com.hero.ziggymusic.data.local.mediastore.MediaStoreMusicObserver
 import com.hero.ziggymusic.data.local.db.AppMusicTrackDatabase
 import com.hero.ziggymusic.data.local.dao.MusicTrackDao
-import com.hero.ziggymusic.data.local.dao.FavoriteTracksDao
-import com.hero.ziggymusic.data.local.entity.FavoriteTrackEntity
+import com.hero.ziggymusic.data.local.dao.FavoriteMusicTracksDao
+import com.hero.ziggymusic.data.local.entity.FavoriteMusicTrackEntity
 import com.hero.ziggymusic.data.local.entity.MusicTrackEntity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -19,7 +19,7 @@ class MusicLocalDataSourceImpl @Inject constructor(
     private val application: Application,
     private val appMusicTrackDatabase: AppMusicTrackDatabase,
     private val musicTrackDao: MusicTrackDao,
-    private val favoriteTracksDao: FavoriteTracksDao,
+    private val favoriteMusicTracksDao: FavoriteMusicTracksDao,
     private val mediaStoreMusicObserver: MediaStoreMusicObserver,
 ) : MusicLocalDataSource {
     override suspend fun getMusicTracksFromMediaStore(): List<MusicTrackEntity> =
@@ -84,10 +84,10 @@ class MusicLocalDataSourceImpl @Inject constructor(
 
             if (musicTrackIdList.isEmpty()) {
                 musicTrackDao.clearAll()
-                favoriteTracksDao.clearAll()
+                favoriteMusicTracksDao.clearAll()
             } else {
                 musicTrackDao.deleteMusicTracksExcept(musicTrackIdList)
-                favoriteTracksDao.deleteFavoriteTracksExcept(musicTrackIdList)
+                favoriteMusicTracksDao.deleteFavoriteTracksExcept(musicTrackIdList)
             }
         }
     }
@@ -105,20 +105,20 @@ class MusicLocalDataSourceImpl @Inject constructor(
     }
 
     override fun observeFavoriteMusicTracks(): LiveData<List<MusicTrackEntity>> {
-        return favoriteTracksDao.getFavoriteMusicTracks()
+        return favoriteMusicTracksDao.getFavoriteMusicTracks()
     }
 
     override fun getFavoriteMusicTrackIdList(): LiveData<List<String>> {
-        return favoriteTracksDao.getFavoriteMusicTrackIdList()
+        return favoriteMusicTracksDao.getFavoriteMusicTrackIdList()
     }
 
     override fun observeMediaStoreMusicChanges(): Flow<Unit> = mediaStoreMusicObserver.observeMusicChanges()
 
     override suspend fun addMusicTrackToFavorites(id: String) {
-        favoriteTracksDao.insertFavoriteMusicTrack(FavoriteTrackEntity(id = id))
+        favoriteMusicTracksDao.insertFavoriteMusicTrack(FavoriteMusicTrackEntity(id = id))
     }
 
     override suspend fun removeMusicTrackFromFavorites(id: String) {
-        favoriteTracksDao.deleteFavoriteMusicTrack(id)
+        favoriteMusicTracksDao.deleteFavoriteMusicTrack(id)
     }
 }

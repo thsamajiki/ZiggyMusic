@@ -7,8 +7,8 @@ import androidx.room.PrimaryKey
 import kotlinx.parcelize.Parcelize
 
 @Parcelize
-@Entity(tableName = "favorite_music")
-data class FavoriteTrackEntity(
+@Entity(tableName = "favorite_music_tracks")
+data class FavoriteMusicTrackEntity(
     @PrimaryKey
     @ColumnInfo(name = "id")
     val id: String,

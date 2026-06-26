@@ -3,7 +3,7 @@ package com.hero.ziggymusic.di
 import android.app.Application
 import com.hero.ziggymusic.data.local.db.AppMusicTrackDatabase
 import com.hero.ziggymusic.data.local.dao.MusicTrackDao
-import com.hero.ziggymusic.data.local.dao.FavoriteTracksDao
+import com.hero.ziggymusic.data.local.dao.FavoriteMusicTracksDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -27,7 +27,7 @@ class DaoModule {
 
     @Singleton
     @Provides
-    fun provideFavoritesDao(appMusicTrackDatabase: AppMusicTrackDatabase): FavoriteTracksDao {
+    fun provideFavoritesDao(appMusicTrackDatabase: AppMusicTrackDatabase): FavoriteMusicTracksDao {
         return appMusicTrackDatabase.favoritesDao()
     }
 }
