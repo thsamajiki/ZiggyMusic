@@ -20,6 +20,7 @@ import androidx.fragment.app.Fragment
 import com.hero.ziggymusic.R
 import com.hero.ziggymusic.databinding.FragmentSettingsBinding
 import androidx.core.content.edit
+import com.hero.ziggymusic.data.local.preferences.AudioSettingKeys
 import com.hero.ziggymusic.playback.audio.HeadTracker
 import com.hero.ziggymusic.playback.audio.PlayerAudioGraph
 import com.hero.ziggymusic.playback.audio.SpatializerSupport
@@ -79,8 +80,8 @@ class SettingsFragment : Fragment() {
         binding.swHeadTracking.setOnCheckedChangeListener(null)
 
         // 1. Spatial Audio & Head Tracking Enable Switch
-        val spatialEnabled = prefs.getBoolean(KEY_SPATIAL_ENABLED, false)
-        val headEnabled = prefs.getBoolean(KEY_HEAD_TRACKING_ENABLED, false)
+        val spatialEnabled = prefs.getBoolean(AudioSettingKeys.KEY_SPATIAL_ENABLED, false)
+        val headEnabled = prefs.getBoolean(AudioSettingKeys.KEY_HEAD_TRACKING_ENABLED, false)
 
         binding.swSpatialAudio.isChecked = spatialEnabled
         binding.swHeadTracking.isChecked = spatialEnabled && headEnabled
@@ -112,7 +113,7 @@ class SettingsFragment : Fragment() {
 
         // 3. head switch는 한 번만 설정
         binding.swHeadTracking.setOnCheckedChangeListener { _, isChecked ->
-            prefs.edit { putBoolean(KEY_HEAD_TRACKING_ENABLED, isChecked) }
+            prefs.edit { putBoolean(AudioSettingKeys.KEY_HEAD_TRACKING_ENABLED, isChecked) }
 
             val isSpatialOn = binding.swSpatialAudio.isChecked
             val shouldTrack = isSpatialOn && isChecked
@@ -132,8 +133,8 @@ class SettingsFragment : Fragment() {
         // 4. spatial switch 단일 리스너
         binding.swSpatialAudio.setOnCheckedChangeListener { _, isChecked ->
             prefs.edit {
-                putBoolean(KEY_SPATIAL_ENABLED, isChecked)
-                if (!isChecked) putBoolean(KEY_HEAD_TRACKING_ENABLED, false)
+                putBoolean(AudioSettingKeys.KEY_SPATIAL_ENABLED, isChecked)
+                if (!isChecked) putBoolean(AudioSettingKeys.KEY_HEAD_TRACKING_ENABLED, false)
             }
 
             AudioEffectManager.setSpatialEnabled(isChecked)
@@ -180,10 +181,10 @@ class SettingsFragment : Fragment() {
         prefs = requireContext().getSharedPreferences(TAG, 0)
         AudioEffectManager.setEnabledFromPrefs(prefs)
 
-        val isEqualizerEnabled = prefs.getBoolean(KEY_EQUALIZER_ENABLED, false)
+        val isEqualizerEnabled = prefs.getBoolean(AudioSettingKeys.KEY_EQUALIZER_ENABLED, false)
         binding.swEqualizer.isChecked = isEqualizerEnabled
         binding.swEqualizer.setOnCheckedChangeListener { _, isChecked ->
-            prefs.edit { putBoolean(KEY_EQUALIZER_ENABLED, isChecked) }
+            prefs.edit { putBoolean(AudioSettingKeys.KEY_EQUALIZER_ENABLED, isChecked) }
             AudioEffectManager.setEnabledFromPrefs(prefs)
             updateEqualizerUiState(isChecked)
         }
@@ -207,7 +208,7 @@ class SettingsFragment : Fragment() {
         )
 
         binding.spinnerPreset.adapter = spinnerAdapter
-        binding.spinnerPreset.setSelection(prefs.getInt("PRESET", 1))
+        binding.spinnerPreset.setSelection(prefs.getInt(AudioSettingKeys.KEY_PRESET, 1))
 
         binding.spinnerPreset.onItemSelectedListener =
             object : AdapterView.OnItemSelectedListener {
@@ -218,7 +219,7 @@ class SettingsFragment : Fragment() {
                     id: Long,
                 ) {
                     if (equalizer != null) {
-                        prefs.edit { putInt("PRESET", position) }
+                        prefs.edit { putInt(AudioSettingKeys.KEY_PRESET, position) }
 
                         if (position != 0) {
                             AudioEffectManager.useEqualizerPreset(position - 1)
@@ -413,7 +414,7 @@ class SettingsFragment : Fragment() {
             ))
 
         binding.spinnerReverb.adapter = reverbAdapter
-        binding.spinnerReverb.setSelection(prefs.getInt("REVERB", 0))
+        binding.spinnerReverb.setSelection(prefs.getInt(AudioSettingKeys.KEY_REVERB, 0))
 
         binding.spinnerReverb.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(
@@ -432,7 +433,7 @@ class SettingsFragment : Fragment() {
     }
 
     private fun initLoudnessNormalizer() {
-        val loudnessEnabled = prefs.getBoolean(KEY_LOUDNESS_NORMALIZER_ENABLED, false)
+        val loudnessEnabled = prefs.getBoolean(AudioSettingKeys.KEY_LOUDNESS_NORMALIZER_ENABLED, false)
 
         binding.swLoudnessNormalizer.setOnCheckedChangeListener(null)
         binding.swLoudnessNormalizer.isChecked = loudnessEnabled
@@ -442,7 +443,7 @@ class SettingsFragment : Fragment() {
     }
 
     private fun initBassSeekBar(settings: SharedPreferences) {
-        val bassProgress = settings.getInt("BASS", 0)
+        val bassProgress = settings.getInt(AudioSettingKeys.KEY_BASS, 0)
 
         AudioEffectManager.applyBassStrength(bassProgress)
 
@@ -461,7 +462,7 @@ class SettingsFragment : Fragment() {
     }
 
     private fun initVirtualizerSeekbar() {
-        val virtualizerProgress = prefs.getInt("VIRTUALIZER", 0)
+        val virtualizerProgress = prefs.getInt(AudioSettingKeys.KEY_VIRTUALIZER, 0)
 
         AudioEffectManager.applyVirtualizerStrength(virtualizerProgress)
 
@@ -482,8 +483,8 @@ class SettingsFragment : Fragment() {
     override fun onResume() {
         super.onResume()
 
-        binding.sbVirtualizer.progress = prefs.getInt(KEY_VIRTUALIZER, 0)
-        binding.sbBass.progress = prefs.getInt(KEY_BASS, 0)
+        binding.sbVirtualizer.progress = prefs.getInt(AudioSettingKeys.KEY_VIRTUALIZER, 0)
+        binding.sbBass.progress = prefs.getInt(AudioSettingKeys.KEY_BASS, 0)
 
         // 화면에 돌아왔을 때 설정에 따라 트래킹 재개
         if (binding.swSpatialAudio.isChecked && binding.swHeadTracking.isChecked) {
@@ -496,8 +497,8 @@ class SettingsFragment : Fragment() {
 
         // Preference 저장 로직
         prefs.edit {
-            putInt(KEY_BASS, binding.sbBass.progress)
-            putInt(KEY_VIRTUALIZER, binding.sbVirtualizer.progress)
+            putInt(AudioSettingKeys.KEY_BASS, binding.sbBass.progress)
+            putInt(AudioSettingKeys.KEY_VIRTUALIZER, binding.sbVirtualizer.progress)
         }
     }
 
@@ -511,13 +512,6 @@ class SettingsFragment : Fragment() {
         fun newInstance(): SettingsFragment = SettingsFragment()
 
         const val TAG = "SettingFragment"
-        const val KEY_EQUALIZER_ENABLED = "ENABLED"
-        const val KEY_REVERB = "REVERB"
-        const val KEY_BASS = "BASS"
-        const val KEY_VIRTUALIZER = "VIRTUALIZER"
-        const val KEY_LOUDNESS_NORMALIZER_ENABLED = "LOUDNESS_NORMALIZER_ENABLED"
-        const val KEY_SPATIAL_ENABLED = "SPATIAL_ENABLED"
-        const val KEY_HEAD_TRACKING_ENABLED = "HEAD_TRACKING_ENABLED"
 
         private const val EQ_ENABLED_ALPHA = 1.0f
         private const val EQ_DISABLED_CONTENT_ALPHA = 0.55f

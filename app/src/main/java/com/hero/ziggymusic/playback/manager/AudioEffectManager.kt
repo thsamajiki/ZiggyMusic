@@ -8,7 +8,7 @@ import android.media.audiofx.Virtualizer
 import androidx.core.content.edit
 import androidx.core.graphics.toColorInt
 import com.hero.ziggymusic.playback.audio.AudioProcessorChainController
-import com.hero.ziggymusic.presentation.main.setting.SettingsFragment
+import com.hero.ziggymusic.data.local.preferences.AudioSettingKeys
 
 object AudioEffectManager {
     var equalizer: Equalizer? = null
@@ -40,11 +40,11 @@ object AudioEffectManager {
     }
 
     fun setEnabledFromPrefs(prefs: SharedPreferences) {
-        val enabled = prefs.getBoolean(SettingsFragment.KEY_EQUALIZER_ENABLED, false)
-        val reverbPreset = prefs.getInt(SettingsFragment.KEY_REVERB, 0)
-        val bassProgress = prefs.getInt(SettingsFragment.KEY_BASS, 0)
-        val virtualizerProgress = prefs.getInt(SettingsFragment.KEY_VIRTUALIZER, 0)
-        val loudnessNormalizerEnabled = prefs.getBoolean(SettingsFragment.KEY_LOUDNESS_NORMALIZER_ENABLED, false)
+        val enabled = prefs.getBoolean(AudioSettingKeys.KEY_EQUALIZER_ENABLED, false)
+        val reverbPreset = prefs.getInt(AudioSettingKeys.KEY_REVERB, 0)
+        val bassProgress = prefs.getInt(AudioSettingKeys.KEY_BASS, 0)
+        val virtualizerProgress = prefs.getInt(AudioSettingKeys.KEY_VIRTUALIZER, 0)
+        val loudnessNormalizerEnabled = prefs.getBoolean(AudioSettingKeys.KEY_LOUDNESS_NORMALIZER_ENABLED, false)
 
         equalizer?.enabled = enabled
         reverb?.enabled = enabled && reverbPreset != 0
@@ -54,7 +54,7 @@ object AudioEffectManager {
     }
 
     fun applyBassStrength(progress: Int, prefs: SharedPreferences? = null) {
-        prefs?.edit { putInt(SettingsFragment.KEY_BASS, progress) }
+        prefs?.edit { putInt(AudioSettingKeys.KEY_BASS, progress) }
 
         bassBoost?.let { effect ->
             if (effect.strengthSupported) {
@@ -66,7 +66,7 @@ object AudioEffectManager {
     }
 
     fun applyVirtualizerStrength(progress: Int, prefs: SharedPreferences? = null) {
-        prefs?.edit { putInt(SettingsFragment.KEY_VIRTUALIZER, progress) }
+        prefs?.edit { putInt(AudioSettingKeys.KEY_VIRTUALIZER, progress) }
 
         virtualizer?.let { effect ->
             if (effect.strengthSupported) {
@@ -78,13 +78,13 @@ object AudioEffectManager {
     }
 
     fun applyReverbPreset(position: Int, prefs: SharedPreferences? = null) {
-        prefs?.edit { putInt("REVERB", position) }
+        prefs?.edit { putInt(AudioSettingKeys.KEY_REVERB, position) }
         reverb?.preset = position.toShort()
         prefs?.let { setEnabledFromPrefs(it) }
     }
 
     fun applyLoudnessNormalizer(enabled: Boolean, prefs: SharedPreferences) {
-        prefs.edit { putBoolean(SettingsFragment.KEY_LOUDNESS_NORMALIZER_ENABLED, enabled) }
+        prefs.edit { putBoolean(AudioSettingKeys.KEY_LOUDNESS_NORMALIZER_ENABLED, enabled) }
         setEnabledFromPrefs(prefs)
     }
 
@@ -195,8 +195,8 @@ object AudioEffectManager {
         bandCount: Int = bandGainsDb.size,
         eqMaxFromUi: Int,
     ) {
-        val spatialEnabled = prefs.getBoolean(SettingsFragment.KEY_SPATIAL_ENABLED, false)
-        val headTrackingEnabled = prefs.getBoolean(SettingsFragment.KEY_HEAD_TRACKING_ENABLED, false)
+        val spatialEnabled = prefs.getBoolean(AudioSettingKeys.KEY_SPATIAL_ENABLED, false)
+        val headTrackingEnabled = prefs.getBoolean(AudioSettingKeys.KEY_HEAD_TRACKING_ENABLED, false)
 
         setSpatialEnabled(spatialEnabled)
         setHeadTrackingEnabled(spatialEnabled && headTrackingEnabled)
@@ -207,8 +207,8 @@ object AudioEffectManager {
             setBandGain(bandIndex, gainDb)
         }
 
-        applyBassStrength(prefs.getInt(SettingsFragment.KEY_BASS, 0), null)
-        applyVirtualizerStrength(prefs.getInt(SettingsFragment.KEY_VIRTUALIZER, 0), null)
+        applyBassStrength(prefs.getInt(AudioSettingKeys.KEY_BASS, 0), null)
+        applyVirtualizerStrength(prefs.getInt(AudioSettingKeys.KEY_VIRTUALIZER, 0), null)
         applyReverbPreset(prefs.getInt("REVERB", 0), null)
         setEnabledFromPrefs(prefs)
     }
