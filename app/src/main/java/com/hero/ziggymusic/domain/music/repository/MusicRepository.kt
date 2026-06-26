@@ -5,23 +5,23 @@ import com.hero.ziggymusic.database.music.entity.MusicTrackEntity
 import kotlinx.coroutines.flow.Flow
 
 interface MusicRepository {
-    suspend fun getMusicList(): List<MusicTrackEntity>
+    suspend fun getMusicTracksFromMediaStore(): List<MusicTrackEntity>
 
-    suspend fun replaceCachedMusicList(musicList: List<MusicTrackEntity>)
+    suspend fun replaceCachedMusicTracks(trackList: List<MusicTrackEntity>)
 
-    suspend fun getMusicCount(): Int
+    suspend fun getMusicTrackCount(): Int
 
-    suspend fun getMusic(id: String): MusicTrackEntity?
+    suspend fun getMusicTrack(id: String): MusicTrackEntity?
 
-    fun getAllMusic(): LiveData<List<MusicTrackEntity>>
+    fun observeMusicTracks(): LiveData<List<MusicTrackEntity>>
 
-    fun getFavorites(): LiveData<List<MusicTrackEntity>>
+    fun observeFavoriteMusicTracks(): LiveData<List<MusicTrackEntity>>
 
-    fun getFavoriteMusicIdList(): LiveData<List<String>>
+    fun observeFavoriteTrackIdList(): LiveData<List<String>>
 
-    fun observeMusicChanges(): Flow<Unit>
+    fun observeMediaStoreMusicChanges(): Flow<Unit>
 
-    suspend fun addMusicToFavorites(id: String)
+    suspend fun addMusicTrackToFavorites(id: String)
 
-    suspend fun removeMusicFromFavorites(id: String)
+    suspend fun removeMusicTrackFromFavorites(id: String)
 }

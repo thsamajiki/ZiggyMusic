@@ -8,10 +8,10 @@ sealed class MainTitle(
     val showBackButton: Boolean = false,
     val showSettingButton: Boolean = true,
 ) {
-    object MusicList : MainTitle(R.string.title_music_list)
-    object Favorites : MainTitle(R.string.title_favorites)
-    object Setting : MainTitle(
-        resId = R.string.title_setting,
+    object MusicTracks : MainTitle(R.string.title_music_tracks)
+    object FavoriteTracks : MainTitle(R.string.title_favorite_tracks)
+    object Settings : MainTitle(
+        resId = R.string.title_settings,
         showBackButton = true,
         showSettingButton = false
     )

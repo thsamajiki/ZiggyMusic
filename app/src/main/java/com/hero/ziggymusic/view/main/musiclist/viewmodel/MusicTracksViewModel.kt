@@ -22,35 +22,35 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 import kotlin.time.Duration.Companion.milliseconds
 
-sealed class MusicListUiState {
-    object Idle : MusicListUiState()
-    data class Content(val data: List<MusicTrackEntity>) : MusicListUiState()
-    data class Empty(val message: String) : MusicListUiState()
-    object Error : MusicListUiState()
+sealed class MusicTrackListUiState {
+    object Idle : MusicTrackListUiState()
+    data class Content(val data: List<MusicTrackEntity>) : MusicTrackListUiState()
+    data class Empty(val message: String) : MusicTrackListUiState()
+    object Error : MusicTrackListUiState()
 }
 
-data class MusicSearchResult(
+data class MusicTrackSearchResult(
     val items: List<MusicTrackEntity>,
     val emptyMessage: String,
     val hasOriginalItems: Boolean,
 )
 
 @HiltViewModel
-class MusicListViewModel @Inject constructor(
+class MusicTracksViewModel @Inject constructor(
     application: Application,
     private val musicRepository : MusicRepository
 ) : AndroidViewModel(application) {
     private var musicLibrarySyncJob: Job? = null // 음악 목록 동기화 중복 실행을 방지한다.
     private var mediaStoreChangesJob: Job? = null // MediaStore 변경 감지 작업의 중복 실행을 방지한다.
 
-    val favoriteMusicIdList: LiveData<Set<String>> = musicRepository.getFavoriteMusicIdList().map { musicIdList ->
-        musicIdList.toSet()
+    val favoriteMusicTrackIdList: LiveData<Set<String>> = musicRepository.observeFavoriteTrackIdList().map { trackIdList ->
+        trackIdList.toSet()
     } // 전체 음악 목록에서 각 음악의 즐겨찾기 여부를 확인하기 위해 즐겨찾기 음악 목록을 중복 없는 ID 집합으로 변환
 
-    val allMusicList = musicRepository.getAllMusic()
+    val musicTrackList = musicRepository.observeMusicTracks()
 
-    private val _uiState = MutableLiveData<MusicListUiState>(MusicListUiState.Idle)
-    val uiState: LiveData<MusicListUiState>
+    private val _uiState = MutableLiveData<MusicTrackListUiState>(MusicTrackListUiState.Idle)
+    val uiState: LiveData<MusicTrackListUiState>
         get() = _uiState
 
     private var currentStateMessage: String = "" // 현재 상태를 나타내는 메시지
@@ -61,21 +61,21 @@ class MusicListViewModel @Inject constructor(
 
     private val _searchQuery = MutableStateFlow("")
     private val _searchMusicItems = MutableStateFlow<List<MusicTrackEntity>>(emptyList())
-    private val _searchResult = MutableStateFlow<MusicSearchResult?>(null)
-    val searchResult: StateFlow<MusicSearchResult?>
+    private val _searchResult = MutableStateFlow<MusicTrackSearchResult?>(null)
+    val searchResult: StateFlow<MusicTrackSearchResult?>
         get() = _searchResult
 
     private var hasSearchMusicItems = false
 
-    private val allMusicListObserver = Observer<List<MusicTrackEntity>> { musicList ->
-        if (musicList.isNotEmpty()) {
-            updateMusicListUiState(musicList)
+    private val allMusicTracksObserver = Observer<List<MusicTrackEntity>> { musicTracks ->
+        if (musicTracks.isNotEmpty()) {
+            updateMusicTrackListUiState(musicTracks)
         }
     }
 
     init {
         // Observer 는 항상 활성 상태로 간주되므로 항상 수정 관련 알림을 받는다.
-        allMusicList.observeForever(allMusicListObserver)
+        musicTrackList.observeForever(allMusicTracksObserver)
         observeSearchQuery()
     }
 
@@ -88,29 +88,29 @@ class MusicListViewModel @Inject constructor(
 
         musicLibrarySyncJob = viewModelScope.launch {
             runCatching {
-                musicRepository.getMusicList()
-            }.onSuccess { musicList ->
-                updateMusicListUiState(musicList)
+                musicRepository.getMusicTracksFromMediaStore()
+            }.onSuccess { trackList ->
+                updateMusicTrackListUiState(trackList)
 
                 // 사용자에게 먼저 목록을 보여준 뒤 캐시를 저장한다.
-                musicRepository.replaceCachedMusicList(musicList)
+                musicRepository.replaceCachedMusicTracks(trackList)
             }.onFailure {
                 _toastEvent.value = SingleEvent(getApplication<Application>()
-                        .getString(R.string.load_music_failed)
+                        .getString(R.string.load_music_tracks_failed)
                 )
-                _uiState.value = MusicListUiState.Error
+                _uiState.value = MusicTrackListUiState.Error
             }
         }
     }
 
-    private fun updateMusicListUiState(
-        musicList: List<MusicTrackEntity>
+    private fun updateMusicTrackListUiState(
+        trackList: List<MusicTrackEntity>
     ) {
-        if (musicList.isEmpty()) {
-            val message = getApplication<Application>().getString(R.string.no_music_found)
-            _uiState.value = MusicListUiState.Empty(message)
+        if (trackList.isEmpty()) {
+            val message = getApplication<Application>().getString(R.string.no_music_track_found)
+            _uiState.value = MusicTrackListUiState.Empty(message)
         } else {
-            _uiState.value = MusicListUiState.Content(musicList)
+            _uiState.value = MusicTrackListUiState.Content(trackList)
         }
     }
 
@@ -142,7 +142,7 @@ class MusicListViewModel @Inject constructor(
 
         // 짧은 시간에 여러 변경 이벤트가 발생해도 한 번만 동기화한다.
         mediaStoreChangesJob = viewModelScope.launch {
-            musicRepository.observeMusicChanges()
+            musicRepository.observeMediaStoreMusicChanges()
                 .debounce(MEDIA_STORE_REFRESH_DELAY_MS.milliseconds)
                 .collect {
                     syncMusicLibrary()
@@ -173,13 +173,13 @@ class MusicListViewModel @Inject constructor(
         _searchResult.value = null
     }
 
-    fun searchMusicItems(query: String, musicList: List<MusicTrackEntity>): MusicSearchResult {
+    fun searchMusicItems(query: String, musicTracks: List<MusicTrackEntity>): MusicTrackSearchResult {
         val keyword = query.trim()
         val filteredItems = if (keyword.isBlank()) {
-            musicList
+            musicTracks
         } else {
             // 검색 대상은 사용자에게 보이는 곡 제목과 아티스트명으로 제한한다.
-            musicList.filter { music ->
+            musicTracks.filter { music ->
                 music.title.orEmpty().contains(keyword, ignoreCase = true) ||
                         music.artist.orEmpty().contains(keyword, ignoreCase = true)
             }
@@ -188,34 +188,34 @@ class MusicListViewModel @Inject constructor(
         val emptyMessage = if (keyword.isBlank()) {
             currentStateMessage
         } else {
-            getApplication<Application>().getString(R.string.music_search_no_result)
+            getApplication<Application>().getString(R.string.music_track_search_no_result)
         }
 
-        return MusicSearchResult(
+        return MusicTrackSearchResult(
             items = filteredItems,
             emptyMessage = emptyMessage,
-            hasOriginalItems = musicList.isNotEmpty()
+            hasOriginalItems = musicTracks.isNotEmpty()
         )
     }
 
-    fun addMusicToFavorites(id: String) {
+    fun addMusicTrackToFavorites(id: String) {
         viewModelScope.launch {
-            musicRepository.addMusicToFavorites(id)
+            musicRepository.addMusicTrackToFavorites(id)
         }
     }
 
     fun isContainedInFavorites(id: String) : Boolean {
-        return id in favoriteMusicIdList.value.orEmpty()
+        return id in favoriteMusicTrackIdList.value.orEmpty()
     }
 
-    fun removeMusicFromMyFavorites(id: String) {
+    fun removeMusicTrackFromMyFavorites(id: String) {
         viewModelScope.launch {
-            musicRepository.removeMusicFromFavorites(id)
+            musicRepository.removeMusicTrackFromFavorites(id)
         }
     }
 
     override fun onCleared() {
-        allMusicList.removeObserver(allMusicListObserver)
+        musicTrackList.removeObserver(allMusicTracksObserver)
         super.onCleared()
     }
 

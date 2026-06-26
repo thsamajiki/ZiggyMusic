@@ -70,7 +70,7 @@ class PlayerFragment : Fragment() {
     private var playerListener: Player.Listener? = null
 
     // 사용자가 마지막으로 선택한 목록 기준으로 재생 큐를 유지한다.
-    private var currentQueueSource: PlaybackQueueSource = PlaybackQueueSource.MUSIC_LIST
+    private var currentQueueSource: PlaybackQueueSource = PlaybackQueueSource.MUSIC_TRACKS
 
     @Inject
     lateinit var player: ExoPlayer
@@ -95,7 +95,7 @@ class PlayerFragment : Fragment() {
     private lateinit var playerBluetoothManager: PlayerBluetoothManager
     private var albumGradientManager: MusicTrackAlbumArtGradientManager? = null
     private var latestAlbumBitmap: Bitmap? = null
-    private var lastRenderedMusicId: String? = null
+    private var lastMusicTrackId: String? = null
 
     private lateinit var audioManager: AudioManager
     private var currentVolume: Int = 0  // 현재 볼륨
@@ -103,12 +103,12 @@ class PlayerFragment : Fragment() {
 
     private var volumeObserver: ContentObserver? = null // 시스템 볼륨 변경 감지 observer
 
-    private val musicKey: String
-        get() = requireArguments().getString(EXTRA_MUSIC_FILE_ID).orEmpty()
+    private val musicTrackId: String
+        get() = requireArguments().getString(EXTRA_MUSIC_TRACK_ID).orEmpty()
 
     private val startPlayerTextMarqueeRunnable = Runnable {
         if (_binding == null || vm.motionState.value != PlayerMotionManager.State.EXPANDED) return@Runnable
-        binding.tvSongTitle.isSelected = true
+        binding.tvTitle.isSelected = true
     }
 
     override fun onCreateView(
@@ -234,14 +234,14 @@ class PlayerFragment : Fragment() {
                 .collect { state ->
                     playerMotionManager.changeState(state)
 
-                    binding.tvSongTitle.gravity =
+                    binding.tvTitle.gravity =
                         if (state == PlayerMotionManager.State.EXPANDED) {
                             Gravity.CENTER
                         } else {
                             Gravity.START or Gravity.CENTER_VERTICAL
                         }
 
-                    binding.tvSongArtist.gravity =
+                    binding.tvArtist.gravity =
                         if (state == PlayerMotionManager.State.EXPANDED) {
                             Gravity.CENTER
                         } else {
@@ -275,21 +275,21 @@ class PlayerFragment : Fragment() {
         }
 
         viewLifecycleOwner.lifecycleScope.launch {
-            vm.musicList.observe(viewLifecycleOwner) { musicList ->
-                if (currentQueueSource == PlaybackQueueSource.MUSIC_LIST) {
-                    syncPlaybackQueue(musicList)
+            vm.musicTrackList.observe(viewLifecycleOwner) { musicTracks ->
+                if (currentQueueSource == PlaybackQueueSource.MUSIC_TRACKS) {
+                    syncPlaybackQueue(musicTracks)
                 }
             }
 
-            vm.availableFavoriteMusicList.observe(viewLifecycleOwner) { favoriteMusicList ->
-                if (currentQueueSource == PlaybackQueueSource.FAVORITES) {
-                    syncPlaybackQueue(favoriteMusicList)
+            vm.availableFavoriteTracks.observe(viewLifecycleOwner) { favoriteMusicTracks ->
+                if (currentQueueSource == PlaybackQueueSource.FAVORITE_MUSIC_TRACKS) {
+                    syncPlaybackQueue(favoriteMusicTracks)
                 }
             }
         }
 
         player.currentMediaItem?.mediaId?.let { mediaId ->
-            val music = vm.musicList.value?.find { it.id == mediaId }
+            val music = vm.musicTrackList.value?.find { it.id == mediaId }
             if (music != null) {
                 playerStateHolder.updateCurrentMusic(music)
                 updatePlayerView(music)
@@ -298,37 +298,37 @@ class PlayerFragment : Fragment() {
     }
 
     // 현재 큐 출처에 맞춰 Player 큐와 화면에 표시되는 곡 정보를 함께 동기화한다.
-    private fun syncPlaybackQueue(musicList: List<MusicTrackEntity>) {
+    private fun syncPlaybackQueue(musicTrackList: List<MusicTrackEntity>) {
         if (_binding == null) return
 
-        playerStateHolder.replaceMusicList(musicList)
+        playerStateHolder.replaceMusicTrackList(musicTrackList)
 
-        if (musicList.isEmpty()) {
-            playbackQueueManager.syncQueue(musicList)
-            playerStateHolder.clearCurrentMusic()
+        if (musicTrackList.isEmpty()) {
+            playbackQueueManager.syncQueue(musicTrackList)
+            playerStateHolder.clearCurrentMusicTrack()
             updatePlayerView(null)
             syncPlayerUi()
             return
         }
 
         if (player.currentMediaItem == null) {
-            val initialMusic = musicList.find { it.id == musicKey }
-                ?: musicList.firstOrNull()
+            val initialMusic = musicTrackList.find { it.id == musicTrackId }
+                ?: musicTrackList.firstOrNull()
 
-            playMusic(musicList, initialMusic)
+            playMusic(musicTrackList, initialMusic)
             return
         }
 
-        val syncResult = playbackQueueManager.syncQueue(musicList)
+        val syncResult = playbackQueueManager.syncQueue(musicTrackList)
         val selectedMusic = syncResult.selectedMediaId
-            ?.let { mediaId -> musicList.find { it.id == mediaId } }
+            ?.let { mediaId -> musicTrackList.find { it.id == mediaId } }
 
         // PlayerModel과 UI를 동기화
         if (selectedMusic != null) {
             playerStateHolder.updateCurrentMusic(selectedMusic)
             updatePlayerView(selectedMusic)
         } else {
-            playerStateHolder.clearCurrentMusic()
+            playerStateHolder.clearCurrentMusicTrack()
             updatePlayerView(null)
         }
 
@@ -371,22 +371,22 @@ class PlayerFragment : Fragment() {
     ): Boolean {
         currentQueueSource = queueSource
 
-        val latestMusicList = when (queueSource) {
-            PlaybackQueueSource.MUSIC_LIST -> vm.musicList.value.orEmpty()
-            PlaybackQueueSource.FAVORITES -> vm.availableFavoriteMusicList.value.orEmpty()
+        val latestMusicTracks = when (queueSource) {
+            PlaybackQueueSource.MUSIC_TRACKS -> vm.musicTrackList.value.orEmpty()
+            PlaybackQueueSource.FAVORITE_MUSIC_TRACKS -> vm.availableFavoriteTracks.value.orEmpty()
         }
 
         // 재생 요청 전에 큐를 최신 목록으로 동기화하여 새로 추가된 음원도 바로 재생되게 한다.
         val startedPlayback = playbackQueueManager.playMusic(
-            musicList = latestMusicList,
+            musicTrackList = latestMusicTracks,
             id = id
         )
 
         if (!startedPlayback) return false
 
-        playerStateHolder.replaceMusicList(latestMusicList)
-        playerStateHolder.changedMusic(id)
-        playerStateHolder.currentMusic?.let { music ->
+        playerStateHolder.replaceMusicTrackList(latestMusicTracks)
+        playerStateHolder.changedMusicTrack(id)
+        playerStateHolder.currentMusicTrack?.let { music ->
             updatePlayerView(music)
         }
 
@@ -510,7 +510,7 @@ class PlayerFragment : Fragment() {
         val firstId = playbackQueueManager.moveToFirstTrackAndPauseIfAtEnd()
             ?: return false
 
-        playerStateHolder.changedMusic(firstId)
+        playerStateHolder.changedMusicTrack(firstId)
 
         lastPlaybackStore.saveLastPlayedMedia(
             LastPlayedMedia(
@@ -522,7 +522,7 @@ class PlayerFragment : Fragment() {
             )
         )
 
-        updatePlayerView(playerStateHolder.currentMusic)
+        updatePlayerView(playerStateHolder.currentMusicTrack)
         syncPlayerUi()
 
         return true
@@ -533,9 +533,9 @@ class PlayerFragment : Fragment() {
 
         albumGradientManager = MusicTrackAlbumArtGradientManager(requireActivity())
 
-        binding.tvSongTitle.text = playerStateHolder.currentMusic?.title.orEmpty()
-        binding.tvSongArtist.text = playerStateHolder.currentMusic?.artist.orEmpty()
-        binding.tvSongAlbum.text = playerStateHolder.currentMusic?.album.orEmpty()
+        binding.tvTitle.text = playerStateHolder.currentMusicTrack?.title.orEmpty()
+        binding.tvArtist.text = playerStateHolder.currentMusicTrack?.artist.orEmpty()
+        binding.tvAlbum.text = playerStateHolder.currentMusicTrack?.album.orEmpty()
 
         resetVisualizerBarColor()
         syncPlayerUi()
@@ -559,22 +559,22 @@ class PlayerFragment : Fragment() {
             override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
                 super.onMediaItemTransition(mediaItem, reason)
 
-                val newMusicKey: String = mediaItem?.mediaId ?: return
+                val newTrackId: String = mediaItem?.mediaId ?: return
                 // 트랙이 바뀌면 새 트랙 position을 0으로 저장
                 lastPlaybackStore.saveLastPlayedMedia(
                     LastPlayedMedia(
                         type = PlaybackContentType.MUSIC,
-                        id = newMusicKey,
+                        id = newTrackId,
                         positionMs = 0L,
                         playWhenReady = player.playWhenReady,
                         updatedAtMs = System.currentTimeMillis()
                     )
                 )
-                playerStateHolder.changedMusic(newMusicKey)
+                playerStateHolder.changedMusicTrack(newTrackId)
 
                 latestAlbumBitmap = null
 
-                updatePlayerView(playerStateHolder.currentMusic)
+                updatePlayerView(playerStateHolder.currentMusicTrack)
                 // 새 트랙 정보가 반영되기 전 이전 트랙의 진행률이 노출되지 않도록 초기화
                 updatePlaybackProgressUi(duration = 0L, position = 0L)
 
@@ -602,9 +602,9 @@ class PlayerFragment : Fragment() {
                     // PlayerModel과 UI를 동기화
                     if (player.mediaItemCount > 0) {
                         val firstId = player.getMediaItemAt(0).mediaId
-                        playerStateHolder.changedMusic(firstId)
+                        playerStateHolder.changedMusicTrack(firstId)
                         lastPlaybackStore.saveLastPlayedId(PlaybackContentType.MUSIC, firstId)
-                        updatePlayerView(playerStateHolder.currentMusic)
+                        updatePlayerView(playerStateHolder.currentMusicTrack)
                     }
                     player.pause()
                 }
@@ -692,13 +692,13 @@ class PlayerFragment : Fragment() {
         if (_binding == null) return
 
         if (musicTrackEntity == null) {
-            lastRenderedMusicId = null
+            lastMusicTrackId = null
             binding.root.removeCallbacks(startPlayerTextMarqueeRunnable)
-            binding.tvSongTitle.isSelected = false
+            binding.tvTitle.isSelected = false
 
-            binding.tvSongTitle.text = ""
-            binding.tvSongArtist.text = ""
-            binding.tvSongAlbum.text = ""
+            binding.tvTitle.text = ""
+            binding.tvArtist.text = ""
+            binding.tvAlbum.text = ""
 
             latestAlbumBitmap = null
             resetVisualizerBarColor()
@@ -708,21 +708,21 @@ class PlayerFragment : Fragment() {
             return
         }
 
-        if (lastRenderedMusicId == musicTrackEntity.id) {
+        if (lastMusicTrackId == musicTrackEntity.id) {
             return
         }
-        lastRenderedMusicId = musicTrackEntity.id
+        lastMusicTrackId = musicTrackEntity.id
 
-        binding.tvSongTitle.text = musicTrackEntity.title.orEmpty()
-        binding.tvSongArtist.text = musicTrackEntity.artist.orEmpty()
-        binding.tvSongAlbum.text = musicTrackEntity.album.orEmpty()
+        binding.tvTitle.text = musicTrackEntity.title.orEmpty()
+        binding.tvArtist.text = musicTrackEntity.artist.orEmpty()
+        binding.tvAlbum.text = musicTrackEntity.album.orEmpty()
         updatePlayerTextMarquee(vm.motionState.value)
 
         latestAlbumBitmap = null
 
         // Expanded 상태에서 Decode -> Startup/Collapsed 상태에서 로드할 때 나중에 stretch되지 않게 함
         val albumArtSize = resources.getDimensionPixelSize(R.dimen.album_art_size_expanded)
-        val albumUri = musicTrackEntity.getAlbumUri()
+        val albumUri = musicTrackEntity.getAlbumArtUri()
 
         if (albumUri == null) {
             Glide.with(binding.ivAlbumArt.context).clear(binding.ivAlbumArt)
@@ -804,11 +804,11 @@ class PlayerFragment : Fragment() {
         binding.root.removeCallbacks(startPlayerTextMarqueeRunnable)
 
         if (state == PlayerMotionManager.State.EXPANDED) {
-            binding.tvSongTitle.isSelected = false
+            binding.tvTitle.isSelected = false
             // 트랙 정보 반영 직후 레이아웃이 안정된 뒤 marquee를 시작
             binding.root.postDelayed(startPlayerTextMarqueeRunnable, PLAYER_TEXT_MARQUEE_START_DELAY_MS)
         } else {
-            binding.tvSongTitle.isSelected = false
+            binding.tvTitle.isSelected = false
         }
     }
 
@@ -829,7 +829,7 @@ class PlayerFragment : Fragment() {
     }
 
     private fun savePlaybackState(immediate: Boolean = false) {
-        val music = playerStateHolder.currentMusic ?: return
+        val music = playerStateHolder.currentMusicTrack ?: return
         val now = System.currentTimeMillis()
         val position = player.currentPosition.coerceAtLeast(0L)
 
@@ -853,27 +853,27 @@ class PlayerFragment : Fragment() {
         )
     }
 
-    private fun playMusic(musicList: List<MusicTrackEntity>, nowPlayMusic: MusicTrackEntity?) {
-        if (nowPlayMusic == null) return
+    private fun playMusic(musicTrackList: List<MusicTrackEntity>, currentMusic: MusicTrackEntity?) {
+        if (currentMusic == null) return
 
         val lastPlayedMedia = lastPlaybackStore.loadLastPlayedMedia()
         // 이전에 같은 음원을 듣고 있었다면 저장된 재생 위치부터 이어서 준비한다.
         val resumePositionMs =
             if (
                 lastPlayedMedia?.type == PlaybackContentType.MUSIC &&
-                lastPlayedMedia.id == nowPlayMusic.id
+                lastPlayedMedia.id == currentMusic.id
             ) {
                 lastPlayedMedia.positionMs
             } else {
                 0L
             }
 
-        playerStateHolder.updateCurrentMusic(nowPlayMusic)
+        playerStateHolder.updateCurrentMusic(currentMusic)
 
         lastPlaybackStore.saveLastPlayedMedia(
             LastPlayedMedia(
                 type = PlaybackContentType.MUSIC,
-                id = nowPlayMusic.id,
+                id = currentMusic.id,
                 positionMs = resumePositionMs,
                 playWhenReady = player.playWhenReady,
                 updatedAtMs = System.currentTimeMillis()
@@ -881,12 +881,12 @@ class PlayerFragment : Fragment() {
         )
 
         playbackQueueManager.prepareQueue(
-            musicList = musicList,
-            selectedMusic = nowPlayMusic,
+            musicTrackList = musicTrackList,
+            selectedMusic = currentMusic,
             startPositionMs = resumePositionMs
         )
 
-        updatePlayerView(nowPlayMusic)
+        updatePlayerView(currentMusic)
     }
 
     private fun drawableToBitmap(drawable: Drawable): Bitmap {
@@ -914,7 +914,7 @@ class PlayerFragment : Fragment() {
                 binding.ivShuffleMode.setImageResource(R.drawable.ic_shuffle_off)
             } else { // 셔플 모드가 꺼진 상태
                 player.shuffleModeEnabled = true
-                player.shuffleOrder = ShuffleOrder.DefaultShuffleOrder(vm.musicList.value.orEmpty().size, Random.nextLong())
+                player.shuffleOrder = ShuffleOrder.DefaultShuffleOrder(vm.musicTrackList.value.orEmpty().size, Random.nextLong())
                 binding.ivShuffleMode.setImageResource(R.drawable.ic_shuffle_on)
             }
         }
@@ -1026,7 +1026,7 @@ class PlayerFragment : Fragment() {
         albumGradientManager = null
         mediaControllerConnector.release()
 
-        lastRenderedMusicId = null // 렌더 캐시 초기화
+        lastMusicTrackId = null // 렌더 캐시 초기화
 
         _binding = null
         super.onDestroyView()
@@ -1088,16 +1088,16 @@ class PlayerFragment : Fragment() {
 
     companion object {
         const val TAG = "PlayerFragment"
-        const val EXTRA_MUSIC_FILE_ID: String = "id"
+        const val EXTRA_MUSIC_TRACK_ID: String = "id"
 
         private const val PLAYER_TEXT_MARQUEE_START_DELAY_MS = 700L
 
         private const val MIN_COLLAPSED_ALBUM_ART_RADIUS_RATIO = 0.5f
 
-        fun newInstance(musicId: String): PlayerFragment =
+        fun newInstance(trackId: String): PlayerFragment =
             PlayerFragment().apply {
                 arguments = Bundle().apply {
-                    putString(EXTRA_MUSIC_FILE_ID, musicId)
+                    putString(EXTRA_MUSIC_TRACK_ID, trackId)
                 }
             }
     }

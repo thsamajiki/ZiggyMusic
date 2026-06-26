@@ -28,13 +28,13 @@ fun Player.findMediaItemIndexById(mediaId: String): Int {
 fun MusicTrackEntity.toMediaItem(): MediaItem {
     return MediaItem.Builder()
         .setMediaId(id)
-        .setUri(getMusicFileUri())
+        .setUri(getMusicTrackUri())
         .setMediaMetadata(
             MediaMetadata.Builder()
                 .setTitle(title)
                 .setArtist(artist)
                 .setAlbumTitle(album)
-                .setArtworkUri(getAlbumUri())
+                .setArtworkUri(getAlbumArtUri())
                 .build()
         )
         .build()

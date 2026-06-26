@@ -10,43 +10,43 @@ import javax.inject.Inject
 class MusicRepositoryImpl @Inject constructor(
     private val musicLocalDataSource: MusicLocalDataSource
 ) : MusicRepository {
-    override suspend fun getMusicList(): List<MusicTrackEntity> {
-        return musicLocalDataSource.getMusicList()
+    override suspend fun getMusicTracksFromMediaStore(): List<MusicTrackEntity> {
+        return musicLocalDataSource.getMusicTracksFromMediaStore()
     }
 
-    override suspend fun replaceCachedMusicList(
-        musicList: List<MusicTrackEntity>
+    override suspend fun replaceCachedMusicTracks(
+        trackList: List<MusicTrackEntity>
     ) {
-        return musicLocalDataSource.replaceCachedMusicList(musicList)
+        return musicLocalDataSource.replaceCachedMusicTracks(trackList)
     }
 
-    override suspend fun getMusicCount(): Int {
-        return musicLocalDataSource.getMusicCount()
+    override suspend fun getMusicTrackCount(): Int {
+        return musicLocalDataSource.getMusicTrackCount()
     }
 
-    override suspend fun getMusic(id: String): MusicTrackEntity? {
-        return musicLocalDataSource.getMusic(id)
+    override suspend fun getMusicTrack(id: String): MusicTrackEntity? {
+        return musicLocalDataSource.getMusicTrack(id)
     }
 
-    override fun getAllMusic(): LiveData<List<MusicTrackEntity>> {
-        return musicLocalDataSource.getAllMusic()
+    override fun observeMusicTracks(): LiveData<List<MusicTrackEntity>> {
+        return musicLocalDataSource.observeMusicTracks()
     }
 
-    override fun getFavorites(): LiveData<List<MusicTrackEntity>> {
-        return musicLocalDataSource.getFavorites()
+    override fun observeFavoriteMusicTracks(): LiveData<List<MusicTrackEntity>> {
+        return musicLocalDataSource.observeFavoriteMusicTracks()
     }
 
-    override fun getFavoriteMusicIdList(): LiveData<List<String>> {
-        return musicLocalDataSource.getFavoriteMusicIdList()
+    override fun observeFavoriteTrackIdList(): LiveData<List<String>> {
+        return musicLocalDataSource.getFavoriteMusicTrackIdList()
     }
 
-    override fun observeMusicChanges(): Flow<Unit> = musicLocalDataSource.observeMusicChanges()
+    override fun observeMediaStoreMusicChanges(): Flow<Unit> = musicLocalDataSource.observeMediaStoreMusicChanges()
 
-    override suspend fun addMusicToFavorites(id: String) {
-        musicLocalDataSource.addMusicToFavorites(id)
+    override suspend fun addMusicTrackToFavorites(id: String) {
+        musicLocalDataSource.addMusicTrackToFavorites(id)
     }
 
-    override suspend fun removeMusicFromFavorites(id: String) {
-        musicLocalDataSource.removeMusicFromFavorites(id)
+    override suspend fun removeMusicTrackFromFavorites(id: String) {
+        musicLocalDataSource.removeMusicTrackFromFavorites(id)
     }
 }

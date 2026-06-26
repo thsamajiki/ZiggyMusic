@@ -38,12 +38,12 @@ class PlayerController(
         lifecycleOwner.lifecycle.addObserver(this)
     }
 
-    fun startPlayer(initialMusicId: String = "") {
+    fun startPlayer(initialTrackId: String = "") {
         if (playerFragment == null) {
             fragmentManager.commit {
                 add(
                     fragmentContainer.id,
-                    PlayerFragment.newInstance(initialMusicId),
+                    PlayerFragment.newInstance(initialTrackId),
                     PlayerFragment.TAG
                 )
             }

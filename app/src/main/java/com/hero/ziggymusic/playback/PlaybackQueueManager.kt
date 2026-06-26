@@ -17,19 +17,19 @@ class PlaybackQueueManager @Inject constructor(
 ) {
     @OptIn(UnstableApi::class)
     fun prepareQueue(
-        musicList: List<MusicTrackEntity>,
+        musicTrackList: List<MusicTrackEntity>,
         selectedMusic: MusicTrackEntity?,
         startPositionMs: Long = 0L
     ) {
-        if (musicList.isEmpty()) return
+        if (musicTrackList.isEmpty()) return
 
         // 마지막으로 재생한 곡이 목록에 있으면 해당 위치에서 큐를 시작한다.
         val startIndex = selectedMusic
-            ?.let { music -> musicList.indexOfFirst { it.id == music.id } }
+            ?.let { music -> musicTrackList.indexOfFirst { it.id == music.id } }
             ?.takeIf { it >= 0 }
             ?: 0
 
-        val mediaSources = musicList.map { music ->
+        val mediaSources = musicTrackList.map { music ->
             music.toProgressiveMediaSource(context)
         }
 
@@ -42,14 +42,14 @@ class PlaybackQueueManager @Inject constructor(
     }
 
     @OptIn(UnstableApi::class)
-    fun syncQueue(musicList: List<MusicTrackEntity>): PlaybackQueueSyncResult {
+    fun syncQueue(musicTrackList: List<MusicTrackEntity>): PlaybackQueueSyncResult {
         // 큐를 갱신하기 전에 현재 곡과 재생 상태를 저장해 삭제 후에도 자연스럽게 이어간다.
-        val previousMediaIds = player.currentMediaIds()
-        val previousMediaId = player.currentMediaItem?.mediaId
-        val removedMediaIndex = previousMediaIds.indexOf(previousMediaId)
+        val previousTrackIds = player.currentMediaIds()
+        val previousTrackId = player.currentMediaItem?.mediaId
+        val removedTrackIndex = previousTrackIds.indexOf(previousTrackId)
         val wasPlaying = player.isPlaying || player.playWhenReady
 
-        if (musicList.isEmpty()) {
+        if (musicTrackList.isEmpty()) {
             // 재생 가능한 음원이 없으면 기존 큐를 정리하여 삭제된 항목이 남지 않게 한다.
             if (player.mediaItemCount > 0) {
                 player.pause()
@@ -67,38 +67,38 @@ class PlaybackQueueManager @Inject constructor(
             )
         }
 
-        val latestMediaIds = musicList.map { it.id }
+        val latestTrackIds = musicTrackList.map { it.id }
 
-        if (previousMediaIds == latestMediaIds) {
+        if (previousTrackIds == latestTrackIds) {
             return PlaybackQueueSyncResult(
-                selectedMediaId = previousMediaId,
+                selectedMediaId = previousTrackId,
                 queueChanged = false
             )
         }
 
         val currentItemStillExists =
-            previousMediaId != null && previousMediaId in latestMediaIds
+            previousTrackId != null && previousTrackId in latestTrackIds
 
-        if (currentItemStillExists && canUpdateQueue(previousMediaIds, latestMediaIds)) {
+        if (currentItemStillExists && canUpdateQueue(previousTrackIds, latestTrackIds)) {
             updateQueue(
-                currentMediaIds = previousMediaIds,
-                latestMusicList = musicList
+                currentMediaIds = previousTrackIds,
+                latestTrackList = musicTrackList
             )
 
             return PlaybackQueueSyncResult(
-                selectedMediaId = previousMediaId,
+                selectedMediaId = previousTrackId,
                 queueChanged = true
             )
         }
 
-        val restoredIndex = previousMediaId
-            ?.let { mediaId -> musicList.indexOfFirst { it.id == mediaId } }
+        val restoredIndex = previousTrackId
+            ?.let { mediaId -> musicTrackList.indexOfFirst { it.id == mediaId } }
             ?.takeIf { it >= 0 }
 
         // 현재 곡이 삭제된 경우 같은 위치의 다음 곡을, 마지막 곡이었다면 이전 곡을 선택한다.
-        val replacementIndex = removedMediaIndex
+        val replacementIndex = removedTrackIndex
             .takeIf { it >= 0 }
-            ?.coerceAtMost(musicList.lastIndex)
+            ?.coerceAtMost(musicTrackList.lastIndex)
             ?: 0
 
         val targetIndex = restoredIndex ?: replacementIndex
@@ -109,8 +109,8 @@ class PlaybackQueueManager @Inject constructor(
             0L
         }
 
-        val mediaSources = musicList.map { music ->
-            music.toProgressiveMediaSource(context)
+        val mediaSources = musicTrackList.map { musicTrack ->
+            musicTrack.toProgressiveMediaSource(context)
         }
 
         // 큐 재구성 중 의도치 않은 자동 재생을 막고, 저장한 상태에 따라 재생을 복원한다.
@@ -123,7 +123,7 @@ class PlaybackQueueManager @Inject constructor(
         }
 
         return PlaybackQueueSyncResult(
-            selectedMediaId = musicList.getOrNull(targetIndex)?.id,
+            selectedMediaId = musicTrackList.getOrNull(targetIndex)?.id,
             queueChanged = true
         )
     }
@@ -148,38 +148,38 @@ class PlaybackQueueManager @Inject constructor(
     @OptIn(UnstableApi::class)
     private fun updateQueue(
         currentMediaIds: List<String>,
-        latestMusicList: List<MusicTrackEntity>
+        latestTrackList: List<MusicTrackEntity>
     ) {
-        val latestMediaIds = latestMusicList.map { it.id }
+        val latestTrackIds = latestTrackList.map { it.id }
         val queueIds = currentMediaIds.toMutableList()
 
         for (index in queueIds.lastIndex downTo 0) {
-            if (queueIds[index] !in latestMediaIds) {
+            if (queueIds[index] !in latestTrackIds) {
                 player.removeMediaItem(index)
                 queueIds.removeAt(index)
             }
         }
 
-        latestMusicList.forEachIndexed { targetIndex, music ->
-            if (music.id !in queueIds) {
+        latestTrackList.forEachIndexed { targetIndex, track ->
+            if (track.id !in queueIds) {
                 player.addMediaSource(
                     targetIndex,
-                    music.toProgressiveMediaSource(context)
+                    track.toProgressiveMediaSource(context)
                 )
-                queueIds.add(targetIndex, music.id)
+                queueIds.add(targetIndex, track.id)
             }
         }
     }
 
     fun playMusic(
-        musicList: List<MusicTrackEntity>,
+        musicTrackList: List<MusicTrackEntity>,
         id: String
     ): Boolean {
-        // 요청한 musicId가 현재 재생 가능한 음악 목록에 없으면 실패로 처리한다
-        if (musicList.none { it.id == id }) return false
+        // 요청한 트랙 Id가 현재 재생 가능한 음악 목록에 없으면 실패로 처리한다
+        if (musicTrackList.none { it.id == id }) return false
 
         // 유효한 재생 요청일 때만 큐를 동기화한다.
-        syncQueue(musicList)
+        syncQueue(musicTrackList)
 
         // 큐 동기화 이후 실제 Player 큐에서 선택한 곡의 위치를 다시 찾는다.
         val targetIndex = player.findMediaItemIndexById(id)

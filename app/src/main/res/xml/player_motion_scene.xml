@@ -31,7 +31,7 @@
             motion:layout_constraintTop_toTopOf="parent" />
 
         <Constraint
-            android:id="@+id/tvSongTitle"
+            android:id="@+id/tvTitle"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="@dimen/player_collapsed_text_margin_start"
@@ -40,7 +40,7 @@
             android:gravity="start|center_vertical"
             android:maxLines="1"
             android:textAlignment="viewStart"
-            motion:layout_constraintBottom_toTopOf="@id/tvSongArtist"
+            motion:layout_constraintBottom_toTopOf="@id/tvArtist"
             motion:layout_constraintEnd_toStartOf="@id/ivPlayPause"
             motion:layout_constraintHorizontal_bias="0"
             motion:layout_constraintStart_toEndOf="@id/ivAlbumArt"
@@ -53,7 +53,7 @@
         </Constraint>
 
         <Constraint
-            android:id="@+id/tvSongArtist"
+            android:id="@+id/tvArtist"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="@dimen/player_collapsed_text_margin_start"
@@ -65,7 +65,7 @@
             android:textAlignment="viewStart"
             motion:layout_constraintStart_toEndOf="@id/ivAlbumArt"
             motion:layout_constraintEnd_toStartOf="@id/ivPlayPause"
-            motion:layout_constraintTop_toBottomOf="@id/tvSongTitle"
+            motion:layout_constraintTop_toBottomOf="@id/tvTitle"
             motion:layout_constraintBottom_toBottomOf="@id/ivAlbumArt"
             motion:layout_constraintHorizontal_bias="0">
 
@@ -80,7 +80,7 @@
         </Constraint>
 
         <Constraint
-            android:id="@+id/tvSongAlbum"
+            android:id="@+id/tvAlbum"
             android:visibility="gone" />
 
         <Constraint
@@ -170,7 +170,7 @@
             motion:layout_constraintTop_toTopOf="@id/playerTopHandleContainer" />
 
         <Constraint
-            android:id="@+id/tvSongTitle"
+            android:id="@+id/tvTitle"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="@dimen/space_xxxl"
@@ -199,10 +199,10 @@
             android:layout_marginTop="@dimen/space_xl"
             motion:layout_constraintEnd_toEndOf="parent"
             motion:layout_constraintStart_toStartOf="parent"
-            motion:layout_constraintTop_toBottomOf="@id/tvSongTitle" />
+            motion:layout_constraintTop_toBottomOf="@id/tvTitle" />
 
         <Constraint
-            android:id="@+id/tvSongArtist"
+            android:id="@+id/tvArtist"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="@dimen/space_xxxl"
@@ -228,7 +228,7 @@
         </Constraint>
 
         <Constraint
-            android:id="@+id/tvSongAlbum"
+            android:id="@+id/tvAlbum"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="@dimen/space_xxxxl"
@@ -242,17 +242,17 @@
             motion:layout_constraintEnd_toStartOf="@id/bluetooth"
             motion:layout_constraintHorizontal_chainStyle="packed"
             motion:layout_constraintStart_toEndOf="@id/animationViewVisualizer"
-            motion:layout_constraintTop_toBottomOf="@id/tvSongArtist" />
+            motion:layout_constraintTop_toBottomOf="@id/tvArtist" />
 
         <Constraint
             android:id="@+id/animationViewVisualizer"
             android:layout_width="@dimen/animation_visualizer"
             android:layout_height="@dimen/animation_visualizer"
             android:layout_marginStart="@dimen/space_xxxl"
-            motion:layout_constraintBottom_toBottomOf="@id/tvSongAlbum"
-            motion:layout_constraintEnd_toStartOf="@id/tvSongAlbum"
+            motion:layout_constraintBottom_toBottomOf="@id/tvAlbum"
+            motion:layout_constraintEnd_toStartOf="@id/tvAlbum"
             motion:layout_constraintStart_toStartOf="parent"
-            motion:layout_constraintTop_toTopOf="@id/tvSongAlbum" />
+            motion:layout_constraintTop_toTopOf="@id/tvAlbum" />
 
         <Constraint
             android:id="@+id/bluetooth"
@@ -260,10 +260,10 @@
             android:layout_height="@dimen/bluetooth"
             android:layout_marginEnd="@dimen/space_xxxl"
             android:src="@drawable/ic_airplay"
-            motion:layout_constraintBottom_toBottomOf="@id/tvSongAlbum"
+            motion:layout_constraintBottom_toBottomOf="@id/tvAlbum"
             motion:layout_constraintEnd_toEndOf="parent"
-            motion:layout_constraintStart_toEndOf="@id/tvSongAlbum"
-            motion:layout_constraintTop_toTopOf="@id/tvSongAlbum" />
+            motion:layout_constraintStart_toEndOf="@id/tvAlbum"
+            motion:layout_constraintTop_toTopOf="@id/tvAlbum" />
 
         <Constraint
             android:id="@+id/vPlayer"

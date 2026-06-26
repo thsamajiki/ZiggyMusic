@@ -11,29 +11,29 @@ import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.hero.ziggymusic.database.music.entity.MusicTrackEntity
-import com.hero.ziggymusic.databinding.FragmentFavoritesBinding
+import com.hero.ziggymusic.databinding.FragmentFavoriteMusicTracksBinding
 import com.hero.ziggymusic.event.EventBus
 import com.hero.ziggymusic.ext.playMusic
 import com.hero.ziggymusic.playback.PlaybackQueueSource
 import com.hero.ziggymusic.view.main.popup.MusicTrackOptionMenuPopup
-import com.hero.ziggymusic.view.main.favorites.viewmodel.FavoritesUiState
-import com.hero.ziggymusic.view.main.favorites.viewmodel.FavoritesViewModel
+import com.hero.ziggymusic.view.main.favorites.viewmodel.FavoriteMusicTrackListUiState
+import com.hero.ziggymusic.view.main.favorites.viewmodel.FavoriteMusicTracksViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-class FavoriteTracksFragment : Fragment() {
-    private var _binding: FragmentFavoritesBinding? = null
+class FavoriteMusicTracksFragment : Fragment() {
+    private var _binding: FragmentFavoriteMusicTracksBinding? = null
     private val binding get() = _binding!!
 
-    private val vm by viewModels<FavoritesViewModel>()
+    private val vm by viewModels<FavoriteMusicTracksViewModel>()
 
-    private lateinit var favoriteTrackAdapter: FavoriteTrackAdapter
+    private lateinit var favoriteMusicTrackAdapter: FavoriteMusicTrackAdapter
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        _binding = FragmentFavoritesBinding.inflate(inflater, container, false)
+        _binding = FragmentFavoriteMusicTracksBinding.inflate(inflater, container, false)
 
         return binding.root
     }
@@ -42,12 +42,12 @@ class FavoriteTracksFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         EventBus.getInstance().register(this)
-        initRecyclerView(binding.rvFavorites)
+        initRecyclerView(binding.rvFavoriteMusicTracks)
         collectUiState()
     }
 
     private fun initRecyclerView(recyclerView: RecyclerView) {
-        favoriteTrackAdapter = FavoriteTrackAdapter(
+        favoriteMusicTrackAdapter = FavoriteMusicTrackAdapter(
             onItemClick = { music ->
                 playMusic(music.id)
             },
@@ -58,34 +58,34 @@ class FavoriteTracksFragment : Fragment() {
 
         recyclerView.run {
             layoutManager = LinearLayoutManager(context)
-            adapter = favoriteTrackAdapter
+            adapter = favoriteMusicTrackAdapter
         }
     }
 
     private fun collectUiState() {
         vm.uiState.observe(viewLifecycleOwner) { state ->
             when (state) {
-                is FavoritesUiState.Idle -> {
-                    binding.rvFavorites.isVisible = false
+                is FavoriteMusicTrackListUiState.Idle -> {
+                    binding.rvFavoriteMusicTracks.isVisible = false
                     binding.tvNothingFound.isVisible = false
                 }
 
-                is FavoritesUiState.Content -> {
-                    favoriteTrackAdapter.submitList(state.data)
-                    binding.rvFavorites.isVisible = true
+                is FavoriteMusicTrackListUiState.Content -> {
+                    favoriteMusicTrackAdapter.submitList(state.data)
+                    binding.rvFavoriteMusicTracks.isVisible = true
                     binding.tvNothingFound.isVisible = false
                 }
 
-                is FavoritesUiState.Empty -> {
-                    favoriteTrackAdapter.submitList(emptyList())
+                is FavoriteMusicTrackListUiState.Empty -> {
+                    favoriteMusicTrackAdapter.submitList(emptyList())
                     binding.tvNothingFound.text = vm.emptyStateMessage.value.orEmpty()
-                    binding.rvFavorites.isVisible = false
+                    binding.rvFavoriteMusicTracks.isVisible = false
                     binding.tvNothingFound.isVisible = true
                 }
 
-                is FavoritesUiState.Error -> {
-                    favoriteTrackAdapter.submitList(emptyList())
-                    binding.rvFavorites.isVisible = false
+                is FavoriteMusicTrackListUiState.Error -> {
+                    favoriteMusicTrackAdapter.submitList(emptyList())
+                    binding.rvFavoriteMusicTracks.isVisible = false
                 }
             }
         }
@@ -100,22 +100,22 @@ class FavoriteTracksFragment : Fragment() {
     private fun playMusic(id: String) {
         requireContext().playMusic(
             id = id,
-            queueSource = PlaybackQueueSource.FAVORITES
+            queueSource = PlaybackQueueSource.FAVORITE_MUSIC_TRACKS
         )
     }
 
-    private fun openMusicOptionMenuPopup(music: MusicTrackEntity, anchorView: View) {
+    private fun openMusicOptionMenuPopup(track: MusicTrackEntity, anchorView: View) {
         MusicTrackOptionMenuPopup(
             anchorView = anchorView,
             showAddToFavorites = false,
             showRemoveFromFavorites = true,
             onAddToFavorites = {},
-            onRemoveFromFavorites = { removeMusicFromFavorites(music) }
+            onRemoveFromFavorites = { removeMusicFromFavorites(track) }
         ).show()
     }
 
-    private fun removeMusicFromFavorites(music: MusicTrackEntity) {
-        vm.removeMusicFromFavorites(music.id)
+    private fun removeMusicFromFavorites(track: MusicTrackEntity) {
+        vm.removeMusicTrackFromFavorites(track.id)
     }
 
     override fun onDestroyView() {
@@ -125,6 +125,6 @@ class FavoriteTracksFragment : Fragment() {
     }
 
     companion object {
-        fun newInstance() = FavoriteTracksFragment()
+        fun newInstance() = FavoriteMusicTracksFragment()
     }
 }

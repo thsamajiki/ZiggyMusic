@@ -2,14 +2,14 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/layoutFragmentFavorites"
+    android:id="@+id/layoutFragmentFavoriteTracks"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    tools:context=".view.main.favorites.FavoriteTracksFragment">
+    tools:context=".view.main.favorites.FavoriteMusicTracksFragment">
 
         <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/rvFavorites"
+            android:id="@+id/rvFavoriteMusicTracks"
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:orientation="vertical"
@@ -18,7 +18,7 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            tools:listitem="@layout/item_favorites" />
+            tools:listitem="@layout/item_favorite_music_track" />
 
         <TextView
             android:id="@+id/tvNothingFound"
@@ -30,6 +30,6 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            tools:text="@string/no_music_found" />
+            tools:text="@string/no_music_track_found" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

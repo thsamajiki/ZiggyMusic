@@ -1,35 +1,34 @@
 package com.hero.ziggymusic.database.music.entity
 
 data class PlayerStateHolder (
-    private val playMusicList: MutableList<MusicTrackEntity> = mutableListOf()
+    private val musicTrackList: MutableList<MusicTrackEntity> = mutableListOf()
 ) {
-
-    var currentMusic: MusicTrackEntity? = null
+    var currentMusicTrack: MusicTrackEntity? = null
         private set
 
 
-    fun replaceMusicList(musicList: List<MusicTrackEntity>) {
-        playMusicList.clear()
-        playMusicList.addAll(musicList)
+    fun replaceMusicTrackList(trackList: List<MusicTrackEntity>) {
+        musicTrackList.clear()
+        musicTrackList.addAll(trackList)
     }
 
-    fun updateCurrentMusic(musicTrackEntity: MusicTrackEntity) {
+    fun updateCurrentMusic(musicTrack: MusicTrackEntity) {
         // 어차피 id 값이 인덱스 값이다.
-        currentMusic = musicTrackEntity
+        currentMusicTrack = musicTrack
     }
 
-    fun changedMusic(newMusicId: String) {
-        val newMusic = playMusicList.find {
-            it.id == newMusicId
+    fun changedMusicTrack(newTrackId: String) {
+        val newMusicTrack = musicTrackList.find {
+            it.id == newTrackId
         }
 
-        if (newMusic != null) {
-            currentMusic = newMusic
+        if (newMusicTrack != null) {
+            currentMusicTrack = newMusicTrack
         }
     }
 
-    fun clearCurrentMusic() {
-        currentMusic = null
+    fun clearCurrentMusicTrack() {
+        currentMusicTrack = null
     }
 
     companion object {

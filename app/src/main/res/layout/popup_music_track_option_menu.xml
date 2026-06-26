@@ -33,7 +33,7 @@
             android:layout_weight="1"
             android:ellipsize="end"
             android:maxLines="1"
-            android:text="@string/add_music_to_favorites"
+            android:text="@string/add_track_to_favorites"
             android:textAppearance="@style/TextAppearance.ZiggyMusic.White.Caption" />
 
     </LinearLayout>
@@ -72,7 +72,7 @@
             android:layout_weight="1"
             android:ellipsize="end"
             android:maxLines="1"
-            android:text="@string/remove_music_from_favorites"
+            android:text="@string/remove_track_from_favorites"
             android:textAppearance="@style/TextAppearance.ZiggyMusic.White.Caption" />
 
     </LinearLayout>

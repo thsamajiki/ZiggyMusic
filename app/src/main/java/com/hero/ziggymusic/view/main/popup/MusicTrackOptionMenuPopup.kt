@@ -17,7 +17,7 @@ class MusicTrackOptionMenuPopup(
 ) {
     fun show() {
         val popupView = LayoutInflater.from(anchorView.context)
-            .inflate(R.layout.popup_music_option_menu, null, false)
+            .inflate(R.layout.popup_music_track_option_menu, null, false)
         val addLayout = popupView.findViewById<View>(R.id.layoutAddToFavorites)
         val removeLayout = popupView.findViewById<View>(R.id.layoutRemoveFromFavorites)
         val divider = popupView.findViewById<View>(R.id.dividerFavoriteOptions)

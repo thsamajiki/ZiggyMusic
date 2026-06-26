@@ -10,7 +10,7 @@ import kotlinx.parcelize.Parcelize
 import androidx.core.net.toUri
 
 @Parcelize
-@Entity(tableName = "music")
+@Entity(tableName = "music_tracks")
 data class MusicTrackEntity(
     @PrimaryKey
     @ColumnInfo(name = "id")
@@ -28,11 +28,11 @@ data class MusicTrackEntity(
     @ColumnInfo(name = "is_playing")
     val isPlaying: Boolean = false,
 ) : Parcelable {
-    fun getMusicFileUri(): Uri {
+    fun getMusicTrackUri(): Uri {
         return Uri.withAppendedPath(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, id)
     }
 
-    fun getAlbumUri(): Uri? {
+    fun getAlbumArtUri(): Uri? {
         if (albumId.isNullOrBlank()) return null
         return "content://media/external/audio/albumart/${albumId}".toUri()
     }

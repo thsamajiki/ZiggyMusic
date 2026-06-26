@@ -10,22 +10,22 @@ import com.hero.ziggymusic.database.music.entity.FavoriteTrackEntity
 import com.hero.ziggymusic.database.music.entity.MusicTrackEntity
 
 @Database(entities = [MusicTrackEntity::class, FavoriteTrackEntity::class], version = 1, exportSchema = false)
-abstract class AppMusicDatabase : RoomDatabase() {
+abstract class AppMusicTrackDatabase : RoomDatabase() {
     abstract fun musicFileDao(): MusicTrackDao
     abstract fun favoritesDao(): FavoriteTracksDao
 
     companion object {
         @Volatile
-        private var instance: AppMusicDatabase? = null
+        private var instance: AppMusicTrackDatabase? = null
 
-        fun getInstance(context: Context): AppMusicDatabase = instance ?: synchronized(this) {
+        fun getInstance(context: Context): AppMusicTrackDatabase = instance ?: synchronized(this) {
             instance ?: buildDatabase(context).also { instance = it }
         }
 
         private fun buildDatabase(context: Context) =
             Room.databaseBuilder(
                 context.applicationContext,
-                AppMusicDatabase::class.java, "ziggy_music.db"
+                AppMusicTrackDatabase::class.java, "ziggy_music.db"
             ).build()
     }
 }

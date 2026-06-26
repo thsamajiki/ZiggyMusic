@@ -8,25 +8,25 @@ import com.hero.ziggymusic.database.music.entity.MusicTrackEntity
 @Dao
 interface FavoriteTracksDao {
     @Query("""
-        SELECT music.*
-        FROM music
+        SELECT music_tracks.*
+        FROM music_tracks
         INNER JOIN favorite_music
-        ON music.id = favorite_music.id
+        ON music_tracks.id = favorite_music.id
         ORDER BY favorite_music.created_at DESC
     """)
-    fun getFavoriteMusicList(): LiveData<List<MusicTrackEntity>>
+    fun getFavoriteMusicTracks(): LiveData<List<MusicTrackEntity>>
 
     @Query("SELECT id FROM favorite_music")
-    fun getFavoriteMusicIdList(): LiveData<List<String>>
+    fun getFavoriteMusicTrackIdList(): LiveData<List<String>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertFavoriteMusic(favoriteMusic: FavoriteTrackEntity)
+    suspend fun insertFavoriteMusicTrack(favoriteMusic: FavoriteTrackEntity)
 
     @Query("DELETE FROM favorite_music WHERE id = :id")
-    suspend fun deleteFavoriteMusic(id: String)
+    suspend fun deleteFavoriteMusicTrack(id: String)
 
-    @Query("DELETE FROM favorite_music WHERE id NOT IN (:musicIdList)")
-    suspend fun deleteFavoritesExcept(musicIdList: List<String>)
+    @Query("DELETE FROM favorite_music WHERE id NOT IN (:musicTrackIdList)")
+    suspend fun deleteFavoriteTracksExcept(musicTrackIdList: List<String>)
 
     @Query("DELETE FROM favorite_music")
     suspend fun clearAll()

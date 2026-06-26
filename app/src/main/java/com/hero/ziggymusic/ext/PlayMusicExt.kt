@@ -7,7 +7,7 @@ import dagger.hilt.android.internal.managers.FragmentComponentManager
 
 fun Context.playMusic(
     id: String,
-    queueSource: PlaybackQueueSource = PlaybackQueueSource.MUSIC_LIST
+    queueSource: PlaybackQueueSource = PlaybackQueueSource.MUSIC_TRACKS
 ) {
     val activity = FragmentComponentManager.findActivity(this)
 

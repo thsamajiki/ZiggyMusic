@@ -2,14 +2,14 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/layoutFragmentMusicList"
+    android:id="@+id/layoutFragmentMusicTracks"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
     tools:context=".view.main.musiclist.MusicTracksFragment">
 
         <FrameLayout
-            android:id="@+id/layoutMusicListViewport"
+            android:id="@+id/layoutMusicTracksViewport"
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:clipChildren="true"
@@ -20,13 +20,13 @@
             app:layout_constraintTop_toTopOf="parent">
 
             <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/rvMusicList"
+                android:id="@+id/rvMusicTracks"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:orientation="vertical"
                 android:visibility="gone"
                 android:clipToPadding="true"
-                tools:listitem="@layout/item_music_list" />
+                tools:listitem="@layout/item_music_track" />
 
         </FrameLayout>
 
@@ -69,7 +69,7 @@
                     android:layout_marginStart="@dimen/space_md"
                     android:layout_weight="1"
                     android:background="@color/transparent"
-                    android:hint="@string/music_search_hint"
+                    android:hint="@string/music_track_search_hint"
                     android:imeOptions="actionSearch"
                     android:inputType="text"
                     android:maxLines="1"
@@ -104,6 +104,6 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            tools:text="@string/no_music_found" />
+            tools:text="@string/no_music_track_found" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

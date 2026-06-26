@@ -18,7 +18,7 @@ import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import com.hero.ziggymusic.R
-import com.hero.ziggymusic.databinding.FragmentSettingBinding
+import com.hero.ziggymusic.databinding.FragmentSettingsBinding
 import androidx.core.content.edit
 import com.hero.ziggymusic.audio.HeadTracker
 import com.hero.ziggymusic.audio.PlayerAudioGraph
@@ -28,7 +28,7 @@ import com.hero.ziggymusic.view.main.setting.AudioEffectManager.mainColor
 import java.util.Locale
 
 class SettingsFragment : Fragment() {
-    private var _binding: FragmentSettingBinding? = null
+    private var _binding: FragmentSettingsBinding? = null
     private val binding get() = _binding!!
 
     var seekbarIds: ArrayList<Int> = ArrayList()
@@ -51,7 +51,7 @@ class SettingsFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?,
     ): View {
-        _binding = FragmentSettingBinding.inflate(inflater, container, false)
+        _binding = FragmentSettingsBinding.inflate(inflater, container, false)
 
         return binding.root
     }

@@ -6,27 +6,24 @@ import com.hero.ziggymusic.database.music.entity.MusicTrackEntity
 
 @Dao
 interface MusicTrackDao {
-    @Query("SELECT * FROM music ORDER BY title ASC")
-    fun getAllFiles() : LiveData<List<MusicTrackEntity>>
+    @Query("SELECT * FROM music_tracks ORDER BY title ASC")
+    fun getMusicTracksFromMediaStore() : LiveData<List<MusicTrackEntity>>
 
-    @Query("SELECT COUNT(*) FROM music")
-    suspend fun getMusicCount(): Int
+    @Query("SELECT COUNT(*) FROM music_tracks")
+    suspend fun getMusicTrackCount(): Int
 
-    @Query("SELECT * FROM music WHERE id = :key limit 1")
-    suspend fun getMusicFileFromKey(key: String?): MusicTrackEntity?
-
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insertMusic(musicTrackEntity: MusicTrackEntity)
+    @Query("SELECT * FROM music_tracks WHERE id = :id limit 1")
+    suspend fun getMusicTrack(id: String?): MusicTrackEntity?
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertAll(musicList: List<MusicTrackEntity>)
+    suspend fun insertAllMusicTracks(musicTrackList: List<MusicTrackEntity>)
 
-    @Query("DELETE FROM music")
+    @Query("DELETE FROM music_tracks")
     suspend fun clearAll()
 
     @Delete
-    fun deleteMusic(musicTrackEntity: MusicTrackEntity)
+    fun deleteMusicTrack(musicTrackEntity: MusicTrackEntity)
 
-    @Query("DELETE FROM music WHERE id NOT IN (:musicIdList)")
-    suspend fun deleteFilesExcept(musicIdList: List<String>)
+    @Query("DELETE FROM music_tracks WHERE id NOT IN (:musicTrackIdList)")
+    suspend fun deleteMusicTracksExcept(musicTrackIdList: List<String>)
 }

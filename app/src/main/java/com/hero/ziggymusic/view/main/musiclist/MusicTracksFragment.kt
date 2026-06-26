@@ -30,24 +30,24 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.hero.ziggymusic.R
 import com.hero.ziggymusic.database.music.entity.MusicTrackEntity
-import com.hero.ziggymusic.databinding.FragmentMusicListBinding
+import com.hero.ziggymusic.databinding.FragmentMusicTracksBinding
 import com.hero.ziggymusic.event.EventBus
 import com.hero.ziggymusic.ext.playMusic
 import com.hero.ziggymusic.playback.PlaybackQueueSource
 import com.hero.ziggymusic.view.main.popup.MusicTrackOptionMenuPopup
-import com.hero.ziggymusic.view.main.musiclist.viewmodel.MusicSearchResult
-import com.hero.ziggymusic.view.main.musiclist.viewmodel.MusicListUiState
-import com.hero.ziggymusic.view.main.musiclist.viewmodel.MusicListViewModel
+import com.hero.ziggymusic.view.main.musiclist.viewmodel.MusicTrackSearchResult
+import com.hero.ziggymusic.view.main.musiclist.viewmodel.MusicTrackListUiState
+import com.hero.ziggymusic.view.main.musiclist.viewmodel.MusicTracksViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
 @AndroidEntryPoint
 class MusicTracksFragment : Fragment() {
-    private var _binding: FragmentMusicListBinding? = null
+    private var _binding: FragmentMusicTracksBinding? = null
     private val binding get() = _binding!!
 
-    private val vm by viewModels<MusicListViewModel>()
+    private val vm by viewModels<MusicTracksViewModel>()
 
     private lateinit var musicTrackAdapter: MusicTrackAdapter
     private var isRefreshedAfterPermission = false
@@ -65,7 +65,7 @@ class MusicTracksFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        _binding = FragmentMusicListBinding.inflate(inflater, container, false)
+        _binding = FragmentMusicTracksBinding.inflate(inflater, container, false)
 
         return binding.root
     }
@@ -74,7 +74,7 @@ class MusicTracksFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         EventBus.getInstance().register(this)
-        initRecyclerView(binding.rvMusicList)
+        initRecyclerView(binding.rvMusicTracks)
         initSearchUi()
         setSearchProgress(0f)
         collectUiState()
@@ -268,7 +268,7 @@ class MusicTracksFragment : Fragment() {
         }
     }
 
-    private fun showSearchResult(searchResult: MusicSearchResult) {
+    private fun showSearchResult(searchResult: MusicTrackSearchResult) {
         // 늦게 도착한 이전 검색 callback이 최신 결과 UI를 덮어쓰지 않도록 요청 id를 캡처한다.
         val currentRequestId = ++searchRequestId
         val hadVisibleItems = musicTrackAdapter.currentList.isNotEmpty()
@@ -279,7 +279,7 @@ class MusicTracksFragment : Fragment() {
         musicTrackAdapter.submitList(searchResult.items) {
             if (currentRequestId != searchRequestId) return@submitList
 
-            binding.rvMusicList.isVisible = searchResult.hasOriginalItems || searchResult.items.isNotEmpty()
+            binding.rvMusicTracks.isVisible = searchResult.hasOriginalItems || searchResult.items.isNotEmpty()
 
             if (searchResult.items.isEmpty()) {
                 showEmptySearchMessageAfterListSettled(
@@ -300,13 +300,13 @@ class MusicTracksFragment : Fragment() {
             return
         }
 
-        binding.rvMusicList.doOnNextLayout {
+        binding.rvMusicTracks.doOnNextLayout {
             showEmptySearchMessageWhenItemAnimationsFinish(requestId)
         }
     }
 
     private fun showEmptySearchMessageWhenItemAnimationsFinish(requestId: Long) {
-        val itemAnimator = binding.rvMusicList.itemAnimator
+        val itemAnimator = binding.rvMusicTracks.itemAnimator
         if (itemAnimator == null || !itemAnimator.isRunning) {
             binding.tvNothingFound.isVisible = requestId == searchRequestId
             return
@@ -390,15 +390,15 @@ class MusicTracksFragment : Fragment() {
             -resources.displayMetrics.density * SEARCH_TRANSLATION_DP * (1f - searchProgress)
 
         val expandedInset = searchExpandedHeight() + searchListSafeGap()
-        binding.rvMusicList.setPadding(
-            binding.rvMusicList.paddingLeft,
+        binding.rvMusicTracks.setPadding(
+            binding.rvMusicTracks.paddingLeft,
             (expandedInset * searchProgress).roundToInt(),
-            binding.rvMusicList.paddingRight,
-            binding.rvMusicList.paddingBottom
+            binding.rvMusicTracks.paddingRight,
+            binding.rvMusicTracks.paddingBottom
         )
 
         val currentTopInset = (expandedInset * searchProgress).roundToInt()
-        updateMusicListViewportClip(currentTopInset)
+        updateMusicTrackListViewportClip(currentTopInset)
         keepFirstItemBelowSearchInset(currentTopInset)
 
         when (searchProgress) {
@@ -409,14 +409,14 @@ class MusicTracksFragment : Fragment() {
                 searchContainer.translationY = 0f
                 binding.layoutSearchField.translationY =
                     -resources.displayMetrics.density * SEARCH_TRANSLATION_DP
-                binding.rvMusicList.setPadding(
-                    binding.rvMusicList.paddingLeft,
+                binding.rvMusicTracks.setPadding(
+                    binding.rvMusicTracks.paddingLeft,
                     0,
-                    binding.rvMusicList.paddingRight,
-                    binding.rvMusicList.paddingBottom
+                    binding.rvMusicTracks.paddingRight,
+                    binding.rvMusicTracks.paddingBottom
                 )
-                binding.rvMusicList.translationY = 0f
-                updateMusicListViewportClip(0)
+                binding.rvMusicTracks.translationY = 0f
+                updateMusicTrackListViewportClip(0)
             }
 
             1f -> {
@@ -426,8 +426,8 @@ class MusicTracksFragment : Fragment() {
         }
     }
 
-    private fun updateMusicListViewportClip(topInset: Int) {
-        val viewport = binding.layoutMusicListViewport
+    private fun updateMusicTrackListViewportClip(topInset: Int) {
+        val viewport = binding.layoutMusicTracksViewport
         viewport.clipBounds = if (topInset <= 0) {
             null
         } else {
@@ -438,7 +438,7 @@ class MusicTracksFragment : Fragment() {
     private fun keepFirstItemBelowSearchInset(topInset: Int) {
         if (topInset <= 0) return
 
-        val layoutManager = binding.rvMusicList.layoutManager as? LinearLayoutManager ?: return
+        val layoutManager = binding.rvMusicTracks.layoutManager as? LinearLayoutManager ?: return
         if (layoutManager.findFirstVisibleItemPosition() != 0) return
 
         val firstChild = layoutManager.findViewByPosition(0) ?: return
@@ -473,27 +473,27 @@ class MusicTracksFragment : Fragment() {
     private fun collectUiState() {
         vm.uiState.observe(viewLifecycleOwner) { state ->
             when (state) {
-                is MusicListUiState.Idle -> {
-                    binding.rvMusicList.isVisible = false
+                is MusicTrackListUiState.Idle -> {
+                    binding.rvMusicTracks.isVisible = false
                     binding.tvNothingFound.isVisible = false
                 }
 
-                is MusicListUiState.Content -> {
+                is MusicTrackListUiState.Content -> {
                     vm.setSearchMusicItems(state.data)
                 }
 
-                is MusicListUiState.Empty -> {
+                is MusicTrackListUiState.Empty -> {
                     vm.setSearchMusicItems(
                         musicItems = emptyList(),
                         emptyStateMessage = state.message
                     )
                 }
 
-                is MusicListUiState.Error -> {
-                    Log.e("MusicListFragment", getString(R.string.music_list_load_failed))
+                is MusicTrackListUiState.Error -> {
+                    Log.e("MusicListFragment", getString(R.string.music_tracks_load_failed))
                     vm.clearSearchResult()
                     musicTrackAdapter.submitList(emptyList())
-                    binding.rvMusicList.isVisible = false
+                    binding.rvMusicTracks.isVisible = false
                     binding.tvNothingFound.isVisible = false
                 }
             }
@@ -508,8 +508,8 @@ class MusicTracksFragment : Fragment() {
             }
         }
 
-        vm.favoriteMusicIdList.observe(viewLifecycleOwner) { musicIds ->
-            musicTrackAdapter.updateFavoriteMusicIds(musicIds)
+        vm.favoriteMusicTrackIdList.observe(viewLifecycleOwner) { trackIds ->
+            musicTrackAdapter.updateFavoriteMusicTrackIds(trackIds)
         }
 
         vm.toastEvent.observe(viewLifecycleOwner) { event ->
@@ -536,7 +536,7 @@ class MusicTracksFragment : Fragment() {
     private fun playMusic(id: String) {
         requireContext().playMusic(
             id = id,
-            queueSource = PlaybackQueueSource.MUSIC_LIST
+            queueSource = PlaybackQueueSource.MUSIC_TRACKS
         )
     }
 
@@ -554,12 +554,12 @@ class MusicTracksFragment : Fragment() {
 
     private fun addMusicToFavorites(id: String) {
         // Local DB에 저장한다.
-        vm.addMusicToFavorites(id)
+        vm.addMusicTrackToFavorites(id)
     }
 
     private fun removeMusicFromFavorites(id: String) {
         // Local DB에서 삭제한다.
-        vm.removeMusicFromMyFavorites(id)
+        vm.removeMusicTrackFromMyFavorites(id)
     }
 
     override fun onDestroyView() {

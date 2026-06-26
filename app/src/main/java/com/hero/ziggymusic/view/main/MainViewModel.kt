@@ -13,11 +13,10 @@ import javax.inject.Inject
 class MainViewModel @Inject constructor(
     private val musicRepository: MusicRepository
 ): ViewModel() {
-
-    val musicList: LiveData<List<MusicTrackEntity>> = musicRepository.getAllMusic()
+    val musicTracks: LiveData<List<MusicTrackEntity>> = musicRepository.observeMusicTracks()
 
     // MainTitle 상태 관리
-    private val _currentTitle = MutableLiveData<MainTitle>(MainTitle.MusicList)
+    private val _currentTitle = MutableLiveData<MainTitle>(MainTitle.MusicTracks)
     val currentTitle: LiveData<MainTitle> = _currentTitle
 
     fun setTitle(title: MainTitle) {

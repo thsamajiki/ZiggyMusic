@@ -47,8 +47,8 @@ class MusicService : MediaLibraryService() {
             if (isExiting) return
 
             val mediaId = player.currentMediaItem?.mediaId
-            if (mediaId != null && playerStateHolder.currentMusic?.id != mediaId) {
-                playerStateHolder.changedMusic(mediaId)
+            if (mediaId != null && playerStateHolder.currentMusicTrack?.id != mediaId) {
+                playerStateHolder.changedMusicTrack(mediaId)
             }
 
             updateNotification()
@@ -59,7 +59,7 @@ class MusicService : MediaLibraryService() {
 
             val newMediaId = mediaItem?.mediaId
             if (newMediaId != null) {
-                playerStateHolder.changedMusic(newMediaId)
+                playerStateHolder.changedMusicTrack(newMediaId)
             } else {
                 syncCurrentMusicFromPlayer()
             }
@@ -139,7 +139,7 @@ class MusicService : MediaLibraryService() {
                 val mediaId = intent?.getStringExtra(EXTRA_MEDIA_ID)
                     ?: player.currentMediaItem?.mediaId
 
-                mediaId?.let(playerStateHolder::changedMusic)
+                mediaId?.let(playerStateHolder::changedMusicTrack)
                 updateNotification()
             }
         }
@@ -160,9 +160,9 @@ class MusicService : MediaLibraryService() {
     }
 
     private fun syncCurrentMusicFromPlayer(): MusicTrackEntity? {
-        val mediaId = player.currentMediaItem?.mediaId ?: return playerStateHolder.currentMusic
-        playerStateHolder.changedMusic(mediaId)
-        return playerStateHolder.currentMusic
+        val mediaId = player.currentMediaItem?.mediaId ?: return playerStateHolder.currentMusicTrack
+        playerStateHolder.changedMusicTrack(mediaId)
+        return playerStateHolder.currentMusicTrack
     }
 
     private fun skipToNextOrMoveToFirstTrack() {
@@ -170,7 +170,7 @@ class MusicService : MediaLibraryService() {
         val firstMediaId = playbackQueueManager.moveToFirstTrackAndPauseIfAtEnd()
 
         if (firstMediaId != null) {
-            playerStateHolder.changedMusic(firstMediaId)
+            playerStateHolder.changedMusicTrack(firstMediaId)
             updateNotification()
             return
         }
@@ -243,7 +243,7 @@ class MusicService : MediaLibraryService() {
         }
 
         val isPlaying = player.isPlaying
-        val currentMusic = playerStateHolder.currentMusic ?: syncCurrentMusicFromPlayer()
+        val currentMusic = playerStateHolder.currentMusicTrack ?: syncCurrentMusicFromPlayer()
         val title = player.currentMediaItem?.mediaMetadata?.title
             ?: currentMusic?.title
             ?: getString(R.string.app_name)

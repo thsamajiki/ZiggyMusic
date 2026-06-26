@@ -1,7 +1,6 @@
 package com.hero.ziggymusic.view.main.favorites
 
 import android.graphics.Color
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -11,33 +10,41 @@ import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.hero.ziggymusic.R
 import com.hero.ziggymusic.database.music.entity.MusicTrackEntity
-import com.hero.ziggymusic.databinding.ItemFavoritesBinding
+import com.hero.ziggymusic.databinding.ItemFavoriteMusicTrackBinding
 import com.hero.ziggymusic.ext.expandTouchArea
 import com.hero.ziggymusic.ext.toDurationText
 
-class FavoriteTrackAdapter(
+class FavoriteMusicTrackAdapter(
     private val onItemClick: (MusicTrackEntity) -> Unit,
     private val onOptionClick: (MusicTrackEntity, View) -> Unit,
-) : ListAdapter<MusicTrackEntity, FavoriteTrackAdapter.FavoritesViewHolder>(DIFF_CALLBACK) {
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): FavoritesViewHolder {
-        val binding = ItemFavoritesBinding.inflate(
+) : ListAdapter<MusicTrackEntity, FavoriteMusicTrackAdapter.FavoriteMusicTrackViewHolder>(DIFF_CALLBACK) {
+    override fun onCreateViewHolder(
+        parent: ViewGroup,
+        viewType: Int
+    ): FavoriteMusicTrackViewHolder {
+        val binding = ItemFavoriteMusicTrackBinding.inflate(
             LayoutInflater.from(parent.context),
             parent,
             false
         )
-        return FavoritesViewHolder(binding)
+        return FavoriteMusicTrackViewHolder(binding)
     }
 
-    override fun onBindViewHolder(holder: FavoritesViewHolder, position: Int) {
+    override fun onBindViewHolder(
+        holder: FavoriteMusicTrackViewHolder,
+        position: Int
+    ) {
+        val item = getItem(position)
+
         holder.bind(
-            getItem(position),
-            onItemClick,
-            onOptionClick
+            favoriteItem = item,
+            onItemClick = onItemClick,
+            onOptionClick = onOptionClick,
         )
     }
 
-    class FavoritesViewHolder(
-        private val binding: ItemFavoritesBinding,
+    class FavoriteMusicTrackViewHolder(
+        private val binding: ItemFavoriteMusicTrackBinding,
     ) : RecyclerView.ViewHolder(binding.root) {
         fun bind(
             favoriteItem: MusicTrackEntity,
@@ -47,22 +54,23 @@ class FavoriteTrackAdapter(
             binding.root.setCardBackgroundColor(
                 if (favoriteItem.isPlaying) Color.GRAY else Color.TRANSPARENT
             )
-            Glide.with(binding.ivAlbum)
-                .load(favoriteItem.getAlbumUri())
+
+            Glide.with(binding.ivAlbumArt)
+                .load(favoriteItem.getAlbumArtUri())
                 .error(R.drawable.placeholder_album_art)
                 .fallback(R.drawable.placeholder_album_art)
-                .into(binding.ivAlbum)
-            binding.tvSongTitle.text = favoriteItem.title.orEmpty()
-            binding.tvSongArtist.text = favoriteItem.artist.orEmpty()
+                .into(binding.ivAlbumArt)
+
+            binding.tvTitle.text = favoriteItem.title.orEmpty()
+            binding.tvArtist.text = favoriteItem.artist.orEmpty()
             binding.tvDuration.text = favoriteItem.duration.toDurationText()
 
             binding.root.setOnClickListener {
                 onItemClick(favoriteItem)
-                Log.d("onItemClick", "MusicModel: $favoriteItem, ${favoriteItem.id}")
             }
 
-            binding.ivMusicOptionMenu.expandTouchArea()
-            binding.ivMusicOptionMenu.setOnClickListener { view ->
+            binding.ivMusicTrackOptionMenu.expandTouchArea()
+            binding.ivMusicTrackOptionMenu.setOnClickListener { view ->
                 onOptionClick(favoriteItem, view)
             }
         }

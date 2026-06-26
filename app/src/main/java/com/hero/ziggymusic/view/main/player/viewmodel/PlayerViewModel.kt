@@ -20,27 +20,27 @@ class PlayerViewModel @Inject constructor(
         MutableStateFlow(PlayerMotionManager.State.COLLAPSED)
     val motionState: StateFlow<PlayerMotionManager.State> = _motionState.asStateFlow()
 
-    val musicList: LiveData<List<MusicTrackEntity>> = musicRepository.getAllMusic()
+    val musicTrackList: LiveData<List<MusicTrackEntity>> = musicRepository.observeMusicTracks()
 
-    private val favoriteMusicList: LiveData<List<MusicTrackEntity>> =
-        musicRepository.getFavorites()
+    private val favoriteMusicTracks: LiveData<List<MusicTrackEntity>> =
+        musicRepository.observeFavoriteMusicTracks()
 
     // 실제 파일이 남아 있는 즐겨찾기만 재생 큐에 사용한다.
-    val availableFavoriteMusicList: LiveData<List<MusicTrackEntity>> =
+    val availableFavoriteTracks: LiveData<List<MusicTrackEntity>> =
         MediatorLiveData<List<MusicTrackEntity>>().apply {
             fun updateAvailableFavorites() {
-                val favorites = favoriteMusicList.value ?: return
-                val allMusic = musicList.value ?: return
-                val availableIds = allMusic.mapTo(mutableSetOf()) { it.id }
+                val favoriteTracks = favoriteMusicTracks.value ?: return
+                val musicTracks = musicTrackList.value ?: return
+                val availableIds = musicTracks.mapTo(mutableSetOf()) { it.id }
 
-                value = favorites.filter { it.id in availableIds }
+                value = favoriteTracks.filter { it.id in availableIds }
             }
 
-            addSource(favoriteMusicList) {
+            addSource(favoriteMusicTracks) {
                 updateAvailableFavorites()
             }
 
-            addSource(musicList) {
+            addSource(musicTrackList) {
                 updateAvailableFavorites()
             }
         }

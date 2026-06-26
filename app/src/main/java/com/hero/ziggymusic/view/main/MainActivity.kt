@@ -44,7 +44,7 @@ import com.hero.ziggymusic.service.MusicService
 import com.hero.ziggymusic.service.MusicServiceController
 import com.hero.ziggymusic.view.main.model.MainTitle
 import com.hero.ziggymusic.view.main.musiclist.MusicTracksFragment
-import com.hero.ziggymusic.view.main.favorites.FavoriteTracksFragment
+import com.hero.ziggymusic.view.main.favorites.FavoriteMusicTracksFragment
 import com.hero.ziggymusic.view.main.player.PlaybackContentType
 import com.hero.ziggymusic.view.main.player.LastPlaybackStore
 import com.hero.ziggymusic.view.main.player.PlayerMotionManager
@@ -122,9 +122,9 @@ class MainActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedListen
                     }
 
             when (currentFragment) {
-                is MusicTracksFragment -> vm.setTitle(MainTitle.MusicList)
-                is FavoriteTracksFragment -> vm.setTitle(MainTitle.Favorites)
-                is SettingsFragment -> vm.setTitle(MainTitle.Setting)
+                is MusicTracksFragment -> vm.setTitle(MainTitle.MusicTracks)
+                is FavoriteMusicTracksFragment -> vm.setTitle(MainTitle.FavoriteTracks)
+                is SettingsFragment -> vm.setTitle(MainTitle.Settings)
             }
         }
 
@@ -206,8 +206,8 @@ class MainActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedListen
     private fun initViewModel() {
         with(vm) {
             lifecycleScope.launch {
-                musicList.observe(this@MainActivity) { musicList ->
-                    playerStateHolder.replaceMusicList(musicList)
+                musicTracks.observe(this@MainActivity) { musicTracks ->
+                    playerStateHolder.replaceMusicTrackList(musicTracks)
                 }
 
                 // Title과 UI 상태를 한번에 관찰
@@ -232,7 +232,7 @@ class MainActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedListen
 
     fun playMusic(
         id: String,
-        queueSource: PlaybackQueueSource = PlaybackQueueSource.MUSIC_LIST
+        queueSource: PlaybackQueueSource = PlaybackQueueSource.MUSIC_TRACKS
     ) {
         // 요청한 음악으로 실제 재생 전환이 성공했을 때만 이후 처리를 계속한다는 가드 역할
         val changedMusic = playerController.changeMusic(
@@ -264,21 +264,21 @@ class MainActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedListen
         }
 
         return when (item.itemId) {
-            R.id.menu_music_list -> {
+            R.id.menu_music_track_list -> {
                 showMainTab(
                     tag = TAG_MUSIC_LIST,
                     createFragment = { MusicTracksFragment.newInstance() }
                 )
-                vm.setTitle(MainTitle.MusicList)
+                vm.setTitle(MainTitle.MusicTracks)
                 true
             }
 
-            R.id.menu_favorites -> {
+            R.id.menu_favorite_music_tracks -> {
                 showMainTab(
                     tag = TAG_FAVORITES,
-                    createFragment = { FavoriteTracksFragment.newInstance() }
+                    createFragment = { FavoriteMusicTracksFragment.newInstance() }
                 )
-                vm.setTitle(MainTitle.Favorites)
+                vm.setTitle(MainTitle.FavoriteTracks)
                 true
             }
 
@@ -293,13 +293,13 @@ class MainActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedListen
         if (restoredFragment != null) {
             when (restoredFragment.tag) {
                 TAG_FAVORITES -> {
-                    binding.bottomNavMain.selectedItemId = R.id.menu_favorites
-                    vm.setTitle(MainTitle.Favorites)
+                    binding.bottomNavMain.selectedItemId = R.id.menu_favorite_music_tracks
+                    vm.setTitle(MainTitle.FavoriteTracks)
                 }
 
                 else -> {
-                    binding.bottomNavMain.selectedItemId = R.id.menu_music_list
-                    vm.setTitle(MainTitle.MusicList)
+                    binding.bottomNavMain.selectedItemId = R.id.menu_music_track_list
+                    vm.setTitle(MainTitle.MusicTracks)
                 }
             }
         }
@@ -329,7 +329,7 @@ class MainActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedListen
             }
             .commitNow()
 
-        binding.bottomNavMain.selectedItemId = R.id.menu_music_list
+        binding.bottomNavMain.selectedItemId = R.id.menu_music_track_list
     }
 
     // 현재 탭을 숨기고 요청한 메인 탭을 표시한다.
@@ -415,18 +415,18 @@ class MainActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedListen
             return
         }
 
-        val favoriteTracksFragment = FavoriteTracksFragment.newInstance()
+        val favoriteMusicTracksFragment = FavoriteMusicTracksFragment.newInstance()
 
         supportFragmentManager.beginTransaction()
             .setReorderingAllowed(true)
             .add(
                 binding.fcvMain.id,
-                favoriteTracksFragment,
+                favoriteMusicTracksFragment,
                 TAG_FAVORITES
             )
-            .hide(favoriteTracksFragment)
+            .hide(favoriteMusicTracksFragment)
             .setMaxLifecycle(
-                favoriteTracksFragment,
+                favoriteMusicTracksFragment,
                 Lifecycle.State.STARTED
             )
             .commitNow()

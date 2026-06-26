@@ -2,7 +2,7 @@
 <com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/mcvMusicList"
+    android:id="@+id/mcvMusicTrack"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     app:cardBackgroundColor="@color/transparent"
@@ -25,13 +25,13 @@
             android:src="@drawable/ic_favorite_star_filled"
             android:visibility="invisible"
             app:tint="@color/colorPrimaryDark"
-            app:layout_constraintBottom_toBottomOf="@id/ivAlbum"
-            app:layout_constraintEnd_toStartOf="@id/ivAlbum"
-            app:layout_constraintTop_toTopOf="@id/ivAlbum"
+            app:layout_constraintBottom_toBottomOf="@id/ivAlbumArt"
+            app:layout_constraintEnd_toStartOf="@id/ivAlbumArt"
+            app:layout_constraintTop_toTopOf="@id/ivAlbumArt"
             tools:visibility="visible" />
 
         <com.google.android.material.imageview.ShapeableImageView
-            android:id="@+id/ivAlbum"
+            android:id="@+id/ivAlbumArt"
             android:layout_width="@dimen/album_art_size"
             android:layout_height="@dimen/album_art_size"
             android:layout_marginVertical="@dimen/music_list_item_album_art_margin_vertical"
@@ -43,7 +43,7 @@
             tools:src="@drawable/placeholder_album_art" />
 
         <TextView
-            android:id="@+id/tvSongTitle"
+            android:id="@+id/tvTitle"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginEnd="@dimen/music_list_item_title_margin_end"
@@ -52,13 +52,13 @@
             android:ellipsize="end"
             android:maxLines="1"
             android:textAppearance="@style/TextAppearance.ZiggyMusic.White.Body"
-            app:layout_constraintEnd_toStartOf="@id/ivMusicOptionMenu"
-            app:layout_constraintStart_toEndOf="@id/ivAlbum"
+            app:layout_constraintEnd_toStartOf="@id/ivMusicTrackOptionMenu"
+            app:layout_constraintStart_toEndOf="@id/ivAlbumArt"
             app:layout_constraintTop_toTopOf="parent"
             tools:text="Out Of Time" />
 
         <ImageView
-            android:id="@+id/ivMusicOptionMenu"
+            android:id="@+id/ivMusicTrackOptionMenu"
             android:layout_width="@dimen/icon_md"
             android:layout_height="@dimen/icon_md"
             android:layout_marginTop="@dimen/music_list_item_top_inset"
@@ -70,7 +70,7 @@
             app:layout_constraintTop_toTopOf="parent" />
 
         <TextView
-            android:id="@+id/tvSongArtist"
+            android:id="@+id/tvArtist"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginEnd="@dimen/music_list_item_artist_margin_end"
@@ -80,8 +80,8 @@
             android:maxLines="1"
             android:textAppearance="@style/TextAppearance.ZiggyMusic.NormalGray.Sub"
             app:layout_constraintEnd_toStartOf="@id/tvDuration"
-            app:layout_constraintStart_toEndOf="@id/ivAlbum"
-            app:layout_constraintTop_toBottomOf="@id/tvSongTitle"
+            app:layout_constraintStart_toEndOf="@id/ivAlbumArt"
+            app:layout_constraintTop_toBottomOf="@id/tvTitle"
             tools:text="The Weeknd" />
 
         <TextView
@@ -91,7 +91,7 @@
             android:layout_marginBottom="@dimen/music_list_item_bottom_inset"
             android:textAppearance="@style/TextAppearance.ZiggyMusic.PlayerTime"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="@id/ivMusicOptionMenu"
+            app:layout_constraintEnd_toEndOf="@id/ivMusicTrackOptionMenu"
             tools:text="03:34" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
