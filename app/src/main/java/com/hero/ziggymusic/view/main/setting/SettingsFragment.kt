@@ -27,7 +27,7 @@ import com.hero.ziggymusic.view.main.setting.AudioEffectManager.equalizer
 import com.hero.ziggymusic.view.main.setting.AudioEffectManager.mainColor
 import java.util.Locale
 
-class SettingFragment : Fragment() {
+class SettingsFragment : Fragment() {
     private var _binding: FragmentSettingBinding? = null
     private val binding get() = _binding!!
 
@@ -506,7 +506,7 @@ class SettingFragment : Fragment() {
     }
 
     companion object {
-        fun newInstance(): SettingFragment = SettingFragment()
+        fun newInstance(): SettingsFragment = SettingsFragment()
 
         const val TAG = "SettingFragment"
         const val KEY_EQUALIZER_ENABLED = "ENABLED"

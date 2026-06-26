@@ -9,15 +9,15 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.hero.ziggymusic.R
-import com.hero.ziggymusic.database.music.entity.MusicModel
+import com.hero.ziggymusic.database.music.entity.MusicTrackEntity
 import com.hero.ziggymusic.databinding.ItemMusicListBinding
 import com.hero.ziggymusic.ext.expandTouchArea
 import com.hero.ziggymusic.ext.toDurationText
 
-class MusicListAdapter(
-    private val onItemClick: (MusicModel) -> Unit,
-    private val onOptionClick: (MusicModel, View) -> Unit,
-) : ListAdapter<MusicModel, MusicListAdapter.MusicListViewHolder>(DIFF_CALLBACK) {
+class MusicTrackAdapter(
+    private val onItemClick: (MusicTrackEntity) -> Unit,
+    private val onOptionClick: (MusicTrackEntity, View) -> Unit,
+) : ListAdapter<MusicTrackEntity, MusicTrackAdapter.MusicListViewHolder>(DIFF_CALLBACK) {
     private var favoriteMusicIds: Set<String> = emptySet() // 중복 ID를 허용하지 않아서 Set을 사용
 
     override fun onCreateViewHolder(
@@ -88,10 +88,10 @@ class MusicListAdapter(
         private val binding: ItemMusicListBinding,
     ) : RecyclerView.ViewHolder(binding.root) {
         fun bind(
-            musicItem: MusicModel,
+            musicItem: MusicTrackEntity,
             isFavorite: Boolean,
-            onItemClick: (MusicModel) -> Unit,
-            onOptionClick: (MusicModel, View) -> Unit,
+            onItemClick: (MusicTrackEntity) -> Unit,
+            onOptionClick: (MusicTrackEntity, View) -> Unit,
         ) {
             bindFavoriteMusic(isFavorite)
 
@@ -126,12 +126,12 @@ class MusicListAdapter(
     }
 
     companion object {
-        private val DIFF_CALLBACK = object : DiffUtil.ItemCallback<MusicModel>() {
-            override fun areItemsTheSame(oldItem: MusicModel, newItem: MusicModel): Boolean {
+        private val DIFF_CALLBACK = object : DiffUtil.ItemCallback<MusicTrackEntity>() {
+            override fun areItemsTheSame(oldItem: MusicTrackEntity, newItem: MusicTrackEntity): Boolean {
                 return oldItem.id == newItem.id
             }
 
-            override fun areContentsTheSame(oldItem: MusicModel, newItem: MusicModel): Boolean {
+            override fun areContentsTheSame(oldItem: MusicTrackEntity, newItem: MusicTrackEntity): Boolean {
                 return oldItem == newItem
             }
         }

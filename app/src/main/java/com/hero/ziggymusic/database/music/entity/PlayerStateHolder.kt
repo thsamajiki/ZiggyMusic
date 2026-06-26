@@ -1,21 +1,21 @@
 package com.hero.ziggymusic.database.music.entity
 
-data class PlayerModel (
-    private val playMusicList: MutableList<MusicModel> = mutableListOf()
+data class PlayerStateHolder (
+    private val playMusicList: MutableList<MusicTrackEntity> = mutableListOf()
 ) {
 
-    var currentMusic: MusicModel? = null
+    var currentMusic: MusicTrackEntity? = null
         private set
 
 
-    fun replaceMusicList(musicList: List<MusicModel>) {
+    fun replaceMusicList(musicList: List<MusicTrackEntity>) {
         playMusicList.clear()
         playMusicList.addAll(musicList)
     }
 
-    fun updateCurrentMusic(musicModel: MusicModel) {
+    fun updateCurrentMusic(musicTrackEntity: MusicTrackEntity) {
         // 어차피 id 값이 인덱스 값이다.
-        currentMusic = musicModel
+        currentMusic = musicTrackEntity
     }
 
     fun changedMusic(newMusicId: String) {
@@ -33,9 +33,9 @@ data class PlayerModel (
     }
 
     companion object {
-        private var instance: PlayerModel? = null
+        private var instance: PlayerStateHolder? = null
 
-        fun getInstance(): PlayerModel = instance
-            ?: PlayerModel().apply { instance = this }
+        fun getInstance(): PlayerStateHolder = instance
+            ?: PlayerStateHolder().apply { instance = this }
     }
 }

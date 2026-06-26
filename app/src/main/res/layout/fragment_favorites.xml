@@ -6,7 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    tools:context=".view.main.favorites.FavoritesFragment">
+    tools:context=".view.main.favorites.FavoriteTracksFragment">
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/rvFavorites"

@@ -8,7 +8,7 @@ import com.hero.ziggymusic.view.main.player.model.LastPlayedMedia
  * 마지막 재생 곡을 저장/복구하기 위한 간단한 영속 저장소
  * (앱 프로세스가 종료되어도 유지)
  */
-class PlaybackStateStore(context: Context) {
+class LastPlaybackStore(context: Context) {
     private val appContext: Context = context.applicationContext
     private val prefs = appContext.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
 

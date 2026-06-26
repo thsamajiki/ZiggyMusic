@@ -8,7 +8,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import com.hero.ziggymusic.R
 import com.hero.ziggymusic.common.SingleEvent
-import com.hero.ziggymusic.database.music.entity.MusicModel
+import com.hero.ziggymusic.database.music.entity.MusicTrackEntity
 import com.hero.ziggymusic.domain.music.repository.MusicRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
@@ -16,7 +16,7 @@ import javax.inject.Inject
 
 sealed class FavoritesUiState {
     object Idle : FavoritesUiState()
-    data class Content(val data: List<MusicModel>) : FavoritesUiState()
+    data class Content(val data: List<MusicTrackEntity>) : FavoritesUiState()
     object Empty : FavoritesUiState()
     object Error : FavoritesUiState()
 }
@@ -26,8 +26,8 @@ class FavoritesViewModel @Inject constructor(
     application: Application,
     private val musicRepository: MusicRepository
 ) : AndroidViewModel(application) {
-    private val favorites : LiveData<List<MusicModel>> = musicRepository.getFavorites()
-    private val allMusics : LiveData<List<MusicModel>> = musicRepository.getAllMusic()
+    private val favorites : LiveData<List<MusicTrackEntity>> = musicRepository.getFavorites()
+    private val allMusics : LiveData<List<MusicTrackEntity>> = musicRepository.getAllMusic()
 
     private val _uiState = MediatorLiveData<FavoritesUiState>(FavoritesUiState.Idle)
     val uiState: LiveData<FavoritesUiState>

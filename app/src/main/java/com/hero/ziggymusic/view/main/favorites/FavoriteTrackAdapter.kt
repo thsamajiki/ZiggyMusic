@@ -10,15 +10,15 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.hero.ziggymusic.R
-import com.hero.ziggymusic.database.music.entity.MusicModel
+import com.hero.ziggymusic.database.music.entity.MusicTrackEntity
 import com.hero.ziggymusic.databinding.ItemFavoritesBinding
 import com.hero.ziggymusic.ext.expandTouchArea
 import com.hero.ziggymusic.ext.toDurationText
 
-class FavoritesAdapter(
-    private val onItemClick: (MusicModel) -> Unit,
-    private val onOptionClick: (MusicModel, View) -> Unit,
-) : ListAdapter<MusicModel, FavoritesAdapter.FavoritesViewHolder>(DIFF_CALLBACK) {
+class FavoriteTrackAdapter(
+    private val onItemClick: (MusicTrackEntity) -> Unit,
+    private val onOptionClick: (MusicTrackEntity, View) -> Unit,
+) : ListAdapter<MusicTrackEntity, FavoriteTrackAdapter.FavoritesViewHolder>(DIFF_CALLBACK) {
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): FavoritesViewHolder {
         val binding = ItemFavoritesBinding.inflate(
             LayoutInflater.from(parent.context),
@@ -40,9 +40,9 @@ class FavoritesAdapter(
         private val binding: ItemFavoritesBinding,
     ) : RecyclerView.ViewHolder(binding.root) {
         fun bind(
-            favoriteItem: MusicModel,
-            onItemClick: (MusicModel) -> Unit,
-            onOptionClick: (MusicModel, View) -> Unit,
+            favoriteItem: MusicTrackEntity,
+            onItemClick: (MusicTrackEntity) -> Unit,
+            onOptionClick: (MusicTrackEntity, View) -> Unit,
         ) {
             binding.root.setCardBackgroundColor(
                 if (favoriteItem.isPlaying) Color.GRAY else Color.TRANSPARENT
@@ -69,12 +69,12 @@ class FavoritesAdapter(
     }
 
     companion object {
-        private val DIFF_CALLBACK = object : DiffUtil.ItemCallback<MusicModel>() {
-            override fun areItemsTheSame(oldItem: MusicModel, newItem: MusicModel): Boolean {
+        private val DIFF_CALLBACK = object : DiffUtil.ItemCallback<MusicTrackEntity>() {
+            override fun areItemsTheSame(oldItem: MusicTrackEntity, newItem: MusicTrackEntity): Boolean {
                 return oldItem.id == newItem.id
             }
 
-            override fun areContentsTheSame(oldItem: MusicModel, newItem: MusicModel): Boolean {
+            override fun areContentsTheSame(oldItem: MusicTrackEntity, newItem: MusicTrackEntity): Boolean {
                 return oldItem == newItem
             }
         }

@@ -9,7 +9,7 @@ import androidx.lifecycle.map
 import androidx.lifecycle.viewModelScope
 import com.hero.ziggymusic.R
 import com.hero.ziggymusic.common.SingleEvent
-import com.hero.ziggymusic.database.music.entity.MusicModel
+import com.hero.ziggymusic.database.music.entity.MusicTrackEntity
 import com.hero.ziggymusic.domain.music.repository.MusicRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.FlowPreview
@@ -24,13 +24,13 @@ import kotlin.time.Duration.Companion.milliseconds
 
 sealed class MusicListUiState {
     object Idle : MusicListUiState()
-    data class Content(val data: List<MusicModel>) : MusicListUiState()
+    data class Content(val data: List<MusicTrackEntity>) : MusicListUiState()
     data class Empty(val message: String) : MusicListUiState()
     object Error : MusicListUiState()
 }
 
 data class MusicSearchResult(
-    val items: List<MusicModel>,
+    val items: List<MusicTrackEntity>,
     val emptyMessage: String,
     val hasOriginalItems: Boolean,
 )
@@ -60,14 +60,14 @@ class MusicListViewModel @Inject constructor(
         get() = _toastEvent
 
     private val _searchQuery = MutableStateFlow("")
-    private val _searchMusicItems = MutableStateFlow<List<MusicModel>>(emptyList())
+    private val _searchMusicItems = MutableStateFlow<List<MusicTrackEntity>>(emptyList())
     private val _searchResult = MutableStateFlow<MusicSearchResult?>(null)
     val searchResult: StateFlow<MusicSearchResult?>
         get() = _searchResult
 
     private var hasSearchMusicItems = false
 
-    private val allMusicListObserver = Observer<List<MusicModel>> { musicList ->
+    private val allMusicListObserver = Observer<List<MusicTrackEntity>> { musicList ->
         if (musicList.isNotEmpty()) {
             updateMusicListUiState(musicList)
         }
@@ -104,7 +104,7 @@ class MusicListViewModel @Inject constructor(
     }
 
     private fun updateMusicListUiState(
-        musicList: List<MusicModel>
+        musicList: List<MusicTrackEntity>
     ) {
         if (musicList.isEmpty()) {
             val message = getApplication<Application>().getString(R.string.no_music_found)
@@ -155,7 +155,7 @@ class MusicListViewModel @Inject constructor(
     }
 
     fun setSearchMusicItems(
-        musicItems: List<MusicModel>,
+        musicItems: List<MusicTrackEntity>,
         emptyStateMessage: String = ""
     ) {
         hasSearchMusicItems = true
@@ -173,7 +173,7 @@ class MusicListViewModel @Inject constructor(
         _searchResult.value = null
     }
 
-    fun searchMusicItems(query: String, musicList: List<MusicModel>): MusicSearchResult {
+    fun searchMusicItems(query: String, musicList: List<MusicTrackEntity>): MusicSearchResult {
         val keyword = query.trim()
         val filteredItems = if (keyword.isBlank()) {
             musicList

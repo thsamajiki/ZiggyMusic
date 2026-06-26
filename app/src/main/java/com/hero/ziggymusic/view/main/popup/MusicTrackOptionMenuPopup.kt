@@ -8,7 +8,7 @@ import android.widget.PopupWindow
 import androidx.core.graphics.drawable.toDrawable
 import com.hero.ziggymusic.R
 
-class MusicOptionMenuPopup(
+class MusicTrackOptionMenuPopup(
     private val anchorView: View,
     private val showAddToFavorites: Boolean,
     private val showRemoveFromFavorites: Boolean,

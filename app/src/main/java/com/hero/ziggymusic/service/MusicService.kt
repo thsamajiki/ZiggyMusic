@@ -22,8 +22,8 @@ import androidx.media3.session.MediaLibraryService
 import androidx.media3.session.MediaSession
 import androidx.media3.session.MediaStyleNotificationHelper
 import com.hero.ziggymusic.R
-import com.hero.ziggymusic.database.music.entity.MusicModel
-import com.hero.ziggymusic.database.music.entity.PlayerModel
+import com.hero.ziggymusic.database.music.entity.MusicTrackEntity
+import com.hero.ziggymusic.database.music.entity.PlayerStateHolder
 import com.hero.ziggymusic.playback.PlaybackQueueManager
 import com.hero.ziggymusic.view.main.MainActivity
 import javax.inject.Inject
@@ -37,7 +37,7 @@ class MusicService : MediaLibraryService() {
     @Inject
     lateinit var playbackQueueManager: PlaybackQueueManager
 
-    private val playerModel: PlayerModel = PlayerModel.getInstance()
+    private val playerStateHolder: PlayerStateHolder = PlayerStateHolder.getInstance()
 
     @Volatile
     private var isExiting: Boolean = false
@@ -47,8 +47,8 @@ class MusicService : MediaLibraryService() {
             if (isExiting) return
 
             val mediaId = player.currentMediaItem?.mediaId
-            if (mediaId != null && playerModel.currentMusic?.id != mediaId) {
-                playerModel.changedMusic(mediaId)
+            if (mediaId != null && playerStateHolder.currentMusic?.id != mediaId) {
+                playerStateHolder.changedMusic(mediaId)
             }
 
             updateNotification()
@@ -59,7 +59,7 @@ class MusicService : MediaLibraryService() {
 
             val newMediaId = mediaItem?.mediaId
             if (newMediaId != null) {
-                playerModel.changedMusic(newMediaId)
+                playerStateHolder.changedMusic(newMediaId)
             } else {
                 syncCurrentMusicFromPlayer()
             }
@@ -139,7 +139,7 @@ class MusicService : MediaLibraryService() {
                 val mediaId = intent?.getStringExtra(EXTRA_MEDIA_ID)
                     ?: player.currentMediaItem?.mediaId
 
-                mediaId?.let(playerModel::changedMusic)
+                mediaId?.let(playerStateHolder::changedMusic)
                 updateNotification()
             }
         }
@@ -159,10 +159,10 @@ class MusicService : MediaLibraryService() {
         }
     }
 
-    private fun syncCurrentMusicFromPlayer(): MusicModel? {
-        val mediaId = player.currentMediaItem?.mediaId ?: return playerModel.currentMusic
-        playerModel.changedMusic(mediaId)
-        return playerModel.currentMusic
+    private fun syncCurrentMusicFromPlayer(): MusicTrackEntity? {
+        val mediaId = player.currentMediaItem?.mediaId ?: return playerStateHolder.currentMusic
+        playerStateHolder.changedMusic(mediaId)
+        return playerStateHolder.currentMusic
     }
 
     private fun skipToNextOrMoveToFirstTrack() {
@@ -170,7 +170,7 @@ class MusicService : MediaLibraryService() {
         val firstMediaId = playbackQueueManager.moveToFirstTrackAndPauseIfAtEnd()
 
         if (firstMediaId != null) {
-            playerModel.changedMusic(firstMediaId)
+            playerStateHolder.changedMusic(firstMediaId)
             updateNotification()
             return
         }
@@ -243,7 +243,7 @@ class MusicService : MediaLibraryService() {
         }
 
         val isPlaying = player.isPlaying
-        val currentMusic = playerModel.currentMusic ?: syncCurrentMusicFromPlayer()
+        val currentMusic = playerStateHolder.currentMusic ?: syncCurrentMusicFromPlayer()
         val title = player.currentMediaItem?.mediaMetadata?.title
             ?: currentMusic?.title
             ?: getString(R.string.app_name)

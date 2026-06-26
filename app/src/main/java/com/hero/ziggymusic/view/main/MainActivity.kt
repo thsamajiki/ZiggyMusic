@@ -25,10 +25,10 @@ import androidx.media3.exoplayer.ExoPlayer
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.navigation.NavigationBarView
 import com.hero.ziggymusic.R
-import com.hero.ziggymusic.database.music.entity.PlayerModel
+import com.hero.ziggymusic.database.music.entity.PlayerStateHolder
 import com.hero.ziggymusic.databinding.ActivityMainBinding
 import com.hero.ziggymusic.view.main.setting.AudioEffectManager
-import com.hero.ziggymusic.view.main.setting.SettingFragment
+import com.hero.ziggymusic.view.main.setting.SettingsFragment
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -43,10 +43,10 @@ import com.hero.ziggymusic.playback.PlaybackQueueSource
 import com.hero.ziggymusic.service.MusicService
 import com.hero.ziggymusic.service.MusicServiceController
 import com.hero.ziggymusic.view.main.model.MainTitle
-import com.hero.ziggymusic.view.main.musiclist.MusicListFragment
-import com.hero.ziggymusic.view.main.favorites.FavoritesFragment
+import com.hero.ziggymusic.view.main.musiclist.MusicTracksFragment
+import com.hero.ziggymusic.view.main.favorites.FavoriteTracksFragment
 import com.hero.ziggymusic.view.main.player.PlaybackContentType
-import com.hero.ziggymusic.view.main.player.PlaybackStateStore
+import com.hero.ziggymusic.view.main.player.LastPlaybackStore
 import com.hero.ziggymusic.view.main.player.PlayerMotionManager
 import com.hero.ziggymusic.view.main.player.viewmodel.PlayerViewModel
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -60,9 +60,9 @@ class MainActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedListen
 
     @Inject
     lateinit var player: ExoPlayer
-    private val playerModel: PlayerModel = PlayerModel.getInstance()
+    private val playerStateHolder: PlayerStateHolder = PlayerStateHolder.getInstance()
     private lateinit var playerController: PlayerController
-    private val playbackStateStore by lazy { PlaybackStateStore(this) }
+    private val lastPlaybackStore by lazy { LastPlaybackStore(this) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -122,9 +122,9 @@ class MainActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedListen
                     }
 
             when (currentFragment) {
-                is MusicListFragment -> vm.setTitle(MainTitle.MusicList)
-                is FavoritesFragment -> vm.setTitle(MainTitle.Favorites)
-                is SettingFragment -> vm.setTitle(MainTitle.Setting)
+                is MusicTracksFragment -> vm.setTitle(MainTitle.MusicList)
+                is FavoriteTracksFragment -> vm.setTitle(MainTitle.Favorites)
+                is SettingsFragment -> vm.setTitle(MainTitle.Setting)
             }
         }
 
@@ -146,7 +146,7 @@ class MainActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedListen
                 findCurrentMainTabFragment()
                     ?: return@setOnClickListener
 
-            val settingFragment = existingSettingFragment ?: SettingFragment.newInstance()
+            val settingsFragment = existingSettingFragment ?: SettingsFragment.newInstance()
 
             supportFragmentManager.beginTransaction()
                 .setReorderingAllowed(true)
@@ -156,21 +156,21 @@ class MainActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedListen
                     Lifecycle.State.STARTED
                 )
                 .apply {
-                    if (settingFragment.isAdded) {
-                        show(settingFragment)
+                    if (settingsFragment.isAdded) {
+                        show(settingsFragment)
                     } else {
                         add(
                             binding.fcvMain.id,
-                            settingFragment,
+                            settingsFragment,
                             TAG_SETTING
                         )
                     }
                 }
                 .setMaxLifecycle(
-                    settingFragment,
+                    settingsFragment,
                     Lifecycle.State.RESUMED
                 )
-                .setPrimaryNavigationFragment(settingFragment)
+                .setPrimaryNavigationFragment(settingsFragment)
                 .addToBackStack(TAG_SETTING)
                 .commit()
         }
@@ -207,7 +207,7 @@ class MainActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedListen
         with(vm) {
             lifecycleScope.launch {
                 musicList.observe(this@MainActivity) { musicList ->
-                    playerModel.replaceMusicList(musicList)
+                    playerStateHolder.replaceMusicList(musicList)
                 }
 
                 // Title과 UI 상태를 한번에 관찰
@@ -267,7 +267,7 @@ class MainActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedListen
             R.id.menu_music_list -> {
                 showMainTab(
                     tag = TAG_MUSIC_LIST,
-                    createFragment = { MusicListFragment.newInstance() }
+                    createFragment = { MusicTracksFragment.newInstance() }
                 )
                 vm.setTitle(MainTitle.MusicList)
                 true
@@ -276,7 +276,7 @@ class MainActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedListen
             R.id.menu_favorites -> {
                 showMainTab(
                     tag = TAG_FAVORITES,
-                    createFragment = { FavoritesFragment.newInstance() }
+                    createFragment = { FavoriteTracksFragment.newInstance() }
                 )
                 vm.setTitle(MainTitle.Favorites)
                 true
@@ -304,28 +304,28 @@ class MainActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedListen
             }
         }
 
-        val musicListFragment =
+        val musicTracksFragment =
             supportFragmentManager.findFragmentByTag(TAG_MUSIC_LIST)
-                ?: MusicListFragment.newInstance()
+                ?: MusicTracksFragment.newInstance()
 
         supportFragmentManager.beginTransaction()
             .setReorderingAllowed(true)
             .apply {
-                if (musicListFragment.isAdded) {
-                    show(musicListFragment)
+                if (musicTracksFragment.isAdded) {
+                    show(musicTracksFragment)
                 } else {
                     add(
                         binding.fcvMain.id,
-                        musicListFragment,
+                        musicTracksFragment,
                         TAG_MUSIC_LIST
                     )
                 }
 
                 setMaxLifecycle(
-                    musicListFragment,
+                    musicTracksFragment,
                     Lifecycle.State.RESUMED
                 )
-                setPrimaryNavigationFragment(musicListFragment)
+                setPrimaryNavigationFragment(musicTracksFragment)
             }
             .commitNow()
 
@@ -415,18 +415,18 @@ class MainActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedListen
             return
         }
 
-        val favoritesFragment = FavoritesFragment.newInstance()
+        val favoriteTracksFragment = FavoriteTracksFragment.newInstance()
 
         supportFragmentManager.beginTransaction()
             .setReorderingAllowed(true)
             .add(
                 binding.fcvMain.id,
-                favoritesFragment,
+                favoriteTracksFragment,
                 TAG_FAVORITES
             )
-            .hide(favoritesFragment)
+            .hide(favoriteTracksFragment)
             .setMaxLifecycle(
-                favoritesFragment,
+                favoriteTracksFragment,
                 Lifecycle.State.STARTED
             )
             .commitNow()
@@ -518,7 +518,7 @@ class MainActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedListen
         if (!hasAudioPermission()) return
 
         playerController.startPlayer(
-            playbackStateStore.loadLastPlayedId(PlaybackContentType.MUSIC).orEmpty()
+            lastPlaybackStore.loadLastPlayedId(PlaybackContentType.MUSIC).orEmpty()
         )
         startMusicServiceIfNotificationAllowed()
     }
@@ -659,7 +659,7 @@ class MainActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedListen
 
     @OptIn(UnstableApi::class)
     private fun initSoundEQSettings() {
-        val prefs = getSharedPreferences(SettingFragment.TAG, MODE_PRIVATE)
+        val prefs = getSharedPreferences(SettingsFragment.TAG, MODE_PRIVATE)
 
         if (player.audioSessionId != 0) {
             AudioEffectManager.init(player.audioSessionId)

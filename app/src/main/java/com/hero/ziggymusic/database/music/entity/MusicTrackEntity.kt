@@ -11,7 +11,7 @@ import androidx.core.net.toUri
 
 @Parcelize
 @Entity(tableName = "music")
-data class MusicModel(
+data class MusicTrackEntity(
     @PrimaryKey
     @ColumnInfo(name = "id")
     val id: String,    // 음원 자체의 ID

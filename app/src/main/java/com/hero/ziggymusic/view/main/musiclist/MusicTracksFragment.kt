@@ -29,12 +29,12 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.hero.ziggymusic.R
-import com.hero.ziggymusic.database.music.entity.MusicModel
+import com.hero.ziggymusic.database.music.entity.MusicTrackEntity
 import com.hero.ziggymusic.databinding.FragmentMusicListBinding
 import com.hero.ziggymusic.event.EventBus
 import com.hero.ziggymusic.ext.playMusic
 import com.hero.ziggymusic.playback.PlaybackQueueSource
-import com.hero.ziggymusic.view.main.popup.MusicOptionMenuPopup
+import com.hero.ziggymusic.view.main.popup.MusicTrackOptionMenuPopup
 import com.hero.ziggymusic.view.main.musiclist.viewmodel.MusicSearchResult
 import com.hero.ziggymusic.view.main.musiclist.viewmodel.MusicListUiState
 import com.hero.ziggymusic.view.main.musiclist.viewmodel.MusicListViewModel
@@ -43,13 +43,13 @@ import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
 @AndroidEntryPoint
-class MusicListFragment : Fragment() {
+class MusicTracksFragment : Fragment() {
     private var _binding: FragmentMusicListBinding? = null
     private val binding get() = _binding!!
 
     private val vm by viewModels<MusicListViewModel>()
 
-    private lateinit var musicListAdapter: MusicListAdapter
+    private lateinit var musicTrackAdapter: MusicTrackAdapter
     private var isRefreshedAfterPermission = false
     private var searchAnimator: ValueAnimator? = null
     private var isSearchVisible = false
@@ -96,7 +96,7 @@ class MusicListFragment : Fragment() {
     }
 
     private fun initRecyclerView(recyclerView: RecyclerView) {
-        musicListAdapter = MusicListAdapter(
+        musicTrackAdapter = MusicTrackAdapter(
             onItemClick = { music ->
                 playMusic(music.id)
             },
@@ -107,7 +107,7 @@ class MusicListFragment : Fragment() {
 
         recyclerView.run {
             layoutManager = LinearLayoutManager(context)
-            adapter = musicListAdapter
+            adapter = musicTrackAdapter
             edgeEffectFactory = SearchRevealEdgeEffectFactory()
             addOnItemTouchListener(object : RecyclerView.SimpleOnItemTouchListener() {
                 override fun onInterceptTouchEvent(rv: RecyclerView, e: MotionEvent): Boolean {
@@ -271,12 +271,12 @@ class MusicListFragment : Fragment() {
     private fun showSearchResult(searchResult: MusicSearchResult) {
         // 늦게 도착한 이전 검색 callback이 최신 결과 UI를 덮어쓰지 않도록 요청 id를 캡처한다.
         val currentRequestId = ++searchRequestId
-        val hadVisibleItems = musicListAdapter.currentList.isNotEmpty()
+        val hadVisibleItems = musicTrackAdapter.currentList.isNotEmpty()
 
         binding.tvNothingFound.text = searchResult.emptyMessage
         binding.tvNothingFound.isVisible = false
 
-        musicListAdapter.submitList(searchResult.items) {
+        musicTrackAdapter.submitList(searchResult.items) {
             if (currentRequestId != searchRequestId) return@submitList
 
             binding.rvMusicList.isVisible = searchResult.hasOriginalItems || searchResult.items.isNotEmpty()
@@ -492,7 +492,7 @@ class MusicListFragment : Fragment() {
                 is MusicListUiState.Error -> {
                     Log.e("MusicListFragment", getString(R.string.music_list_load_failed))
                     vm.clearSearchResult()
-                    musicListAdapter.submitList(emptyList())
+                    musicTrackAdapter.submitList(emptyList())
                     binding.rvMusicList.isVisible = false
                     binding.tvNothingFound.isVisible = false
                 }
@@ -509,7 +509,7 @@ class MusicListFragment : Fragment() {
         }
 
         vm.favoriteMusicIdList.observe(viewLifecycleOwner) { musicIds ->
-            musicListAdapter.updateFavoriteMusicIds(musicIds)
+            musicTrackAdapter.updateFavoriteMusicIds(musicIds)
         }
 
         vm.toastEvent.observe(viewLifecycleOwner) { event ->
@@ -540,10 +540,10 @@ class MusicListFragment : Fragment() {
         )
     }
 
-    private fun openMusicOptionMenuPopup(music: MusicModel, anchorView: View) {
+    private fun openMusicOptionMenuPopup(music: MusicTrackEntity, anchorView: View) {
         val isFavorite = vm.isContainedInFavorites(music.id)
 
-        MusicOptionMenuPopup(
+        MusicTrackOptionMenuPopup(
             anchorView = anchorView,
             showAddToFavorites = !isFavorite,
             showRemoveFromFavorites = isFavorite,
@@ -611,6 +611,6 @@ class MusicListFragment : Fragment() {
         private const val SEARCH_TOUCH_COLLAPSE_DY_DP = 4f
         private const val TOP_PULL_RESISTANCE = 0.7f
 
-        fun newInstance() = MusicListFragment()
+        fun newInstance() = MusicTracksFragment()
     }
 }

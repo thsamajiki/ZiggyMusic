@@ -8,7 +8,7 @@ import androidx.annotation.OptIn
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.DefaultDataSource
 import androidx.media3.exoplayer.source.ProgressiveMediaSource
-import com.hero.ziggymusic.database.music.entity.MusicModel
+import com.hero.ziggymusic.database.music.entity.MusicTrackEntity
 
 // Player 큐에 등록된 mediaId 목록을 비교할 때 사용한다.
 fun Player.currentMediaIds(): List<String> {
@@ -25,7 +25,7 @@ fun Player.findMediaItemIndexById(mediaId: String): Int {
 }
 
 // MusicModel을 Media3에서 재생 가능한 MediaItem으로 변환한다.
-fun MusicModel.toMediaItem(): MediaItem {
+fun MusicTrackEntity.toMediaItem(): MediaItem {
     return MediaItem.Builder()
         .setMediaId(id)
         .setUri(getMusicFileUri())
@@ -41,7 +41,7 @@ fun MusicModel.toMediaItem(): MediaItem {
 }
 
 @OptIn(UnstableApi::class)
-fun MusicModel.toProgressiveMediaSource(context: Context): ProgressiveMediaSource {
+fun MusicTrackEntity.toProgressiveMediaSource(context: Context): ProgressiveMediaSource {
     // 앱의 기본 DataSource 설정을 유지하면서 로컬 음원 MediaSource를 생성한다.
     val dataSourceFactory = DefaultDataSource.Factory(context)
 

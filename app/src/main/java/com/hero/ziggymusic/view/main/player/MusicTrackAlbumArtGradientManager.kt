@@ -20,7 +20,7 @@ import androidx.palette.graphics.Palette
 import com.hero.ziggymusic.R
 import androidx.core.graphics.drawable.toDrawable
 
-class MusicAlbumArtGradientManager(private val context: Context) {
+class MusicTrackAlbumArtGradientManager(private val context: Context) {
     fun applyGradients(
         bitmap: Bitmap,
         albumBackground: View,

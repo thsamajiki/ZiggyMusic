@@ -8,13 +8,13 @@ import android.media.audiofx.Virtualizer
 import androidx.core.content.edit
 import androidx.core.graphics.toColorInt
 import com.hero.ziggymusic.audio.AudioProcessorChainController
-import com.hero.ziggymusic.view.main.setting.SettingFragment.Companion.KEY_BASS
-import com.hero.ziggymusic.view.main.setting.SettingFragment.Companion.KEY_EQUALIZER_ENABLED
-import com.hero.ziggymusic.view.main.setting.SettingFragment.Companion.KEY_HEAD_TRACKING_ENABLED
-import com.hero.ziggymusic.view.main.setting.SettingFragment.Companion.KEY_LOUDNESS_NORMALIZER_ENABLED
-import com.hero.ziggymusic.view.main.setting.SettingFragment.Companion.KEY_REVERB
-import com.hero.ziggymusic.view.main.setting.SettingFragment.Companion.KEY_SPATIAL_ENABLED
-import com.hero.ziggymusic.view.main.setting.SettingFragment.Companion.KEY_VIRTUALIZER
+import com.hero.ziggymusic.view.main.setting.SettingsFragment.Companion.KEY_BASS
+import com.hero.ziggymusic.view.main.setting.SettingsFragment.Companion.KEY_EQUALIZER_ENABLED
+import com.hero.ziggymusic.view.main.setting.SettingsFragment.Companion.KEY_HEAD_TRACKING_ENABLED
+import com.hero.ziggymusic.view.main.setting.SettingsFragment.Companion.KEY_LOUDNESS_NORMALIZER_ENABLED
+import com.hero.ziggymusic.view.main.setting.SettingsFragment.Companion.KEY_REVERB
+import com.hero.ziggymusic.view.main.setting.SettingsFragment.Companion.KEY_SPATIAL_ENABLED
+import com.hero.ziggymusic.view.main.setting.SettingsFragment.Companion.KEY_VIRTUALIZER
 
 object AudioEffectManager {
     var equalizer: Equalizer? = null

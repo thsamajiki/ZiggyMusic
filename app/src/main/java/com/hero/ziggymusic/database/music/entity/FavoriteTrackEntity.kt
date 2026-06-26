@@ -8,7 +8,7 @@ import kotlinx.parcelize.Parcelize
 
 @Parcelize
 @Entity(tableName = "favorite_music")
-data class FavoriteMusicEntity(
+data class FavoriteTrackEntity(
     @PrimaryKey
     @ColumnInfo(name = "id")
     val id: String,

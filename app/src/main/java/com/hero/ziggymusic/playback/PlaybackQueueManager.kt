@@ -5,7 +5,7 @@ import androidx.annotation.OptIn
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
-import com.hero.ziggymusic.database.music.entity.MusicModel
+import com.hero.ziggymusic.database.music.entity.MusicTrackEntity
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -17,8 +17,8 @@ class PlaybackQueueManager @Inject constructor(
 ) {
     @OptIn(UnstableApi::class)
     fun prepareQueue(
-        musicList: List<MusicModel>,
-        selectedMusic: MusicModel?,
+        musicList: List<MusicTrackEntity>,
+        selectedMusic: MusicTrackEntity?,
         startPositionMs: Long = 0L
     ) {
         if (musicList.isEmpty()) return
@@ -42,7 +42,7 @@ class PlaybackQueueManager @Inject constructor(
     }
 
     @OptIn(UnstableApi::class)
-    fun syncQueue(musicList: List<MusicModel>): PlaybackQueueSyncResult {
+    fun syncQueue(musicList: List<MusicTrackEntity>): PlaybackQueueSyncResult {
         // 큐를 갱신하기 전에 현재 곡과 재생 상태를 저장해 삭제 후에도 자연스럽게 이어간다.
         val previousMediaIds = player.currentMediaIds()
         val previousMediaId = player.currentMediaItem?.mediaId
@@ -148,7 +148,7 @@ class PlaybackQueueManager @Inject constructor(
     @OptIn(UnstableApi::class)
     private fun updateQueue(
         currentMediaIds: List<String>,
-        latestMusicList: List<MusicModel>
+        latestMusicList: List<MusicTrackEntity>
     ) {
         val latestMediaIds = latestMusicList.map { it.id }
         val queueIds = currentMediaIds.toMutableList()
@@ -172,7 +172,7 @@ class PlaybackQueueManager @Inject constructor(
     }
 
     fun playMusic(
-        musicList: List<MusicModel>,
+        musicList: List<MusicTrackEntity>,
         id: String
     ): Boolean {
         // 요청한 musicId가 현재 재생 가능한 음악 목록에 없으면 실패로 처리한다

@@ -5,10 +5,10 @@ import android.provider.MediaStore
 import androidx.lifecycle.LiveData
 import androidx.room.withTransaction
 import com.hero.ziggymusic.database.AppMusicDatabase
-import com.hero.ziggymusic.database.music.dao.MusicFileDao
-import com.hero.ziggymusic.database.music.dao.FavoritesDao
-import com.hero.ziggymusic.database.music.entity.FavoriteMusicEntity
-import com.hero.ziggymusic.database.music.entity.MusicModel
+import com.hero.ziggymusic.database.music.dao.MusicTrackDao
+import com.hero.ziggymusic.database.music.dao.FavoriteTracksDao
+import com.hero.ziggymusic.database.music.entity.FavoriteTrackEntity
+import com.hero.ziggymusic.database.music.entity.MusicTrackEntity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
@@ -17,11 +17,11 @@ import javax.inject.Inject
 class MusicLocalDataSourceImpl @Inject constructor(
     private val application: Application,
     private val appMusicDatabase: AppMusicDatabase,
-    private val musicFileDao: MusicFileDao,
-    private val favoritesDao: FavoritesDao,
+    private val musicTrackDao: MusicTrackDao,
+    private val favoriteTracksDao: FavoriteTracksDao,
     private val mediaStoreMusicObserver: MediaStoreMusicObserver,
 ) : MusicLocalDataSource {
-    override suspend fun getMusicList(): List<MusicModel> =
+    override suspend fun getMusicList(): List<MusicTrackEntity> =
         withContext(Dispatchers.IO) {
             val musicListUri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
 
@@ -40,7 +40,7 @@ class MusicLocalDataSourceImpl @Inject constructor(
 
             // 2. 콘텐츠 리졸버에 해당 데이터 요청 (음원 목록에 있는 0번째 줄을 가리킴)
             // 3. 커서로 전달된 데이터를 꺼내서 저장
-            val musicList = mutableListOf<MusicModel>()
+            val musicList = mutableListOf<MusicTrackEntity>()
 
             application.contentResolver.query(
                 musicListUri,
@@ -57,7 +57,7 @@ class MusicLocalDataSourceImpl @Inject constructor(
                 val durationColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DURATION)
 
                 while (cursor.moveToNext()) {
-                    val music = MusicModel(
+                    val music = MusicTrackEntity(
                         id = cursor.getString(idColumn),
                         title = cursor.getString(titleColumn),
                         artist = cursor.getString(artistColumn),
@@ -74,50 +74,50 @@ class MusicLocalDataSourceImpl @Inject constructor(
         }
 
     override suspend fun replaceCachedMusicList(
-        musicList: List<MusicModel>
+        musicList: List<MusicTrackEntity>
     ) = withContext(Dispatchers.IO) {
         appMusicDatabase.withTransaction {
-            musicFileDao.insertAll(musicList)
+            musicTrackDao.insertAll(musicList)
 
             val musicIdList = musicList.map { it.id }
 
             if (musicIdList.isEmpty()) {
-                musicFileDao.clearAll()
-                favoritesDao.clearAll()
+                musicTrackDao.clearAll()
+                favoriteTracksDao.clearAll()
             } else {
-                musicFileDao.deleteFilesExcept(musicIdList)
-                favoritesDao.deleteFavoritesExcept(musicIdList)
+                musicTrackDao.deleteFilesExcept(musicIdList)
+                favoriteTracksDao.deleteFavoritesExcept(musicIdList)
             }
         }
     }
 
     override suspend fun getMusicCount(): Int = withContext(Dispatchers.IO) {
-        musicFileDao.getMusicCount()
+        musicTrackDao.getMusicCount()
     }
 
-    override suspend fun getMusic(id: String): MusicModel? {
-        return musicFileDao.getMusicFileFromKey(id)
+    override suspend fun getMusic(id: String): MusicTrackEntity? {
+        return musicTrackDao.getMusicFileFromKey(id)
     }
 
-    override fun getAllMusic(): LiveData<List<MusicModel>> {
-        return musicFileDao.getAllFiles()
+    override fun getAllMusic(): LiveData<List<MusicTrackEntity>> {
+        return musicTrackDao.getAllFiles()
     }
 
-    override fun getFavorites(): LiveData<List<MusicModel>> {
-        return favoritesDao.getFavoriteMusicList()
+    override fun getFavorites(): LiveData<List<MusicTrackEntity>> {
+        return favoriteTracksDao.getFavoriteMusicList()
     }
 
     override fun getFavoriteMusicIdList(): LiveData<List<String>> {
-        return favoritesDao.getFavoriteMusicIdList()
+        return favoriteTracksDao.getFavoriteMusicIdList()
     }
 
     override fun observeMusicChanges(): Flow<Unit> = mediaStoreMusicObserver.observeMusicChanges()
 
     override suspend fun addMusicToFavorites(id: String) {
-        favoritesDao.insertFavoriteMusic(FavoriteMusicEntity(id = id))
+        favoriteTracksDao.insertFavoriteMusic(FavoriteTrackEntity(id = id))
     }
 
     override suspend fun removeMusicFromFavorites(id: String) {
-        favoritesDao.deleteFavoriteMusic(id)
+        favoriteTracksDao.deleteFavoriteMusic(id)
     }
 }

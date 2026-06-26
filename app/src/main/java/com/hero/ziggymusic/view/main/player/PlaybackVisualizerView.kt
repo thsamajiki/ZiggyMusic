@@ -12,7 +12,7 @@ import android.view.animation.AccelerateDecelerateInterpolator
 import android.view.animation.LinearInterpolator
 import kotlin.math.min
 
-class NowPlayingVisualizerView @JvmOverloads constructor(
+class PlaybackVisualizerView @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0

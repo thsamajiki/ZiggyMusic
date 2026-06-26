@@ -93,7 +93,7 @@
             app:layout_constraintTop_toBottomOf="@id/tvSongArtist"
             tools:text="After Hours" />
 
-        <com.hero.ziggymusic.view.main.player.NowPlayingVisualizerView
+        <com.hero.ziggymusic.view.main.player.PlaybackVisualizerView
             android:id="@+id/animationViewVisualizer"
             android:layout_width="@dimen/animation_visualizer"
             android:layout_height="@dimen/animation_visualizer"
