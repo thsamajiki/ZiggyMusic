@@ -89,12 +89,12 @@
             android:textAppearance="@style/TextAppearance.ZiggyMusic.Player.Album"
             app:layout_constraintEnd_toStartOf="@id/bluetooth"
             app:layout_constraintHorizontal_chainStyle="packed"
-            app:layout_constraintStart_toEndOf="@id/animationViewVisualizer"
+            app:layout_constraintStart_toEndOf="@id/playbackVisualizerView"
             app:layout_constraintTop_toBottomOf="@id/tvArtist"
             tools:text="After Hours" />
 
-        <com.hero.ziggymusic.view.main.player.PlaybackVisualizerView
-            android:id="@+id/animationViewVisualizer"
+        <com.hero.ziggymusic.presentation.main.player.widget.PlaybackVisualizerView
+            android:id="@+id/playbackVisualizerView"
             android:layout_width="@dimen/animation_visualizer"
             android:layout_height="@dimen/animation_visualizer"
             android:layout_marginStart="@dimen/space_xxxl"

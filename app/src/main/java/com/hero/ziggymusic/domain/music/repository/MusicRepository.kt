@@ -1,7 +1,7 @@
 package com.hero.ziggymusic.domain.music.repository
 
 import androidx.lifecycle.LiveData
-import com.hero.ziggymusic.database.music.entity.MusicTrackEntity
+import com.hero.ziggymusic.data.local.entity.MusicTrackEntity
 import kotlinx.coroutines.flow.Flow
 
 interface MusicRepository {

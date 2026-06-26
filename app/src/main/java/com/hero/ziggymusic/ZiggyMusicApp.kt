@@ -2,9 +2,9 @@ package com.hero.ziggymusic
 
 import android.app.Application
 import android.app.NotificationManager
-import com.hero.ziggymusic.audio.AudioDspChainHolder
-import com.hero.ziggymusic.service.MusicService
-import com.hero.ziggymusic.service.MusicServiceState
+import com.hero.ziggymusic.playback.audio.AudioDspChainHolder
+import com.hero.ziggymusic.playback.service.MusicService
+import com.hero.ziggymusic.playback.service.MusicServiceState
 import dagger.hilt.android.HiltAndroidApp
 
 @HiltAndroidApp

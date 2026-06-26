@@ -34,11 +34,11 @@
 # and method names when RegisterNatives is not used. These two classes are
 # exported from app/src/main/cpp with Java_com_hero_... symbols, so their
 # binary names and native methods must not be obfuscated.
--keepclasseswithmembernames,includedescriptorclasses class com.hero.ziggymusic.audio.AudioProcessorChainController {
+-keepclasseswithmembernames,includedescriptorclasses class com.hero.ziggymusic.playback.audio.AudioProcessorChainController {
     native <methods>;
 }
 
--keepclasseswithmembernames,includedescriptorclasses class com.hero.ziggymusic.audio.BufferAddressHelper {
+-keepclasseswithmembernames,includedescriptorclasses class com.hero.ziggymusic.playback.audio.BufferAddressHelper {
     native <methods>;
 }
 

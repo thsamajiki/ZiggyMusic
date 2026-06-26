@@ -1,9 +1,9 @@
 package com.hero.ziggymusic.di
 
 import android.app.Application
-import com.hero.ziggymusic.database.AppMusicTrackDatabase
-import com.hero.ziggymusic.database.music.dao.MusicTrackDao
-import com.hero.ziggymusic.database.music.dao.FavoriteTracksDao
+import com.hero.ziggymusic.data.local.db.AppMusicTrackDatabase
+import com.hero.ziggymusic.data.local.dao.MusicTrackDao
+import com.hero.ziggymusic.data.local.dao.FavoriteTracksDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

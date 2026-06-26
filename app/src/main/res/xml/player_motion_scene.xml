@@ -84,7 +84,7 @@
             android:visibility="gone" />
 
         <Constraint
-            android:id="@+id/animationViewVisualizer"
+            android:id="@+id/playbackVisualizerView"
             android:visibility="gone" />
 
         <Constraint
@@ -241,11 +241,11 @@
             android:textAppearance="@style/TextAppearance.ZiggyMusic.Player.Album"
             motion:layout_constraintEnd_toStartOf="@id/bluetooth"
             motion:layout_constraintHorizontal_chainStyle="packed"
-            motion:layout_constraintStart_toEndOf="@id/animationViewVisualizer"
+            motion:layout_constraintStart_toEndOf="@id/playbackVisualizerView"
             motion:layout_constraintTop_toBottomOf="@id/tvArtist" />
 
         <Constraint
-            android:id="@+id/animationViewVisualizer"
+            android:id="@+id/playbackVisualizerView"
             android:layout_width="@dimen/animation_visualizer"
             android:layout_height="@dimen/animation_visualizer"
             android:layout_marginStart="@dimen/space_xxxl"

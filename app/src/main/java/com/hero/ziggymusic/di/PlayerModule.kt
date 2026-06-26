@@ -11,7 +11,7 @@ import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.audio.AudioSink
 import androidx.media3.exoplayer.audio.DefaultAudioSink
 import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
-import com.hero.ziggymusic.audio.AudioProcessorAdapter
+import com.hero.ziggymusic.playback.audio.AudioProcessorAdapter
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

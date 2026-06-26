@@ -6,7 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    tools:context=".view.main.musiclist.MusicTracksFragment">
+    tools:context=".presentation.main.musictracks.MusicTracksFragment">
 
         <FrameLayout
             android:id="@+id/layoutMusicTracksViewport"
@@ -30,7 +30,7 @@
 
         </FrameLayout>
 
-        <com.hero.ziggymusic.view.main.musiclist.SearchTouchFrameLayout
+        <com.hero.ziggymusic.presentation.main.musictracks.widget.SearchTouchFrameLayout
             android:id="@+id/layoutSearchContainer"
             android:layout_width="match_parent"
             android:layout_height="@dimen/music_search_container_height"
@@ -92,7 +92,7 @@
                     android:visibility="gone" />
             </LinearLayout>
 
-        </com.hero.ziggymusic.view.main.musiclist.SearchTouchFrameLayout>
+        </com.hero.ziggymusic.presentation.main.musictracks.widget.SearchTouchFrameLayout>
 
         <TextView
             android:id="@+id/tvNothingFound"
