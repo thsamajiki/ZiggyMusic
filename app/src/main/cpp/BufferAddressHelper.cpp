@@ -3,7 +3,7 @@
 
 // JNI를 통해 Java의 DirectByteBuffer에서 네이티브 포인터(주소)를 얻어 jlong으로 반환하는 헬퍼 함수.
 extern "C" JNIEXPORT jlong JNICALL
-Java_com_hero_ziggymusic_audio_BufferAddressHelper_getDirectBufferAddress(JNIEnv *env, jclass /*cls*/, jobject byteBuffer) {
+Java_com_hero_ziggymusic_playback_audio_BufferAddressHelper_getDirectBufferAddress(JNIEnv *env, jclass /*cls*/, jobject byteBuffer) {
     // 버퍼가 null이면 0 반환
     if (byteBuffer == nullptr) return (jlong)0;
 

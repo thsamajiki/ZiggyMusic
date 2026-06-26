@@ -1,27 +1,27 @@
 package com.hero.ziggymusic.domain.music.repository
 
 import androidx.lifecycle.LiveData
-import com.hero.ziggymusic.database.music.entity.MusicModel
+import com.hero.ziggymusic.data.local.entity.MusicTrackEntity
 import kotlinx.coroutines.flow.Flow
 
 interface MusicRepository {
-    suspend fun getMusicList(): List<MusicModel>
+    suspend fun getMusicTracksFromMediaStore(): List<MusicTrackEntity>
 
-    suspend fun replaceCachedMusicList(musicList: List<MusicModel>)
+    suspend fun replaceCachedMusicTracks(trackList: List<MusicTrackEntity>)
 
-    suspend fun getMusicCount(): Int
+    suspend fun getMusicTrackCount(): Int
 
-    suspend fun getMusic(id: String): MusicModel?
+    suspend fun getMusicTrack(id: String): MusicTrackEntity?
 
-    fun getAllMusic(): LiveData<List<MusicModel>>
+    fun observeMusicTracks(): LiveData<List<MusicTrackEntity>>
 
-    fun getFavorites(): LiveData<List<MusicModel>>
+    fun observeFavoriteMusicTracks(): LiveData<List<MusicTrackEntity>>
 
-    fun getFavoriteMusicIdList(): LiveData<List<String>>
+    fun observeFavoriteTrackIdList(): LiveData<List<String>>
 
-    fun observeMusicChanges(): Flow<Unit>
+    fun observeMediaStoreMusicChanges(): Flow<Unit>
 
-    suspend fun addMusicToFavorites(id: String)
+    suspend fun addMusicTrackToFavorites(id: String)
 
-    suspend fun removeMusicFromFavorites(id: String)
+    suspend fun removeMusicTrackFromFavorites(id: String)
 }

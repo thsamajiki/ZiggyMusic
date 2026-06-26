@@ -1,9 +1,9 @@
 package com.hero.ziggymusic.di
 
 import android.app.Application
-import com.hero.ziggymusic.database.AppMusicDatabase
-import com.hero.ziggymusic.database.music.dao.MusicFileDao
-import com.hero.ziggymusic.database.music.dao.FavoritesDao
+import com.hero.ziggymusic.data.local.db.AppMusicTrackDatabase
+import com.hero.ziggymusic.data.local.dao.MusicTrackDao
+import com.hero.ziggymusic.data.local.dao.FavoriteMusicTracksDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -15,19 +15,19 @@ import javax.inject.Singleton
 class DaoModule {
     @Singleton
     @Provides
-    fun provideMusicDao(appMusicDatabase: AppMusicDatabase): MusicFileDao {
-        return appMusicDatabase.musicFileDao()
+    fun provideMusicDao(appMusicTrackDatabase: AppMusicTrackDatabase): MusicTrackDao {
+        return appMusicTrackDatabase.musicFileDao()
     }
 
     @Singleton
     @Provides
-    fun provideAppMusicDatabase(application: Application): AppMusicDatabase {
-        return AppMusicDatabase.getInstance(application)
+    fun provideAppMusicDatabase(application: Application): AppMusicTrackDatabase {
+        return AppMusicTrackDatabase.getInstance(application)
     }
 
     @Singleton
     @Provides
-    fun provideFavoritesDao(appMusicDatabase: AppMusicDatabase): FavoritesDao {
-        return appMusicDatabase.favoritesDao()
+    fun provideFavoritesDao(appMusicTrackDatabase: AppMusicTrackDatabase): FavoriteMusicTracksDao {
+        return appMusicTrackDatabase.favoritesDao()
     }
 }

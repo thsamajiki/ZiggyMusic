@@ -48,7 +48,7 @@ static std::shared_ptr<AudioDspChain> getOrCreateChainLocked(int sampleRate) {
 // Chain 생명주기
 // ------------------------------------------------------
 extern "C" JNIEXPORT void JNICALL
-Java_com_hero_ziggymusic_audio_AudioProcessorChainController_createChain(
+Java_com_hero_ziggymusic_playback_audio_AudioProcessorChainController_createChain(
         JNIEnv* /*env*/, jobject /*thiz*/, jint sampleRate) {
     ensureSuperpoweredInit();
 
@@ -58,7 +58,7 @@ Java_com_hero_ziggymusic_audio_AudioProcessorChainController_createChain(
 }
 
 extern "C" JNIEXPORT void JNICALL
-Java_com_hero_ziggymusic_audio_AudioProcessorChainController_destroyChain(
+Java_com_hero_ziggymusic_playback_audio_AudioProcessorChainController_destroyChain(
         JNIEnv* env, jobject thiz
 ) {
     (void)env; (void)thiz;
@@ -80,7 +80,7 @@ Java_com_hero_ziggymusic_audio_AudioProcessorChainController_destroyChain(
 // DSP 제어
 // ------------------------------------------------------
 extern "C" JNIEXPORT void JNICALL
-Java_com_hero_ziggymusic_audio_AudioProcessorChainController_setEQBand(
+Java_com_hero_ziggymusic_playback_audio_AudioProcessorChainController_setEQBand(
         JNIEnv* /*env*/, jobject /*thiz*/, jint bandIndex, jfloat gainDb) {
     auto chain = getChainSnapshot();
     if (!chain) return;
@@ -88,7 +88,7 @@ Java_com_hero_ziggymusic_audio_AudioProcessorChainController_setEQBand(
 }
 
 extern "C" JNIEXPORT void JNICALL
-Java_com_hero_ziggymusic_audio_AudioProcessorChainController_setCompressor(
+Java_com_hero_ziggymusic_playback_audio_AudioProcessorChainController_setCompressor(
         JNIEnv* /*env*/, jobject /*thiz*/,
         jfloat thresholdDb, jfloat ratio, jfloat attackMs, jfloat releaseMs, jfloat makeupDb) {
     auto chain = getChainSnapshot();
@@ -97,7 +97,7 @@ Java_com_hero_ziggymusic_audio_AudioProcessorChainController_setCompressor(
 }
 
 extern "C" JNIEXPORT void JNICALL
-Java_com_hero_ziggymusic_audio_AudioProcessorChainController_setReverb(
+Java_com_hero_ziggymusic_playback_audio_AudioProcessorChainController_setReverb(
         JNIEnv* /*env*/, jobject /*thiz*/, jboolean enabled, jfloat wet) {
     auto chain = getChainSnapshot();
     if (!chain) return;
@@ -108,7 +108,7 @@ Java_com_hero_ziggymusic_audio_AudioProcessorChainController_setReverb(
 // In-app Spatial
 // ------------------------------------------------------
 extern "C" JNIEXPORT void JNICALL
-Java_com_hero_ziggymusic_audio_AudioProcessorChainController_setSpatialEnabled(
+Java_com_hero_ziggymusic_playback_audio_AudioProcessorChainController_setSpatialEnabled(
         JNIEnv* /*env*/, jobject /*thiz*/, jboolean enabled) {
     auto chain = getChainSnapshot();
     if (!chain) return;
@@ -116,7 +116,7 @@ Java_com_hero_ziggymusic_audio_AudioProcessorChainController_setSpatialEnabled(
 }
 
 extern "C" JNIEXPORT void JNICALL
-Java_com_hero_ziggymusic_audio_AudioProcessorChainController_setSpatialPosition(
+Java_com_hero_ziggymusic_playback_audio_AudioProcessorChainController_setSpatialPosition(
         JNIEnv* /*env*/, jobject /*thiz*/,
         jfloat azimuthDeg, jfloat elevationDeg, jfloat distanceMeters) {
     auto chain = getChainSnapshot();
@@ -128,7 +128,7 @@ Java_com_hero_ziggymusic_audio_AudioProcessorChainController_setSpatialPosition(
 // Head tracking
 // ------------------------------------------------------
 extern "C" JNIEXPORT void JNICALL
-Java_com_hero_ziggymusic_audio_AudioProcessorChainController_setHeadTrackingEnabled(
+Java_com_hero_ziggymusic_playback_audio_AudioProcessorChainController_setHeadTrackingEnabled(
         JNIEnv* /*env*/, jobject /*thiz*/, jboolean enabled) {
     auto chain = getChainSnapshot();
     if (!chain) return;
@@ -136,7 +136,7 @@ Java_com_hero_ziggymusic_audio_AudioProcessorChainController_setHeadTrackingEnab
 }
 
 extern "C" JNIEXPORT void JNICALL
-Java_com_hero_ziggymusic_audio_AudioProcessorChainController_setHeadTrackingYaw(
+Java_com_hero_ziggymusic_playback_audio_AudioProcessorChainController_setHeadTrackingYaw(
         JNIEnv* /*env*/, jobject /*thiz*/, jfloat yawDeg) {
     auto chain = getChainSnapshot();
     if (!chain) return;
@@ -161,7 +161,7 @@ static inline void leaveProcess() noexcept {
 // PCM 처리 (Media3 adapter -> JNI)
 // ------------------------------------------------------
 extern "C" JNIEXPORT void JNICALL
-Java_com_hero_ziggymusic_audio_AudioProcessorChainController_processBuffer(
+Java_com_hero_ziggymusic_playback_audio_AudioProcessorChainController_processBuffer(
         JNIEnv* env, jobject thiz, jlong bufferPtr, jint frames, jint sampleRate
 ) {
     (void)env; (void)thiz;
@@ -186,7 +186,7 @@ Java_com_hero_ziggymusic_audio_AudioProcessorChainController_processBuffer(
 // Oboe Preview I/O (Settings preview)
 // ------------------------------------------------------
 extern "C" JNIEXPORT void JNICALL
-Java_com_hero_ziggymusic_audio_AudioProcessorChainController_nativeStartAudioIO(
+Java_com_hero_ziggymusic_playback_audio_AudioProcessorChainController_nativeStartAudioIO(
         JNIEnv* /*env*/, jobject /*thiz*/, jint sampleRate, jint framesPerCallback) {
     ensureSuperpoweredInit();
 
@@ -207,49 +207,49 @@ Java_com_hero_ziggymusic_audio_AudioProcessorChainController_nativeStartAudioIO(
 }
 
 extern "C" JNIEXPORT void JNICALL
-Java_com_hero_ziggymusic_audio_AudioProcessorChainController_nativeStopAudioIO(
+Java_com_hero_ziggymusic_playback_audio_AudioProcessorChainController_nativeStopAudioIO(
         JNIEnv* /*env*/, jobject /*thiz*/) {
     std::lock_guard<std::mutex> lk(gAudioIOMutex);
     if (gAudioIO) gAudioIO->stop();
 }
 
 extern "C" JNIEXPORT void JNICALL
-Java_com_hero_ziggymusic_audio_AudioProcessorChainController_nativeAudioIOOnForeground(
+Java_com_hero_ziggymusic_playback_audio_AudioProcessorChainController_nativeAudioIOOnForeground(
         JNIEnv* /*env*/, jobject /*thiz*/) {
     std::lock_guard<std::mutex> lk(gAudioIOMutex);
     if (gAudioIO) gAudioIO->onForeground();
 }
 
 extern "C" JNIEXPORT void JNICALL
-Java_com_hero_ziggymusic_audio_AudioProcessorChainController_nativeAudioIOOnBackground(
+Java_com_hero_ziggymusic_playback_audio_AudioProcessorChainController_nativeAudioIOOnBackground(
         JNIEnv* /*env*/, jobject /*thiz*/) {
     std::lock_guard<std::mutex> lk(gAudioIOMutex);
     if (gAudioIO) gAudioIO->onBackground();
 }
 
 extern "C" JNIEXPORT void JNICALL
-Java_com_hero_ziggymusic_audio_AudioProcessorChainController_nativeSetTestToneEnabled(
+Java_com_hero_ziggymusic_playback_audio_AudioProcessorChainController_nativeSetTestToneEnabled(
         JNIEnv* /*env*/, jobject /*thiz*/, jboolean enabled) {
     std::lock_guard<std::mutex> lk(gAudioIOMutex);
     if (gAudioIO) gAudioIO->setTestToneEnabled((bool)enabled);
 }
 
 extern "C" JNIEXPORT void JNICALL
-Java_com_hero_ziggymusic_audio_AudioProcessorChainController_nativeSetTestToneFrequency(
+Java_com_hero_ziggymusic_playback_audio_AudioProcessorChainController_nativeSetTestToneFrequency(
         JNIEnv* /*env*/, jobject /*thiz*/, jfloat hz) {
     std::lock_guard<std::mutex> lk(gAudioIOMutex);
     if (gAudioIO) gAudioIO->setTestToneFrequency((float)hz);
 }
 
 extern "C" JNIEXPORT void JNICALL
-Java_com_hero_ziggymusic_audio_AudioProcessorChainController_nativeSetTestToneLevel(
+Java_com_hero_ziggymusic_playback_audio_AudioProcessorChainController_nativeSetTestToneLevel(
         JNIEnv* /*env*/, jobject /*thiz*/, jfloat level0to1) {
     std::lock_guard<std::mutex> lk(gAudioIOMutex);
     if (gAudioIO) gAudioIO->setTestToneLevel((float)level0to1);
 }
 
 extern "C" JNIEXPORT void JNICALL
-Java_com_hero_ziggymusic_audio_AudioProcessorChainController_nativeEnqueuePreviewPcm(
+Java_com_hero_ziggymusic_playback_audio_AudioProcessorChainController_nativeEnqueuePreviewPcm(
         JNIEnv* /*env*/, jobject /*thiz*/, jlong bufferPtr, jint frames, jint sampleRate) {
 
     if (bufferPtr == 0 || frames <= 0) return;

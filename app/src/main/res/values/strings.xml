@@ -1,8 +1,8 @@
 <resources>
     <string name="app_name">ZiggyMusic</string>
-    <string name="title_music_list">음악</string>
-    <string name="title_favorites">즐겨찾기</string>
-    <string name="title_setting">설정</string>
+    <string name="title_music_tracks">음악</string>
+    <string name="title_favorite_tracks">즐겨찾기</string>
+    <string name="title_settings">설정</string>
 
     <string-array name="title_array">
         <item>음악</item>
@@ -17,14 +17,14 @@
     <string name="current_song_artist">아티스트</string>
     <string name="current_song_album">앨범명</string>
 
-    <string name="add_music_to_favorites">즐겨찾기에 추가</string>
-    <string name="remove_music_from_favorites">즐겨찾기에서 제거</string>
+    <string name="add_track_to_favorites">즐겨찾기에 추가</string>
+    <string name="remove_track_from_favorites">즐겨찾기에서 제거</string>
 
-    <string name="no_music_found">음원이 없습니다.</string>
-    <string name="load_music_failed">음원 목록을 불러오는 데 실패했습니다.</string>
-    <string name="music_search_hint">검색</string>
-    <string name="music_search_no_result">검색 결과가 없습니다.</string>
-    <string name="music_list_load_failed">음원 목록 불러오기 실패</string>
+    <string name="no_music_track_found">음원이 없습니다.</string>
+    <string name="load_music_tracks_failed">음원 목록을 불러오는 데 실패했습니다.</string>
+    <string name="music_track_search_hint">검색</string>
+    <string name="music_track_search_no_result">검색 결과가 없습니다.</string>
+    <string name="music_tracks_load_failed">음원 목록 불러오기 실패</string>
     <string name="equalizer">이퀄라이저</string>
     <string name="preset">프리셋</string>
     <string name="eq_max">+12</string>

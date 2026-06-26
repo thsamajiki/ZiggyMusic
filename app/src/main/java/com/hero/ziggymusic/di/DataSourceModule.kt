@@ -1,7 +1,7 @@
 package com.hero.ziggymusic.di
 
-import com.hero.ziggymusic.database.local.MusicLocalDataSource
-import com.hero.ziggymusic.database.local.MusicLocalDataSourceImpl
+import com.hero.ziggymusic.data.music.source.MusicLocalDataSource
+import com.hero.ziggymusic.data.music.source.MusicLocalDataSourceImpl
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn

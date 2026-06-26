@@ -1,0 +1,401 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/bg_setting_dark_gradient"
+    tools:context=".presentation.main.setting.SettingsFragment">
+
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scrollbars="vertical">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/space_15">
+
+                <TextView
+                    android:id="@+id/tvEqualizer"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/space_xxxl"
+                    android:text="@string/equalizer"
+                    android:textAppearance="@style/TextAppearance.ZiggyMusic.White.Body.Medium"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <androidx.appcompat.widget.SwitchCompat
+                    android:id="@+id/swEqualizer"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="@dimen/setting_switch_seekbar_aligned_end_margin"
+                    android:checked="true"
+                    android:contentDescription="@string/equalizer"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/space_15">
+
+                <TextView
+                    android:id="@+id/tvPreset"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/space_xxxl"
+                    android:text="@string/preset"
+                    android:textAppearance="@style/TextAppearance.ZiggyMusic.White.Caption"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <Spinner
+                    android:id="@+id/spinnerPreset"
+                    style="@style/Widget.My.Spinner"
+                    android:layout_width="@dimen/setting_spinner_width"
+                    android:layout_height="@dimen/setting_spinner_height"
+                    android:layout_marginStart="@dimen/space_xl"
+                    android:dropDownWidth="@dimen/setting_spinner_dropdown_width"
+                    android:dropDownSelector="@color/white"
+                    android:padding="0dp"
+                    android:popupBackground="@color/black"
+                    android:scrollbars="none"
+                    android:spinnerMode="dropdown"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintStart_toEndOf="@id/tvPreset"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/layoutEqualizerBands"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/seekbar_container_height"
+                android:layout_marginTop="@dimen/space_10"
+                android:paddingStart="@dimen/setting_eq_horizontal_padding"
+                android:paddingEnd="@dimen/setting_eq_horizontal_padding">
+
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:id="@+id/layoutEqScale"
+                    android:layout_width="@dimen/setting_eq_scale_width"
+                    android:layout_height="0dp"
+                    android:paddingTop="@dimen/setting_eq_label_vertical_padding"
+                    android:paddingBottom="@dimen/setting_eq_label_vertical_padding"
+                    app:layout_constraintBottom_toTopOf="@id/tvSeekbar"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent">
+
+                    <TextView
+                        android:id="@+id/tvEqMax"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="start"
+                        android:includeFontPadding="false"
+                        android:text="@string/eq_max"
+                        android:textAppearance="@style/TextAppearance.ZiggyMusic.White.Sub"
+                        android:textColor="@color/normal_gray"
+                        android:textSize="@dimen/setting_eq_label_text_size"
+                        app:layout_constraintBottom_toTopOf="@id/tvEqZero"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:layout_constraintVertical_chainStyle="spread_inside" />
+
+                    <TextView
+                        android:id="@+id/tvEqZero"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="@dimen/space_sm"
+                        android:gravity="start"
+                        android:includeFontPadding="false"
+                        android:text="@string/eq_zero"
+                        android:textAppearance="@style/TextAppearance.ZiggyMusic.White.Sub"
+                        android:textColor="@color/normal_gray"
+                        android:textSize="@dimen/setting_eq_label_text_size"
+                        app:layout_constraintBottom_toTopOf="@id/tvEqMin"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toBottomOf="@id/tvEqMax" />
+
+                    <TextView
+                        android:id="@+id/tvEqMin"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="start"
+                        android:includeFontPadding="false"
+                        android:text="@string/eq_min"
+                        android:textAppearance="@style/TextAppearance.ZiggyMusic.White.Sub"
+                        android:textColor="@color/normal_gray"
+                        android:textSize="@dimen/setting_eq_label_text_size"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toBottomOf="@id/tvEqZero" />
+
+                </androidx.constraintlayout.widget.ConstraintLayout>
+
+                <LinearLayout
+                    android:id="@+id/seekbarContainer"
+                    android:layout_width="0dp"
+                    android:layout_height="0dp"
+                    android:layout_marginStart="@dimen/setting_eq_scale_to_bands_gap"
+                    android:gravity="center"
+                    android:orientation="horizontal"
+                    app:layout_constraintBottom_toTopOf="@id/tvSeekbar"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toEndOf="@id/layoutEqScale"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <LinearLayout
+                    android:id="@+id/tvSeekbar"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/setting_eq_scale_to_bands_gap"
+                    android:layout_marginTop="@dimen/space_xxs"
+                    android:gravity="center"
+                    android:orientation="horizontal"
+                    android:translationY="@dimen/setting_eq_frequency_translation_y"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toEndOf="@id/layoutEqScale"
+                    app:layout_constraintTop_toBottomOf="@id/seekbarContainer" />
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <View
+                android:id="@+id/dividerEqualizerAudioEffect"
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginStart="@dimen/space_xxxl"
+                android:layout_marginTop="@dimen/space_10"
+                android:layout_marginEnd="@dimen/space_xxxl"
+                android:background="@color/setting_divider" />
+
+            <TextView
+                android:id="@+id/tvAudioEffect"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/space_xxxl"
+                android:layout_marginTop="@dimen/space_25"
+                android:text="@string/audio_effect"
+                android:textAppearance="@style/TextAppearance.ZiggyMusic.White.Body.Medium" />
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/space_10">
+
+                <TextView
+                    android:id="@+id/tvReverb"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/space_xxxl"
+                    android:text="@string/reverb"
+                    android:textAppearance="@style/TextAppearance.ZiggyMusic.White.Caption"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <Spinner
+                    android:id="@+id/spinnerReverb"
+                    style="@style/Widget.My.Spinner"
+                    android:layout_width="@dimen/setting_spinner_width"
+                    android:layout_height="@dimen/setting_spinner_height"
+                    android:layout_marginEnd="@dimen/setting_reverb_spinner_end_margin"
+                    android:dropDownWidth="@dimen/setting_spinner_dropdown_width"
+                    android:dropDownSelector="@color/white"
+                    android:padding="0dp"
+                    android:popupBackground="@color/black"
+                    android:scrollbars="none"
+                    android:spinnerMode="dropdown"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/space_xl">
+
+                <TextView
+                    android:id="@+id/tvLoudnessNormalizer"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/space_xxxl"
+                    android:layout_marginEnd="@dimen/space_md"
+                    android:includeFontPadding="false"
+                    android:text="@string/loudness_normalizer"
+                    android:textAppearance="@style/TextAppearance.ZiggyMusic.White.Caption"
+                    app:layout_constraintEnd_toStartOf="@id/swLoudnessNormalizer"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <TextView
+                    android:id="@+id/tvLoudnessNormalizerDescription"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/space_xxxl"
+                    android:layout_marginTop="@dimen/space_xxs"
+                    android:layout_marginEnd="@dimen/space_md"
+                    android:includeFontPadding="false"
+                    android:text="@string/loudness_normalizer_description"
+                    android:textAppearance="@style/TextAppearance.ZiggyMusic.Setting.Description"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toStartOf="@id/swLoudnessNormalizer"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/tvLoudnessNormalizer" />
+
+                <androidx.appcompat.widget.SwitchCompat
+                    android:id="@+id/swLoudnessNormalizer"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="@dimen/setting_loudness_switch_end_margin"
+                    android:contentDescription="@string/loudness_normalizer"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/space_xl">
+
+                <TextView
+                    android:id="@+id/tvBass"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/space_xxxl"
+                    android:includeFontPadding="false"
+                    android:text="@string/bass"
+                    android:textAppearance="@style/TextAppearance.ZiggyMusic.White.Caption"
+                    app:layout_constraintBottom_toBottomOf="@id/sbBass"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="@id/sbBass" />
+
+                <SeekBar
+                    android:id="@+id/sbBass"
+                    android:layout_width="0dp"
+                    android:layout_height="40dp"
+                    android:layout_gravity="center_vertical"
+                    android:layout_marginStart="@dimen/space_xl"
+                    android:layout_marginEnd="@dimen/setting_effect_seekbar_end_margin"
+                    android:max="100"
+                    android:maxHeight="1dp"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toEndOf="@id/tvBass"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <TextView
+                    android:id="@+id/tvVirtualizer"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/space_xxxl"
+                    android:includeFontPadding="false"
+                    android:text="@string/_3d_virtualizer"
+                    android:textAppearance="@style/TextAppearance.ZiggyMusic.White.Caption"
+                    app:layout_constraintBottom_toBottomOf="@id/sbVirtualizer"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="@id/sbVirtualizer" />
+
+                <SeekBar
+                    android:id="@+id/sbVirtualizer"
+                    android:layout_width="0dp"
+                    android:layout_height="40dp"
+                    android:layout_gravity="center_vertical"
+                    android:layout_marginStart="@dimen/space_xl"
+                    android:layout_marginTop="@dimen/space_xl"
+                    android:layout_marginEnd="@dimen/setting_effect_seekbar_end_margin"
+                    android:max="100"
+                    android:maxHeight="1dp"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toEndOf="@id/tvVirtualizer"
+                    app:layout_constraintTop_toBottomOf="@id/sbBass" />
+
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:id="@+id/layoutSpatialAudio"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/space_xxl"
+                    android:visibility="gone"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/sbVirtualizer">
+
+                    <TextView
+                        android:id="@+id/tvSpatialAudio"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="@dimen/space_xxxl"
+                        android:text="@string/spatial_audio"
+                        android:textAppearance="@style/TextAppearance.ZiggyMusic.White.Caption"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent" />
+
+                    <androidx.appcompat.widget.SwitchCompat
+                        android:id="@+id/swSpatialAudio"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="@dimen/space_xl"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintTop_toTopOf="parent" />
+
+                </androidx.constraintlayout.widget.ConstraintLayout>
+
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:id="@+id/layoutHeadTracking"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:visibility="gone"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/layoutSpatialAudio">
+
+                    <TextView
+                        android:id="@+id/tvHeadTracking"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="@dimen/space_xxxl"
+                        android:text="@string/head_tracking"
+                        android:textAppearance="@style/TextAppearance.ZiggyMusic.NormalGray.Sub"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent" />
+
+                    <androidx.appcompat.widget.SwitchCompat
+                        android:id="@+id/swHeadTracking"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="@dimen/space_xl"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintTop_toTopOf="parent" />
+
+                </androidx.constraintlayout.widget.ConstraintLayout>
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <View
+                android:layout_width="0dp"
+                android:layout_height="70dp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent" />
+
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

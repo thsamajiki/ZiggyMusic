@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     android:background="@drawable/bg_main_dark_gradient"
     android:fitsSystemWindows="true"
-    tools:context=".view.main.MainActivity">
+    tools:context=".presentation.main.MainActivity">
 
     <androidx.appcompat.widget.Toolbar
         android:id="@+id/toolbarMain"
