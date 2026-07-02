@@ -20,6 +20,7 @@ class AudioProcessorAdapter(
 
     private var inputEncoding: Int = C.ENCODING_INVALID
     private var channelCount: Int = 0
+    private var outputChannelCount: Int = 0
 
     private var outputBuffer: ByteBuffer = EMPTY_BUFFER
 
@@ -34,18 +35,23 @@ class AudioProcessorAdapter(
         inputEncoding = inputAudioFormat.encoding
         channelCount = inputAudioFormat.channelCount
 
-        // stereo 강제
-        if (channelCount != 2) {
-            throw AudioProcessor.UnhandledAudioFormatException(inputAudioFormat)
-        }
-
         // float/16bit만 허용
         if (inputEncoding != C.ENCODING_PCM_FLOAT && inputEncoding != C.ENCODING_PCM_16BIT) {
             throw AudioProcessor.UnhandledAudioFormatException(inputAudioFormat)
         }
 
         // 출력 포맷은 "입력과 동일" (중요: 16bit 입력이면 16bit로 반환해야 함)
-        return inputAudioFormat
+        outputChannelCount = if (channelCount == 2) channelCount else 2
+
+        return if (outputChannelCount == channelCount) {
+            inputAudioFormat
+        } else {
+            AudioProcessor.AudioFormat(
+                inputAudioFormat.sampleRate,
+                outputChannelCount,
+                inputEncoding
+            )
+        }
     }
 
     override fun isActive(): Boolean = pendingInputFormat != AudioProcessor.AudioFormat.NOT_SET
@@ -72,7 +78,7 @@ class AudioProcessorAdapter(
         var processedFrames = frames
 
         // 1) 입력을 floatBuffer(DIRECT)에 채움 (float interleaved)
-        val maxSamples = frames * channelCount
+        val maxSamples = frames * outputChannelCount
         val maxFloatBytes = maxSamples * 4
         ensureCapacityFloat(maxFloatBytes)
         floatBuffer.clear()
@@ -80,17 +86,23 @@ class AudioProcessorAdapter(
         if (inputEncoding == C.ENCODING_PCM_FLOAT) {
             // float 입력: 실제로 복사 가능한 바이트에 맞춰 processedFrames를 재계산
             val bytesPerFrame = channelCount * 4
-            val bytesToCopyRaw = min(inputBuffer.remaining(), maxFloatBytes)
+            val bytesToCopyRaw = min(inputBuffer.remaining(), frames * bytesPerFrame)
             processedFrames = bytesToCopyRaw / bytesPerFrame
             if (processedFrames <= 0) return
 
             val bytesToCopy = processedFrames * bytesPerFrame
-            val src = inputBuffer.slice()
-            src.limit(bytesToCopy)
-            floatBuffer.put(src)
+            if (channelCount == outputChannelCount) {
+                val src = inputBuffer.slice()
+                src.limit(bytesToCopy)
+                floatBuffer.put(src)
+            } else {
+                val srcFloats = inputBuffer.order(ByteOrder.LITTLE_ENDIAN).asFloatBuffer()
+                val dstFloats = floatBuffer.order(ByteOrder.LITTLE_ENDIAN).asFloatBuffer()
+                writeStereoFramesFromFloatInput(srcFloats, dstFloats, processedFrames)
+            }
 
             floatBuffer.position(0)
-            floatBuffer.limit(bytesToCopy)
+            floatBuffer.limit(processedFrames * outputChannelCount * 4)
 
             // 소비도 실제 복사한 만큼만
             inputBuffer.position(inputBuffer.position() + bytesToCopy)
@@ -102,17 +114,11 @@ class AudioProcessorAdapter(
             if (safeFrames <= 0) return
 
             processedFrames = safeFrames
-            val safeSamples = processedFrames * channelCount
-
             val inShorts: ShortBuffer = inputBuffer.order(ByteOrder.LITTLE_ENDIAN).asShortBuffer()
             val dstFloats: FloatBuffer = floatBuffer.order(ByteOrder.LITTLE_ENDIAN).asFloatBuffer()
+            writeStereoFramesFromPcm16Input(inShorts, dstFloats, processedFrames)
 
-            for (i in 0 until safeSamples) {
-                val s = inShorts.get(i).toInt()
-                dstFloats.put(i, s / 32768.0f)
-            }
-
-            val safeFloatBytes = safeSamples * 4
+            val safeFloatBytes = processedFrames * outputChannelCount * 4
             floatBuffer.position(0)
             floatBuffer.limit(safeFloatBytes)
 
@@ -131,7 +137,8 @@ class AudioProcessorAdapter(
         // Gate: Preview(Oboe) 실행 중이면 Media3 경로에서 네이티브 처리를 수행하지 않음
         // (Preview 우선 정책은 PlayerAudioGraph에서 관리)
         // 2) 네이티브 DSP/라우팅 게이트
-        val shouldProcess = PlayerAudioGraph.shouldProcessFromMedia3()
+        val canUseStereoDsp = outputChannelCount == 2
+        val shouldProcess = canUseStereoDsp && PlayerAudioGraph.shouldProcessFromMedia3()
         val previewRunning = PlayerAudioGraph.isPreviewRunning()
 
         when {
@@ -143,9 +150,9 @@ class AudioProcessorAdapter(
             // (B) 프리뷰(Oboe)가 "실제로 실행 중"일 때만:
             //     - 실제 PCM을 네이티브 프리뷰 링버퍼로 enqueue
             //     - Media3 출력은 무음으로 만들어 이중출력 방지
-            previewRunning -> {
+            previewRunning && canUseStereoDsp -> {
                 // 필수 안전 가드: 프리뷰 엔진은 stereo float(LRLR)만 지원
-                if (channelCount != 2 || inputEncoding != C.ENCODING_PCM_FLOAT) {
+                if (inputEncoding != C.ENCODING_PCM_FLOAT) {
                     // 프리뷰 라우팅을 하지 말고 원본 재생(패스스루)
                     // (이 상태에서 Media3를 무음 처리하면 다시 무음이 될 수 있음)
                     // => 아무 처리 없이 아래 else로 흐르게 하려면 return하지 말고 when 분기 자체를 타지 않게 해야 함
@@ -159,7 +166,7 @@ class AudioProcessorAdapter(
 
                 // Media3 출력 무음 처리(이중 출력 방지)
                 val fb = floatBuffer.order(ByteOrder.LITTLE_ENDIAN).asFloatBuffer()
-                val samples = processedFrames * channelCount
+                val samples = processedFrames * outputChannelCount
                 for (i in 0 until samples) fb.put(i, 0f)
 
                 outBuffer = floatBuffer
@@ -186,7 +193,7 @@ class AudioProcessorAdapter(
         }
 
         // 16bit 입력이면 16bit 출력으로 변환해서 내보냄
-        val processedSamples = processedFrames * channelCount
+        val processedSamples = processedFrames * outputChannelCount
         val outBytes = processedSamples * 2
         ensureCapacityOut(outBytes)
         outBuffer.clear()
@@ -243,8 +250,43 @@ class AudioProcessorAdapter(
         pendingInputFormat = AudioProcessor.AudioFormat.NOT_SET
         inputEncoding = C.ENCODING_INVALID
         channelCount = 0
+        outputChannelCount = 0
         floatBuffer = EMPTY_BUFFER
         outBuffer = EMPTY_BUFFER
+    }
+
+    private fun writeStereoFramesFromFloatInput(
+        srcFloats: FloatBuffer,
+        dstFloats: FloatBuffer,
+        frames: Int
+    ) {
+        for (frame in 0 until frames) {
+            val base = frame * channelCount
+            val left = srcFloats.get(base)
+            val right = if (channelCount > 1) srcFloats.get(base + 1) else left
+            val outputBase = frame * outputChannelCount
+            dstFloats.put(outputBase, left)
+            dstFloats.put(outputBase + 1, right)
+        }
+    }
+
+    private fun writeStereoFramesFromPcm16Input(
+        inShorts: ShortBuffer,
+        dstFloats: FloatBuffer,
+        frames: Int
+    ) {
+        for (frame in 0 until frames) {
+            val base = frame * channelCount
+            val left = inShorts.get(base).toInt() / 32768.0f
+            val right = if (channelCount > 1) {
+                inShorts.get(base + 1).toInt() / 32768.0f
+            } else {
+                left
+            }
+            val outputBase = frame * outputChannelCount
+            dstFloats.put(outputBase, left)
+            dstFloats.put(outputBase + 1, right)
+        }
     }
 
     private fun ensureCapacityFloat(requiredBytes: Int) {
