@@ -10,8 +10,14 @@ sealed class MainTitle(
 ) {
     object MusicTracks : MainTitle(R.string.title_music_tracks)
     object FavoriteTracks : MainTitle(R.string.title_favorite_tracks)
-    object Settings : MainTitle(
-        resId = R.string.title_settings,
+    object AppSettings : MainTitle(
+        resId = R.string.title_app_settings,
+        showBackButton = true,
+        showSettingButton = false
+    )
+
+    object AudioSettings : MainTitle(
+        resId = R.string.title_audio_settings,
         showBackButton = true,
         showSettingButton = false
     )
