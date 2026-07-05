@@ -2,7 +2,8 @@
     <string name="app_name">ZiggyMusic</string>
     <string name="title_music_tracks">음악</string>
     <string name="title_favorite_tracks">즐겨찾기</string>
-    <string name="title_settings">설정</string>
+    <string name="title_app_settings">설정</string>
+    <string name="title_audio_settings">음향 설정</string>
 
     <string-array name="title_array">
         <item>음악</item>
@@ -25,6 +26,7 @@
     <string name="music_track_search_hint">검색</string>
     <string name="music_track_search_no_result">검색 결과가 없습니다.</string>
     <string name="music_tracks_load_failed">음원 목록 불러오기 실패</string>
+
     <string name="equalizer">이퀄라이저</string>
     <string name="preset">프리셋</string>
     <string name="eq_max">+12</string>
