@@ -511,7 +511,7 @@ class AudioSettingsFragment : Fragment() {
     companion object {
         fun newInstance(): AudioSettingsFragment = AudioSettingsFragment()
 
-        const val TAG = "SettingFragment"
+        const val TAG = "AudioSettingsFragment"
 
         private const val EQ_ENABLED_ALPHA = 1.0f
         private const val EQ_DISABLED_CONTENT_ALPHA = 0.55f
