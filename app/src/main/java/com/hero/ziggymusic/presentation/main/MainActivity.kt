@@ -135,7 +135,7 @@ class MainActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedListen
         }
 
         // 현재 메인 탭을 숨기고 설정 화면을 백스택 위에 표시한다.
-        binding.ivSetting.setOnClickListener {
+        binding.ivAppSettings.setOnClickListener {
             vm.requestOpenAppSettings()
         }
 
@@ -261,8 +261,8 @@ class MainActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedListen
                 currentTitle.observe(this@MainActivity) { mainTitle ->
                     binding.tvMainTitle.text = getString(mainTitle.resId)
                     binding.ivBack.isVisible = mainTitle.showBackButton
-                    binding.ivSetting.isVisible = mainTitle.showAppSettingsButton
-                    binding.ivSetting.isEnabled = mainTitle.showAppSettingsButton
+                    binding.ivAppSettings.isVisible = mainTitle.showAppSettingsButton
+                    binding.ivAppSettings.isEnabled = mainTitle.showAppSettingsButton
                 }
             }
 
