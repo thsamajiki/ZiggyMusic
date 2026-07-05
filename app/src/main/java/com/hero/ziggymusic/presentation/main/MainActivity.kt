@@ -28,7 +28,7 @@ import com.hero.ziggymusic.R
 import com.hero.ziggymusic.playback.state.PlayerStateHolder
 import com.hero.ziggymusic.databinding.ActivityMainBinding
 import com.hero.ziggymusic.playback.manager.AudioEffectManager
-import com.hero.ziggymusic.presentation.main.setting.SettingsFragment
+import com.hero.ziggymusic.presentation.main.setting.AudioSettingsFragment
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -38,6 +38,7 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.core.view.doOnPreDraw
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentManager
 import androidx.lifecycle.Lifecycle
 import com.hero.ziggymusic.playback.queue.PlaybackQueueSource
 import com.hero.ziggymusic.playback.service.MusicService
@@ -50,6 +51,7 @@ import com.hero.ziggymusic.data.local.preferences.LastPlaybackStore
 import com.hero.ziggymusic.presentation.main.player.manager.PlayerController
 import com.hero.ziggymusic.presentation.main.player.manager.PlayerMotionManager
 import com.hero.ziggymusic.presentation.main.player.viewmodel.PlayerViewModel
+import com.hero.ziggymusic.presentation.main.setting.AppSettingsFragment
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 
@@ -61,6 +63,7 @@ class MainActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedListen
 
     @Inject
     lateinit var player: ExoPlayer
+
     private val playerStateHolder: PlayerStateHolder = PlayerStateHolder.getInstance()
     private lateinit var playerController: PlayerController
     private val lastPlaybackStore by lazy { LastPlaybackStore(this) }
@@ -126,73 +129,115 @@ class MainActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedListen
             when (currentFragment) {
                 is MusicTracksFragment -> vm.setTitle(MainTitle.MusicTracks)
                 is FavoriteMusicTracksFragment -> vm.setTitle(MainTitle.FavoriteTracks)
-                is SettingsFragment -> vm.setTitle(MainTitle.Settings)
+                is AppSettingsFragment -> vm.setTitle(MainTitle.AppSettings)
+                is AudioSettingsFragment -> vm.setTitle(MainTitle.AudioSettings)
             }
         }
 
         // 현재 메인 탭을 숨기고 설정 화면을 백스택 위에 표시한다.
-        binding.ivSetting.setOnClickListener {
-            // 설정 화면이 이미 표시 중이면 중복 실행하지 않는다.
-            val existingSettingFragment =
-                supportFragmentManager.findFragmentByTag(TAG_SETTING)
-
-            if (
-                existingSettingFragment != null &&
-                existingSettingFragment.isAdded &&
-                !existingSettingFragment.isHidden
-            ) {
-                return@setOnClickListener
-            }
-
-            val currentMainFragment =
-                findCurrentMainTabFragment()
-                    ?: return@setOnClickListener
-
-            val settingsFragment = existingSettingFragment ?: SettingsFragment.newInstance()
-
-            supportFragmentManager.beginTransaction()
-                .setReorderingAllowed(true)
-                .hide(currentMainFragment)
-                .setMaxLifecycle(
-                    currentMainFragment,
-                    Lifecycle.State.STARTED
-                )
-                .apply {
-                    if (settingsFragment.isAdded) {
-                        show(settingsFragment)
-                    } else {
-                        add(
-                            binding.fcvMain.id,
-                            settingsFragment,
-                            TAG_SETTING
-                        )
-                    }
-                }
-                .setMaxLifecycle(
-                    settingsFragment,
-                    Lifecycle.State.RESUMED
-                )
-                .setPrimaryNavigationFragment(settingsFragment)
-                .addToBackStack(TAG_SETTING)
-                .commit()
+        binding.ivAppSettings.setOnClickListener {
+            vm.requestOpenAppSettings()
         }
 
         initMainTabFragments()
 
         binding.bottomNavMain.setOnItemSelectedListener(this)
-        binding.bottomNavMain.setOnItemReselectedListener {
-            val settingFragment = supportFragmentManager.findFragmentByTag(TAG_SETTING)
 
-            if (
-                settingFragment != null &&
-                settingFragment.isAdded &&
-                !settingFragment.isHidden
-            ) {
-                supportFragmentManager.popBackStackImmediate()
+        // 현재 탭에서 열린 설정 흐름은 탭 재선택 시 닫는다.
+        binding.bottomNavMain.setOnItemReselectedListener { item ->
+            if (popSettingsBackStack()) {
+                when (item.itemId) {
+                    R.id.menu_music_track_list -> vm.setTitle(MainTitle.MusicTracks)
+                    R.id.menu_favorite_music_tracks -> vm.setTitle(MainTitle.FavoriteTracks)
+                }
             }
         }
 
         prepareFavoritesTabAfterFirstDraw()
+    }
+
+    // 현재 메인 탭을 숨기고 앱 설정을 설정 흐름의 첫 화면으로 표시한다.
+    private fun showAppSettingsFragment() {
+        // 설정 화면이 이미 표시 중이면 중복 실행하지 않는다.
+        val existingAppSettingsFragment =
+            supportFragmentManager.findFragmentByTag(TAG_APP_SETTINGS)
+
+        if (
+            existingAppSettingsFragment != null &&
+            existingAppSettingsFragment.isAdded &&
+            !existingAppSettingsFragment.isHidden
+        ) {
+            return
+        }
+
+        val currentMainFragment =
+            findCurrentMainTabFragment()
+                ?: return
+
+        val appSettingsFragment = existingAppSettingsFragment ?: AppSettingsFragment.newInstance()
+
+        supportFragmentManager.beginTransaction()
+            .setReorderingAllowed(true)
+            .hide(currentMainFragment)
+            .setMaxLifecycle(
+                currentMainFragment,
+                Lifecycle.State.STARTED
+            )
+            .apply {
+                if (appSettingsFragment.isAdded) {
+                    show(appSettingsFragment)
+                } else {
+                    add(
+                        binding.fcvMain.id,
+                        appSettingsFragment,
+                        TAG_APP_SETTINGS
+                    )
+                }
+            }
+            .setMaxLifecycle(
+                appSettingsFragment,
+                Lifecycle.State.RESUMED
+            )
+            .setPrimaryNavigationFragment(appSettingsFragment)
+            .addToBackStack(TAG_APP_SETTINGS)
+            .commit()
+    }
+
+    // 앱 설정 위에 음향 설정을 쌓아 뒤로가기로 앱 설정에 복귀할 수 있게 한다.
+    private fun showAudioSettingsFragment() {
+        val existingAudioSettingsFragment =
+            supportFragmentManager.findFragmentByTag(TAG_AUDIO_SETTINGS)
+
+        if (
+            existingAudioSettingsFragment != null &&
+            existingAudioSettingsFragment.isAdded &&
+            !existingAudioSettingsFragment.isHidden
+        ) {
+            return
+        }
+
+        val appSettingsFragment =
+            supportFragmentManager.findFragmentByTag(TAG_APP_SETTINGS)
+                ?: return
+
+        val audioSettingsFragment =
+            existingAudioSettingsFragment ?: AudioSettingsFragment.newInstance()
+
+        supportFragmentManager.beginTransaction()
+            .setReorderingAllowed(true)
+            .hide(appSettingsFragment)
+            .setMaxLifecycle(appSettingsFragment, Lifecycle.State.STARTED)
+            .apply {
+                if (audioSettingsFragment.isAdded) {
+                    show(audioSettingsFragment)
+                } else {
+                    add(binding.fcvMain.id, audioSettingsFragment, TAG_AUDIO_SETTINGS)
+                }
+            }
+            .setMaxLifecycle(audioSettingsFragment, Lifecycle.State.RESUMED)
+            .setPrimaryNavigationFragment(audioSettingsFragment)
+            .addToBackStack(TAG_AUDIO_SETTINGS)
+            .commit()
     }
 
     override fun onStart() {
@@ -216,8 +261,16 @@ class MainActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedListen
                 currentTitle.observe(this@MainActivity) { mainTitle ->
                     binding.tvMainTitle.text = getString(mainTitle.resId)
                     binding.ivBack.isVisible = mainTitle.showBackButton
-                    binding.ivSetting.isVisible = mainTitle.showSettingButton
-                    binding.ivSetting.isEnabled = mainTitle.showSettingButton
+                    binding.ivAppSettings.isVisible = mainTitle.showAppSettingsButton
+                    binding.ivAppSettings.isEnabled = mainTitle.showAppSettingsButton
+                }
+            }
+
+            navigationEvent.observe(this@MainActivity) { event ->
+                when (event.getContentIfNotHandled()) {
+                    MainNavigationCommand.AppSettings -> showAppSettingsFragment()
+                    MainNavigationCommand.AudioSettings -> showAudioSettingsFragment()
+                    null -> Unit
                 }
             }
         }
@@ -254,22 +307,15 @@ class MainActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedListen
     }
 
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
-        val settingFragment = supportFragmentManager.findFragmentByTag(TAG_SETTING)
-
-        // 설정 화면 위에서 탭을 누르면 설정을 닫고 선택한 탭으로 돌아간다.
-        if (
-            settingFragment != null &&
-            settingFragment.isAdded &&
-            !settingFragment.isHidden
-        ) {
-            supportFragmentManager.popBackStackImmediate()
-        }
+        // 다른 탭으로 이동하기 전에 설정 흐름을 정리해 이전 설정 화면 재노출을 막는다.
+        // 설정 흐름 종료 직후에는 목표 탭을 즉시 표시해 중간 화면 노출을 방지한다.
 
         return when (item.itemId) {
             R.id.menu_music_track_list -> {
                 showMainTab(
                     tag = TAG_MUSIC_LIST,
-                    createFragment = { MusicTracksFragment.newInstance() }
+                    createFragment = { MusicTracksFragment.newInstance() },
+                    executeNow = popSettingsBackStack()
                 )
                 vm.setTitle(MainTitle.MusicTracks)
                 true
@@ -278,7 +324,8 @@ class MainActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedListen
             R.id.menu_favorite_music_tracks -> {
                 showMainTab(
                     tag = TAG_FAVORITES,
-                    createFragment = { FavoriteMusicTracksFragment.newInstance() }
+                    createFragment = { FavoriteMusicTracksFragment.newInstance() },
+                    executeNow = popSettingsBackStack()
                 )
                 vm.setTitle(MainTitle.FavoriteTracks)
                 true
@@ -337,46 +384,41 @@ class MainActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedListen
     // 현재 탭을 숨기고 요청한 메인 탭을 표시한다.
     private fun showMainTab(
         tag: String,
-        createFragment: () -> Fragment
+        createFragment: () -> Fragment,
+        executeNow: Boolean = false
     ) {
-        val fragmentManager = supportFragmentManager
         val currentFragment = findCurrentMainTabFragment()
         val targetFragment =
-            fragmentManager.findFragmentByTag(tag) ?: createFragment()
+            supportFragmentManager.findFragmentByTag(tag) ?: createFragment()
 
         // 현재 표시 중인 탭을 다시 선택한 경우
         if (currentFragment === targetFragment) {
             return
         }
 
-        fragmentManager.beginTransaction()
+        val transaction = supportFragmentManager.beginTransaction()
             .setReorderingAllowed(true)
             .apply {
                 if (currentFragment != null) {
                     hide(currentFragment)
-                    setMaxLifecycle(
-                        currentFragment,
-                        Lifecycle.State.STARTED
-                    )
+                    setMaxLifecycle(currentFragment, Lifecycle.State.STARTED)
                 }
 
                 if (targetFragment.isAdded) {
                     show(targetFragment)
                 } else {
-                    add(
-                        binding.fcvMain.id,
-                        targetFragment,
-                        tag
-                    )
+                    add(binding.fcvMain.id, targetFragment, tag)
                 }
 
-                setMaxLifecycle(
-                    targetFragment,
-                    Lifecycle.State.RESUMED
-                )
+                setMaxLifecycle(targetFragment, Lifecycle.State.RESUMED)
                 setPrimaryNavigationFragment(targetFragment)
             }
-            .commit()
+
+        if (executeNow) {
+            transaction.commitNow()
+        } else {
+            transaction.commit()
+        }
     }
 
     private fun findCurrentMainTabFragment(): Fragment? {
@@ -441,6 +483,38 @@ class MainActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedListen
             context = this,
             action = MusicService.ACTION_REFRESH_NOTIFICATION
         )
+    }
+
+    // 하단 탭 이동 시 설정 계열 백스택을 한 번에 제거한다.
+    private fun popSettingsBackStack(): Boolean {
+        val hasAppSettingsBackStack = (0 until supportFragmentManager.backStackEntryCount)
+            .any { index ->
+                supportFragmentManager.getBackStackEntryAt(index).name == TAG_APP_SETTINGS
+            }
+
+        if (hasAppSettingsBackStack) {
+            // 앱 설정부터 그 위에 쌓인 하위 설정 화면까지 함께 제거한다.
+            supportFragmentManager.popBackStackImmediate(
+                TAG_APP_SETTINGS,
+                FragmentManager.POP_BACK_STACK_INCLUSIVE
+            )
+            return true
+        }
+
+        val hasAudioSettingsBackStack = (0 until supportFragmentManager.backStackEntryCount)
+            .any { index ->
+                supportFragmentManager.getBackStackEntryAt(index).name == TAG_AUDIO_SETTINGS
+            }
+
+        if (hasAudioSettingsBackStack) {
+            supportFragmentManager.popBackStackImmediate(
+                TAG_AUDIO_SETTINGS,
+                FragmentManager.POP_BACK_STACK_INCLUSIVE
+            )
+            return true
+        }
+
+        return false
     }
 
     private fun initStatusBarColor() {
@@ -584,7 +658,7 @@ class MainActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedListen
             .setMessage(msg)
             .setPositiveButton("설정 열기") { d, _ ->
                 d.dismiss()
-                openAppSettings()
+                openSystemSettings()
             }
             .setNegativeButton("닫기", null)
             .show()
@@ -608,8 +682,8 @@ class MainActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedListen
                 ) == PackageManager.PERMISSION_GRANTED
     }
 
-    // 앱 세부 설정 화면 이동
-    private fun openAppSettings() {
+    // 시스템 설정 화면 이동
+    private fun openSystemSettings() {
         val intent = Intent(
             Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
             "package:$packageName".toUri()
@@ -661,7 +735,7 @@ class MainActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedListen
 
     @OptIn(UnstableApi::class)
     private fun initSoundEQSettings() {
-        val prefs = getSharedPreferences(SettingsFragment.TAG, MODE_PRIVATE)
+        val prefs = getSharedPreferences(AudioSettingsFragment.TAG, MODE_PRIVATE)
 
         if (player.audioSessionId != 0) {
             AudioEffectManager.init(player.audioSessionId)
@@ -682,6 +756,7 @@ class MainActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedListen
     companion object {
         private const val TAG_MUSIC_LIST = "music_list"
         private const val TAG_FAVORITES = "favorites"
-        private const val TAG_SETTING = "setting"
+        private const val TAG_APP_SETTINGS = "app_settings"
+        private const val TAG_AUDIO_SETTINGS = "audio_settings"
     }
 }

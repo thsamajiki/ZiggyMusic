@@ -5,9 +5,15 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.hero.ziggymusic.data.local.entity.MusicTrackEntity
 import com.hero.ziggymusic.domain.music.repository.MusicRepository
+import com.hero.ziggymusic.presentation.common.SingleEvent
 import com.hero.ziggymusic.presentation.main.model.MainTitle
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
+
+sealed class MainNavigationCommand {
+    object AppSettings : MainNavigationCommand()
+    object AudioSettings : MainNavigationCommand()
+}
 
 @HiltViewModel
 class MainViewModel @Inject constructor(
@@ -18,6 +24,17 @@ class MainViewModel @Inject constructor(
     // MainTitle 상태 관리
     private val _currentTitle = MutableLiveData<MainTitle>(MainTitle.MusicTracks)
     val currentTitle: LiveData<MainTitle> = _currentTitle
+
+    private val _navigationEvent = MutableLiveData<SingleEvent<MainNavigationCommand>>()
+    val navigationEvent: LiveData<SingleEvent<MainNavigationCommand>> = _navigationEvent
+
+    fun requestOpenAppSettings() {
+        _navigationEvent.value = SingleEvent(MainNavigationCommand.AppSettings)
+    }
+
+    fun requestOpenAudioSettings() {
+        _navigationEvent.value = SingleEvent(MainNavigationCommand.AudioSettings)
+    }
 
     fun setTitle(title: MainTitle) {
         _currentTitle.value = title
