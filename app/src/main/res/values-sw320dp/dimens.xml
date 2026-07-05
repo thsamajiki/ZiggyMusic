@@ -108,6 +108,28 @@
     <dimen name="seekbar_volume">231dp</dimen>
     <dimen name="layout_volume_padding">46dp</dimen>
 
+    <!-- App Settings -->
+
+    <dimen name="app_settings_content_horizontal_inset">24dp</dimen>
+    <dimen name="app_settings_content_padding_top">26dp</dimen>
+    <dimen name="app_settings_content_padding_bottom">40dp</dimen>
+    <dimen name="app_settings_first_section_margin_top">32dp</dimen>
+    <dimen name="app_settings_section_margin_top">34dp</dimen>
+    <dimen name="app_settings_two_line_section_to_first_row_margin_top">16dp</dimen>
+    <dimen name="app_settings_single_line_section_to_first_row_margin_top">12dp</dimen>
+
+    <dimen name="app_settings_section_title_text_size">17sp</dimen>
+    <dimen name="app_settings_row_title_text_size">14sp</dimen>
+    <dimen name="app_settings_description_text_size">12sp</dimen>
+
+    <dimen name="app_settings_single_line_row_min_height">52dp</dimen>
+    <dimen name="app_settings_two_line_row_min_height">68dp</dimen>
+    <dimen name="app_settings_row_padding_vertical">11dp</dimen>
+    <dimen name="app_settings_row_text_vertical_gap">5dp</dimen>
+
+    <dimen name="app_settings_chevron_size">22dp</dimen>
+    <dimen name="app_settings_text_to_trailing_icon_gap">10dp</dimen>
+
     <!-- Notification -->
     <dimen name="noti_height">46dp</dimen>
     <dimen name="noti_extended_height">120dp</dimen>
