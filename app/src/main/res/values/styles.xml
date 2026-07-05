@@ -99,6 +99,20 @@
         <item name="android:textColor">@color/normal_gray</item>
     </style>
 
+    <!-- App Settings -->
+
+    <style name="TextAppearance.ZiggyMusic.AppSettings.SectionTitle" parent="TextAppearance.ZiggyMusic.White.Title.SemiBold">
+        <item name="android:textSize">@dimen/app_settings_section_title_text_size</item>
+    </style>
+
+    <style name="TextAppearance.ZiggyMusic.AppSettings.RowTitle" parent="TextAppearance.ZiggyMusic.White.Body.Medium">
+        <item name="android:textSize">@dimen/app_settings_row_title_text_size</item>
+    </style>
+
+    <style name="TextAppearance.ZiggyMusic.AppSettings.Description" parent="TextAppearance.ZiggyMusic.Sub">
+        <item name="android:textSize">@dimen/app_settings_description_text_size</item>
+    </style>
+
     <style name="TextAppearance.ZiggyMusic.Setting.Spinner" parent="TextAppearance.ZiggyMusic.White.Caption">
         <item name="android:textSize">@dimen/setting_spinner_text_size</item>
     </style>
