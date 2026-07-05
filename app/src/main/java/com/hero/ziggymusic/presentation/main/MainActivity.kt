@@ -261,8 +261,8 @@ class MainActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedListen
                 currentTitle.observe(this@MainActivity) { mainTitle ->
                     binding.tvMainTitle.text = getString(mainTitle.resId)
                     binding.ivBack.isVisible = mainTitle.showBackButton
-                    binding.ivSetting.isVisible = mainTitle.showSettingButton
-                    binding.ivSetting.isEnabled = mainTitle.showSettingButton
+                    binding.ivSetting.isVisible = mainTitle.showAppSettingsButton
+                    binding.ivSetting.isEnabled = mainTitle.showAppSettingsButton
                 }
             }
 

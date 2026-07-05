@@ -6,19 +6,19 @@ import com.hero.ziggymusic.R
 sealed class MainTitle(
     @get:StringRes val resId: Int,
     val showBackButton: Boolean = false,
-    val showSettingButton: Boolean = true,
+    val showAppSettingsButton: Boolean = true,
 ) {
     object MusicTracks : MainTitle(R.string.title_music_tracks)
     object FavoriteTracks : MainTitle(R.string.title_favorite_tracks)
     object AppSettings : MainTitle(
         resId = R.string.title_app_settings,
         showBackButton = true,
-        showSettingButton = false
+        showAppSettingsButton = false
     )
 
     object AudioSettings : MainTitle(
         resId = R.string.title_audio_settings,
         showBackButton = true,
-        showSettingButton = false
+        showAppSettingsButton = false
     )
 }
