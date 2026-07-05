@@ -1,0 +1,264 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/bg_setting_dark_gradient"
+    tools:context=".presentation.main.setting.AppSettingsFragment">
+
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/settingsScrollView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:clipToPadding="false"
+        android:fillViewport="true"
+        android:scrollbars="vertical">
+
+        <LinearLayout
+            android:id="@+id/settingsContentLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingTop="@dimen/app_settings_content_padding_top"
+            android:paddingBottom="@dimen/app_settings_content_padding_bottom">
+
+            <TextView
+                android:id="@+id/tvPlaybackSoundSectionTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/app_settings_content_horizontal_inset"
+                android:text="@string/settings_section_sound"
+                android:textAppearance="@style/TextAppearance.ZiggyMusic.AppSettings.SectionTitle" />
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/rowAudioSettings"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/app_settings_two_line_section_to_first_row_margin_top"
+                android:clickable="true"
+                android:focusable="true"
+                android:foreground="?attr/selectableItemBackground"
+                android:minHeight="@dimen/app_settings_two_line_row_min_height"
+                android:paddingStart="@dimen/app_settings_content_horizontal_inset"
+                android:paddingTop="@dimen/app_settings_row_padding_vertical"
+                android:paddingEnd="@dimen/app_settings_content_horizontal_inset"
+                android:paddingBottom="@dimen/app_settings_row_padding_vertical">
+
+                <TextView
+                    android:id="@+id/tvAudioSettingsTitle"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="@dimen/app_settings_text_to_trailing_icon_gap"
+                    android:text="@string/settings_audio_title"
+                    android:textAppearance="@style/TextAppearance.ZiggyMusic.AppSettings.RowTitle"
+                    app:layout_constraintEnd_toStartOf="@id/ivAudioSettingsArrow"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <TextView
+                    android:id="@+id/tvAudioSettingsSummary"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/app_settings_row_text_vertical_gap"
+                    android:layout_marginEnd="@dimen/app_settings_text_to_trailing_icon_gap"
+                    android:text="@string/settings_audio_summary"
+                    android:textAppearance="@style/TextAppearance.ZiggyMusic.AppSettings.Description"
+                    app:layout_constraintEnd_toStartOf="@id/ivAudioSettingsArrow"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/tvAudioSettingsTitle" />
+
+                <ImageView
+                    android:id="@+id/ivAudioSettingsArrow"
+                    android:layout_width="@dimen/app_settings_chevron_size"
+                    android:layout_height="@dimen/app_settings_chevron_size"
+                    android:contentDescription="@string/settings_audio_title"
+                    android:src="@drawable/ic_chevron_right"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <View
+                android:id="@+id/dividerPlaybackSound"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/view_supporter"
+                android:layout_marginStart="@dimen/app_settings_content_horizontal_inset"
+                android:layout_marginEnd="@dimen/app_settings_content_horizontal_inset"
+                android:background="@color/setting_divider" />
+
+            <TextView
+                android:id="@+id/tvTermsInfoSectionTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/app_settings_content_horizontal_inset"
+                android:layout_marginTop="@dimen/app_settings_single_line_section_to_first_row_margin_top"
+                android:text="@string/settings_section_terms_info"
+                android:textAppearance="@style/TextAppearance.ZiggyMusic.AppSettings.SectionTitle" />
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/rowTermsOfService"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/app_settings_single_line_section_to_first_row_margin_top"
+                android:clickable="true"
+                android:focusable="true"
+                android:foreground="?attr/selectableItemBackground"
+                android:minHeight="@dimen/app_settings_single_line_row_min_height"
+                android:paddingStart="@dimen/app_settings_content_horizontal_inset"
+                android:paddingEnd="@dimen/app_settings_content_horizontal_inset">
+
+                <TextView
+                    android:id="@+id/tvTermsOfServiceTitle"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="@dimen/app_settings_text_to_trailing_icon_gap"
+                    android:text="@string/settings_terms_of_service"
+                    android:textAppearance="@style/TextAppearance.ZiggyMusic.AppSettings.RowTitle"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toStartOf="@id/ivTermsOfServiceArrow"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <ImageView
+                    android:id="@+id/ivTermsOfServiceArrow"
+                    android:layout_width="@dimen/app_settings_chevron_size"
+                    android:layout_height="@dimen/app_settings_chevron_size"
+                    android:contentDescription="@string/settings_terms_of_service"
+                    android:src="@drawable/ic_chevron_right"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <View
+                android:id="@+id/dividerTermsOfService"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/view_supporter"
+                android:layout_marginStart="@dimen/app_settings_content_horizontal_inset"
+                android:layout_marginEnd="@dimen/app_settings_content_horizontal_inset"
+                android:background="@color/setting_divider" />
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/rowPrivacyPolicy"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:clickable="true"
+                android:focusable="true"
+                android:foreground="?attr/selectableItemBackground"
+                android:minHeight="@dimen/app_settings_single_line_row_min_height"
+                android:paddingStart="@dimen/app_settings_content_horizontal_inset"
+                android:paddingEnd="@dimen/app_settings_content_horizontal_inset">
+
+                <TextView
+                    android:id="@+id/tvPrivacyPolicyTitle"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="@dimen/app_settings_text_to_trailing_icon_gap"
+                    android:text="@string/settings_privacy_policy"
+                    android:textAppearance="@style/TextAppearance.ZiggyMusic.AppSettings.RowTitle"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toStartOf="@id/ivPrivacyPolicyArrow"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <ImageView
+                    android:id="@+id/ivPrivacyPolicyArrow"
+                    android:layout_width="@dimen/app_settings_chevron_size"
+                    android:layout_height="@dimen/app_settings_chevron_size"
+                    android:contentDescription="@string/settings_privacy_policy"
+                    android:src="@drawable/ic_chevron_right"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <View
+                android:id="@+id/dividerPrivacyPolicy"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/view_supporter"
+                android:layout_marginStart="@dimen/app_settings_content_horizontal_inset"
+                android:layout_marginEnd="@dimen/app_settings_content_horizontal_inset"
+                android:background="@color/setting_divider" />
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/rowOpenSourceLicenses"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:clickable="true"
+                android:focusable="true"
+                android:foreground="?attr/selectableItemBackground"
+                android:minHeight="@dimen/app_settings_single_line_row_min_height"
+                android:paddingStart="@dimen/app_settings_content_horizontal_inset"
+                android:paddingEnd="@dimen/app_settings_content_horizontal_inset">
+
+                <TextView
+                    android:id="@+id/tvOpenSourceLicensesTitle"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="@dimen/app_settings_text_to_trailing_icon_gap"
+                    android:text="@string/settings_open_source_licenses"
+                    android:textAppearance="@style/TextAppearance.ZiggyMusic.AppSettings.RowTitle"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toStartOf="@id/ivOpenSourceLicensesArrow"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <ImageView
+                    android:id="@+id/ivOpenSourceLicensesArrow"
+                    android:layout_width="@dimen/app_settings_chevron_size"
+                    android:layout_height="@dimen/app_settings_chevron_size"
+                    android:contentDescription="@string/settings_open_source_licenses"
+                    android:src="@drawable/ic_chevron_right"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <View
+                android:id="@+id/dividerOpenSourceLicenses"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/view_supporter"
+                android:layout_marginStart="@dimen/app_settings_content_horizontal_inset"
+                android:layout_marginEnd="@dimen/app_settings_content_horizontal_inset"
+                android:background="@color/setting_divider" />
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/rowAppVersion"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:minHeight="@dimen/app_settings_single_line_row_min_height"
+                android:paddingStart="@dimen/app_settings_content_horizontal_inset"
+                android:paddingEnd="@dimen/app_settings_content_horizontal_inset">
+
+                <TextView
+                    android:id="@+id/tvAppVersionTitle"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="@dimen/app_settings_text_to_trailing_icon_gap"
+                    android:text="@string/settings_app_version"
+                    android:textAppearance="@style/TextAppearance.ZiggyMusic.AppSettings.RowTitle"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toStartOf="@id/tvAppVersionValue"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <TextView
+                    android:id="@+id/tvAppVersionValue"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="@style/TextAppearance.ZiggyMusic.AppSettings.Description"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    tools:text="1.0.0" />
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+</androidx.coordinatorlayout.widget.CoordinatorLayout>
