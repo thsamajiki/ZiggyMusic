@@ -18,7 +18,7 @@ import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import com.hero.ziggymusic.R
-import com.hero.ziggymusic.databinding.FragmentSettingsBinding
+import com.hero.ziggymusic.databinding.FragmentAudioSettingsBinding
 import androidx.core.content.edit
 import com.hero.ziggymusic.data.local.preferences.AudioSettingKeys
 import com.hero.ziggymusic.playback.audio.HeadTracker
@@ -30,8 +30,8 @@ import com.hero.ziggymusic.playback.manager.AudioEffectManager.mainColor
 import com.hero.ziggymusic.presentation.main.setting.widget.SoundEQVerticalSeekbar
 import java.util.Locale
 
-class SettingsFragment : Fragment() {
-    private var _binding: FragmentSettingsBinding? = null
+class AudioSettingsFragment : Fragment() {
+    private var _binding: FragmentAudioSettingsBinding? = null
     private val binding get() = _binding!!
 
     var seekbarIds: ArrayList<Int> = ArrayList()
@@ -54,7 +54,7 @@ class SettingsFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?,
     ): View {
-        _binding = FragmentSettingsBinding.inflate(inflater, container, false)
+        _binding = FragmentAudioSettingsBinding.inflate(inflater, container, false)
 
         return binding.root
     }
@@ -509,9 +509,9 @@ class SettingsFragment : Fragment() {
     }
 
     companion object {
-        fun newInstance(): SettingsFragment = SettingsFragment()
+        fun newInstance(): AudioSettingsFragment = AudioSettingsFragment()
 
-        const val TAG = "SettingFragment"
+        const val TAG = "AudioSettingsFragment"
 
         private const val EQ_ENABLED_ALPHA = 1.0f
         private const val EQ_DISABLED_CONTENT_ALPHA = 0.55f
