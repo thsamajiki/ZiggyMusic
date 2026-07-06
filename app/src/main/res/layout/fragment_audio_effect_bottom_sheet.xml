@@ -1,0 +1,262 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/audioEffectBottomSheet"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_audio_effect_bottom_sheet"
+    android:orientation="vertical"
+    android:paddingStart="@dimen/audio_effect_bottom_sheet_padding_horizontal"
+    android:paddingTop="@dimen/audio_effect_bottom_sheet_padding_top"
+    android:paddingEnd="@dimen/audio_effect_bottom_sheet_padding_horizontal"
+    android:paddingBottom="@dimen/audio_effect_bottom_sheet_padding_bottom">
+
+    <View
+        android:id="@+id/dragHandle"
+        android:layout_width="@dimen/audio_effect_bottom_sheet_handle_width"
+        android:layout_height="@dimen/audio_effect_bottom_sheet_handle_height"
+        android:layout_gravity="center_horizontal"
+        android:background="@drawable/ic_drag_handle" />
+
+    <LinearLayout
+        android:id="@+id/layoutAudioEffectHeader"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/audio_effect_bottom_sheet_header_margin_top"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/tvAudioEffectTitle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/audio_effect"
+            android:textAppearance="@style/TextAppearance.ZiggyMusic.AudioEffect.Title" />
+
+        <TextView
+            android:id="@+id/tvOpenAudioEffectSettings"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="@dimen/audio_effect_bottom_sheet_trailing_alignment_margin"
+            android:text="@string/audio_effect_open_settings"
+            android:textAppearance="@style/TextAppearance.ZiggyMusic.AudioEffect.Action" />
+
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/tvRecentPresetTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/audio_effect_bottom_sheet_preset_title_margin_top"
+        android:text="@string/recent_presets"
+        android:textAppearance="@style/TextAppearance.ZiggyMusic.AudioEffect.SectionTitle" />
+
+    <com.google.android.material.button.MaterialButtonToggleGroup
+        android:id="@+id/togglePresetGroup"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/audio_effect_bottom_sheet_preset_button_height"
+        android:layout_marginTop="@dimen/audio_effect_bottom_sheet_preset_group_margin_top"
+        android:layout_marginEnd="@dimen/audio_effect_bottom_sheet_trailing_alignment_margin"
+        app:checkedButton="@id/btnRecentPresetFirst"
+        app:selectionRequired="true"
+        app:singleSelection="true">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnRecentPresetFirst"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_marginEnd="@dimen/audio_effect_bottom_sheet_preset_button_gap"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:includeFontPadding="false"
+            android:minWidth="0dp"
+            android:minHeight="0dp"
+            android:paddingTop="0dp"
+            android:paddingBottom="0dp"
+            android:text="@string/preset_normal"
+            android:textAllCaps="false"
+            android:textAppearance="@style/TextAppearance.ZiggyMusic.AudioEffect.Preset"
+            android:textColor="@color/audio_effect_preset_button_text_color"
+            app:cornerRadius="@dimen/audio_effect_bottom_sheet_preset_button_radius"
+            app:strokeColor="@color/audio_effect_preset_button_stroke_color"
+            app:strokeWidth="@dimen/audio_effect_bottom_sheet_preset_button_stroke_width" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnRecentPresetSecond"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_marginHorizontal="@dimen/audio_effect_bottom_sheet_preset_button_gap"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:includeFontPadding="false"
+            android:minWidth="0dp"
+            android:minHeight="0dp"
+            android:paddingTop="0dp"
+            android:paddingBottom="0dp"
+            android:text="@string/preset_pop"
+            android:textAllCaps="false"
+            android:textAppearance="@style/TextAppearance.ZiggyMusic.AudioEffect.Preset"
+            android:textColor="@color/audio_effect_preset_button_text_color"
+            app:cornerRadius="@dimen/audio_effect_bottom_sheet_preset_button_radius"
+            app:strokeColor="@color/audio_effect_preset_button_stroke_color"
+            app:strokeWidth="@dimen/audio_effect_bottom_sheet_preset_button_stroke_width" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnRecentPresetThird"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_marginHorizontal="@dimen/audio_effect_bottom_sheet_preset_button_gap"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:includeFontPadding="false"
+            android:minWidth="0dp"
+            android:minHeight="0dp"
+            android:paddingTop="0dp"
+            android:paddingBottom="0dp"
+            android:text="@string/preset_rock"
+            android:textAllCaps="false"
+            android:textAppearance="@style/TextAppearance.ZiggyMusic.AudioEffect.Preset"
+            android:textColor="@color/audio_effect_preset_button_text_color"
+            app:cornerRadius="@dimen/audio_effect_bottom_sheet_preset_button_radius"
+            app:strokeColor="@color/audio_effect_preset_button_stroke_color"
+            app:strokeWidth="@dimen/audio_effect_bottom_sheet_preset_button_stroke_width" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnRecentPresetFourth"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_marginStart="@dimen/audio_effect_bottom_sheet_preset_button_gap"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:includeFontPadding="false"
+            android:minWidth="0dp"
+            android:minHeight="0dp"
+            android:paddingTop="0dp"
+            android:paddingBottom="0dp"
+            android:text="@string/preset_custom"
+            android:textAllCaps="false"
+            android:textAppearance="@style/TextAppearance.ZiggyMusic.AudioEffect.Preset"
+            android:textColor="@color/audio_effect_preset_button_text_color"
+            app:cornerRadius="@dimen/audio_effect_bottom_sheet_preset_button_radius"
+            app:strokeColor="@color/audio_effect_preset_button_stroke_color"
+            app:strokeWidth="@dimen/audio_effect_bottom_sheet_preset_button_stroke_width" />
+
+    </com.google.android.material.button.MaterialButtonToggleGroup>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/layoutLoudnessNormalizer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/audio_effect_bottom_sheet_loudness_margin_top">
+
+        <LinearLayout
+            android:id="@+id/layoutLoudnessText"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/swLoudnessNormalizer"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <TextView
+                android:id="@+id/tvLoudnessNormalizerTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/loudness_normalizer"
+                android:textAppearance="@style/TextAppearance.ZiggyMusic.AudioEffect.SectionTitle" />
+
+            <TextView
+                android:id="@+id/tvLoudnessNormalizerDescription"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/audio_effect_bottom_sheet_description_margin_top"
+                android:text="@string/loudness_normalizer_description"
+                android:textAppearance="@style/TextAppearance.ZiggyMusic.AudioEffect.Description" />
+
+        </LinearLayout>
+
+        <androidx.appcompat.widget.SwitchCompat
+            android:id="@+id/swLoudnessNormalizer"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:contentDescription="@string/loudness_normalizer"
+            android:minWidth="0dp"
+            android:paddingStart="0dp"
+            android:paddingEnd="0dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:switchMinWidth="0dp"
+            app:switchPadding="0dp" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/layoutBass"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/audio_effect_bottom_sheet_seekbar_row_height"
+        android:layout_marginTop="@dimen/audio_effect_bottom_sheet_seekbar_row_margin_top">
+
+        <TextView
+            android:id="@+id/tvBassTitle"
+            android:layout_width="@dimen/audio_effect_bottom_sheet_bass_label_width"
+            android:layout_height="wrap_content"
+            android:text="@string/bass"
+            android:textAppearance="@style/TextAppearance.ZiggyMusic.AudioEffect.ControlLabel"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <SeekBar
+            android:id="@+id/seekBarBass"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/audio_effect_bottom_sheet_label_to_seekbar_gap"
+            android:layout_marginEnd="@dimen/audio_effect_bottom_sheet_seekbar_end_adjustment"
+            android:max="100"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/tvBassTitle"
+            app:layout_constraintTop_toTopOf="parent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/layoutVirtualizer"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/audio_effect_bottom_sheet_seekbar_row_height"
+        android:layout_marginTop="@dimen/audio_effect_bottom_sheet_virtualizer_margin_top">
+
+        <TextView
+            android:id="@+id/tvVirtualizerTitle"
+            android:layout_width="@dimen/audio_effect_bottom_sheet_virtualizer_label_width"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:text="@string/_3d_virtualizer"
+            android:textAppearance="@style/TextAppearance.ZiggyMusic.AudioEffect.ControlLabel"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <SeekBar
+            android:id="@+id/seekBarVirtualizer"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/audio_effect_bottom_sheet_label_to_seekbar_gap"
+            android:layout_marginEnd="@dimen/audio_effect_bottom_sheet_seekbar_end_adjustment"
+            android:max="100"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/tvVirtualizerTitle"
+            app:layout_constraintTop_toTopOf="parent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</LinearLayout>
