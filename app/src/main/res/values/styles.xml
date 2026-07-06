@@ -144,6 +144,33 @@
         <item name="android:textSize">@dimen/small_text_size</item>
     </style>
 
+    <!-- Audio Effect Bottom Sheet -->
+
+    <style name="TextAppearance.ZiggyMusic.AudioEffect.Title" parent="TextAppearance.ZiggyMusic.White.Title.Bold">
+        <item name="android:textSize">@dimen/audio_effect_bottom_sheet_title_text_size</item>
+    </style>
+
+    <style name="TextAppearance.ZiggyMusic.AudioEffect.Action" parent="TextAppearance.ZiggyMusic.White.Body.SemiBold">
+        <item name="android:textColor">@color/cyan</item>
+        <item name="android:textSize">@dimen/audio_effect_bottom_sheet_action_text_size</item>
+    </style>
+
+    <style name="TextAppearance.ZiggyMusic.AudioEffect.SectionTitle" parent="TextAppearance.ZiggyMusic.White.Body.SemiBold">
+        <item name="android:textSize">@dimen/audio_effect_bottom_sheet_section_text_size</item>
+    </style>
+
+    <style name="TextAppearance.ZiggyMusic.AudioEffect.Description" parent="TextAppearance.ZiggyMusic.Setting.Description">
+        <item name="android:textSize">@dimen/audio_effect_bottom_sheet_description_text_size</item>
+    </style>
+
+    <style name="TextAppearance.ZiggyMusic.AudioEffect.ControlLabel" parent="TextAppearance.ZiggyMusic.White.Body.SemiBold">
+        <item name="android:textSize">@dimen/audio_effect_bottom_sheet_control_label_text_size</item>
+    </style>
+
+    <style name="TextAppearance.ZiggyMusic.AudioEffect.Preset" parent="TextAppearance.ZiggyMusic.White.Body.SemiBold">
+        <item name="android:textSize">@dimen/audio_effect_bottom_sheet_preset_text_size</item>
+    </style>
+
     <style name="TextAppearance.ZiggyMusic.Notification.Title.Small" parent="TextAppearance.Compat.Notification.Title">
         <item name="android:fontFamily">@font/pretendard_semibold</item>
         <item name="fontFamily">@font/pretendard_semibold</item>
