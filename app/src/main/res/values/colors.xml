@@ -25,6 +25,13 @@
     <color name="setting_dark_gradient_center">#0D1012</color>
     <color name="setting_dark_gradient_end">#202124</color>
     <color name="setting_divider">#1FFFFFFF</color>
+
+    <!-- Audio effect bottom sheet -->
+    <color name="audio_effect_bottom_sheet_background">#F20F1012</color>
+    <color name="audio_effect_bottom_sheet_stroke">#33FFFFFF</color>
+    <color name="audio_effect_bottom_sheet_preset_button_stroke">#66FFFFFF</color>
+
+
     <color name="bottom_nav_scrim">#CC101214</color>
     <color name="player_collapsed_scrim">#E6101214</color>
     <color name="music_option_menu_popup_background">#F20F1012</color>
