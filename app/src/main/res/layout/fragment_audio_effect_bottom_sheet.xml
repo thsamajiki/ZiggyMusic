@@ -185,6 +185,7 @@
             android:id="@+id/swLoudnessNormalizer"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginEnd="@dimen/audio_effect_bottom_sheet_switch_end_adjustment"
             android:contentDescription="@string/loudness_normalizer"
             android:minWidth="0dp"
             android:paddingStart="0dp"
