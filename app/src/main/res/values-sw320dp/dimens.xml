@@ -130,6 +130,27 @@
     <dimen name="app_settings_chevron_size">22dp</dimen>
     <dimen name="app_settings_text_to_trailing_icon_gap">10dp</dimen>
 
+    <!-- Audio Effect Bottom Sheet -->
+
+    <dimen name="audio_effect_bottom_sheet_padding_horizontal">20dp</dimen>
+    <dimen name="audio_effect_bottom_sheet_padding_top">12dp</dimen>
+    <dimen name="audio_effect_bottom_sheet_padding_bottom">32dp</dimen>
+    <dimen name="audio_effect_bottom_sheet_corner_radius">28dp</dimen>
+
+    <dimen name="audio_effect_bottom_sheet_header_margin_top">22dp</dimen>
+    <dimen name="audio_effect_bottom_sheet_preset_title_margin_top">32dp</dimen>
+    <dimen name="audio_effect_bottom_sheet_preset_group_margin_top">12dp</dimen>
+    <dimen name="audio_effect_bottom_sheet_preset_button_gap">6dp</dimen>
+    <dimen name="audio_effect_bottom_sheet_preset_button_radius">8dp</dimen>
+    <dimen name="audio_effect_bottom_sheet_trailing_alignment_margin">8dp</dimen>
+
+    <dimen name="audio_effect_bottom_sheet_loudness_margin_top">22dp</dimen>
+    <dimen name="audio_effect_bottom_sheet_seekbar_row_margin_top">22dp</dimen>
+    <dimen name="audio_effect_bottom_sheet_label_to_seekbar_gap">8dp</dimen>
+    <dimen name="audio_effect_bottom_sheet_virtualizer_margin_top">12dp</dimen>
+    <dimen name="audio_effect_bottom_sheet_bass_label_width">82dp</dimen>
+    <dimen name="audio_effect_bottom_sheet_virtualizer_label_width">118dp</dimen>
+
     <!-- Notification -->
     <dimen name="noti_height">46dp</dimen>
     <dimen name="noti_extended_height">120dp</dimen>
