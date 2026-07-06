@@ -62,6 +62,8 @@ import com.hero.ziggymusic.presentation.main.player.manager.PlayerMotionManager
 import com.hero.ziggymusic.playback.service.MusicMediaControllerConnector
 import com.hero.ziggymusic.playback.service.MusicServiceController
 import com.hero.ziggymusic.playback.model.LastPlayedMedia
+import com.hero.ziggymusic.presentation.main.MainViewModel
+import com.hero.ziggymusic.presentation.main.player.audioeffect.AudioEffectBottomSheetDialogFragment
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import java.util.Locale
@@ -73,6 +75,7 @@ class PlayerFragment : Fragment() {
 
     private var playerStateHolder: PlayerStateHolder = PlayerStateHolder.getInstance()
     private val vm by activityViewModels<PlayerViewModel>()
+    private val mainVm by activityViewModels<MainViewModel>()
     private var playerListener: Player.Listener? = null
 
     // 사용자가 마지막으로 선택한 목록 기준으로 재생 큐를 유지한다.
@@ -86,6 +89,7 @@ class PlayerFragment : Fragment() {
 
     private val lastPlaybackStore by lazy { LastPlaybackStore(requireContext()) }
     private var visualizerBarColor: Int? = null
+    private var pendingAudioSettingsNavigation = false // 바텀시트 액션을 받은 뒤 플레이어가 collapsed 상태가 될 때까지 음향 설정 화면으로 이동하기 위한 대기 상태.
 
     // position 저장 쓰로틀링으로 불필요한 prefs write를 줄인다.
     private var lastSavedAtMs: Long = 0L
@@ -137,6 +141,7 @@ class PlayerFragment : Fragment() {
         initPlayControlButtons()
         initSeekBar()
         initPlayerManager()
+        initAudioEffectBottomSheetResult()
         initViewModel()
         observePlaybackProgress()
         initListeners()
@@ -182,6 +187,13 @@ class PlayerFragment : Fragment() {
             }
         }
 
+        binding.playbackVisualizerView.setOnClickListener {
+            AudioEffectBottomSheetDialogFragment.newInstance().show(
+                childFragmentManager,
+                AudioEffectBottomSheetDialogFragment.TAG
+            )
+        }
+
         binding.bluetooth.setOnClickListener {
             playerBluetoothManager.handleBluetoothClick()
         }
@@ -189,6 +201,42 @@ class PlayerFragment : Fragment() {
         toggleVolumeIcon()
         toggleRepeatModeIcon()
         toggleShuffleModeIcon()
+    }
+
+    // 음향 효과 바텀시트에서 전달한 일회성 액션을 수신한다.
+    // 바텀시트를 childFragmentManager로 띄우므로 동일한 manager에 listener를 등록한다.
+    private fun initAudioEffectBottomSheetResult() {
+        childFragmentManager.setFragmentResultListener(
+            AudioEffectBottomSheetDialogFragment.REQUEST_KEY,
+            viewLifecycleOwner,
+        ) { _, bundle ->
+            when (bundle.getString(AudioEffectBottomSheetDialogFragment.RESULT_ACTION_KEY)) {
+                AudioEffectBottomSheetDialogFragment.ACTION_OPEN_AUDIO_SETTINGS -> {
+                    requestOpenAudioSettingsAfterCollapse()
+                }
+            }
+        }
+    }
+
+    // 음향 효과 설정 화면이 바로 보이도록 플레이어를 먼저 collapsed 상태로 전환한다.
+    private fun requestOpenAudioSettingsAfterCollapse() {
+        pendingAudioSettingsNavigation = true
+
+        if (vm.motionState.value == PlayerMotionManager.State.COLLAPSED) {
+            openAudioSettingsIfPending()
+        } else {
+            playerBottomSheetManager.collapse()
+        }
+    }
+
+    // collapsed 전환이 끝난 뒤 대기 중인 음향 효과 설정 화면으로 한 번 더 이동한다.
+    private fun openAudioSettingsIfPending() {
+        if (!pendingAudioSettingsNavigation) {
+            return
+        }
+
+        pendingAudioSettingsNavigation = false
+        mainVm.requestOpenAudioSettings()
     }
 
     private fun initPlayerManager() {
@@ -204,6 +252,7 @@ class PlayerFragment : Fragment() {
 
                         BottomSheetBehavior.STATE_COLLAPSED -> {
                             vm.changeState(PlayerMotionManager.State.COLLAPSED)
+                            openAudioSettingsIfPending()
                         }
 
                         BottomSheetBehavior.STATE_HIDDEN -> {
