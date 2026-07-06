@@ -78,16 +78,6 @@ class AudioEffectBottomSheetDialogFragment : BottomSheetDialogFragment() {
             com.google.android.material.R.id.design_bottom_sheet,
         ) ?: return
 
-        val maxWidth = resources.getDimensionPixelSize(R.dimen.audio_effect_bottom_sheet_max_width)
-
-        bottomSheet.layoutParams = bottomSheet.layoutParams.apply {
-            width = if (maxWidth > 0) {
-                minOf(resources.displayMetrics.widthPixels, maxWidth)
-            } else {
-                ViewGroup.LayoutParams.MATCH_PARENT
-            }
-        }
-
         bottomSheet.background = Color.TRANSPARENT.toDrawable()
 
         BottomSheetBehavior.from(bottomSheet).apply {
