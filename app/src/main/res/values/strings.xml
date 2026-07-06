@@ -36,6 +36,7 @@
     <string name="settings_open_source_licenses">오픈소스 라이선스</string>
     <string name="settings_app_version">앱 버전</string>
 
+    <!-- Audio settings -->
     <string name="equalizer">이퀄라이저</string>
     <string name="preset">프리셋</string>
     <string name="eq_max">+12</string>
@@ -49,4 +50,19 @@
     <string name="loudness_normalizer_description">곡마다 다른 음량을 일정하게 맞춤</string>
     <string name="spatial_audio">Spatial Audio</string>
     <string name="head_tracking">Head Tracking</string>
+
+    <!-- Audio effect bottom sheet -->
+    <string name="audio_effect_open_settings">전체 설정</string>
+    <string name="recent_presets">최근 프리셋</string>
+    <string name="preset_normal">Normal</string>
+    <string name="preset_classical">Classical</string>
+    <string name="preset_dance">Dance</string>
+    <string name="preset_flat">Flat</string>
+    <string name="preset_folk">Folk</string>
+    <string name="preset_heavy_metal">Heavy Metal</string>
+    <string name="preset_hip_hop">Hip Hop</string>
+    <string name="preset_jazz">Jazz</string>
+    <string name="preset_pop">Pop</string>
+    <string name="preset_rock">Rock</string>
+    <string name="preset_custom">Custom</string>
 </resources>

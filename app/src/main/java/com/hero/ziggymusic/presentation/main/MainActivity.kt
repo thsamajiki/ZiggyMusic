@@ -216,9 +216,14 @@ class MainActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedListen
             return
         }
 
-        val appSettingsFragment =
-            supportFragmentManager.findFragmentByTag(TAG_APP_SETTINGS)
-                ?: return
+        var appSettingsFragment = supportFragmentManager.findFragmentByTag(TAG_APP_SETTINGS)
+
+        if (appSettingsFragment == null) {
+            showAppSettingsFragment()
+            supportFragmentManager.executePendingTransactions()
+
+            appSettingsFragment = supportFragmentManager.findFragmentByTag(TAG_APP_SETTINGS) ?: return
+        }
 
         val audioSettingsFragment =
             existingAudioSettingsFragment ?: AudioSettingsFragment.newInstance()
