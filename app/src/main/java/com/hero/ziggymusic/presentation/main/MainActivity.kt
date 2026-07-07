@@ -52,6 +52,7 @@ import com.hero.ziggymusic.presentation.main.player.manager.PlayerController
 import com.hero.ziggymusic.presentation.main.player.manager.PlayerMotionManager
 import com.hero.ziggymusic.presentation.main.player.viewmodel.PlayerViewModel
 import com.hero.ziggymusic.presentation.main.setting.AppSettingsFragment
+import com.hero.ziggymusic.presentation.main.setting.viewmodel.AudioSettingsViewModel
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 
@@ -60,6 +61,7 @@ class MainActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedListen
     private lateinit var binding: ActivityMainBinding
     private val vm by viewModels<MainViewModel>()
     private val playerVm by viewModels<PlayerViewModel>()
+    private val audioSettingsVm by viewModels<AudioSettingsViewModel>()
 
     @Inject
     lateinit var player: ExoPlayer
@@ -740,17 +742,15 @@ class MainActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedListen
 
     @OptIn(UnstableApi::class)
     private fun initSoundEQSettings() {
-        val prefs = getSharedPreferences(AudioSettingsFragment.TAG, MODE_PRIVATE)
-
         if (player.audioSessionId != 0) {
             AudioEffectManager.init(player.audioSessionId)
-            AudioEffectManager.setEnabledFromPrefs(prefs)
+            audioSettingsVm.applySavedSettings()
         } else {
             player.addListener(object : Player.Listener {
                 override fun onAudioSessionIdChanged(audioSessionId: Int) {
                     if (audioSessionId != 0) {
                         AudioEffectManager.init(audioSessionId)
-                        AudioEffectManager.setEnabledFromPrefs(prefs)
+                        audioSettingsVm.applySavedSettings()
                         player.removeListener(this)
                     }
                 }

@@ -1,6 +1,8 @@
 package com.hero.ziggymusic.di
 
+import com.hero.ziggymusic.data.audio.repository.AudioSettingsRepositoryImpl
 import com.hero.ziggymusic.data.music.repository.MusicRepositoryImpl
+import com.hero.ziggymusic.domain.audio.repository.AudioSettingsRepository
 import com.hero.ziggymusic.domain.music.repository.MusicRepository
 import dagger.Binds
 import dagger.Module
@@ -16,4 +18,10 @@ abstract class RepositoryModule {
     abstract fun bindMusicRepository(
         musicRepositoryImpl: MusicRepositoryImpl
     ): MusicRepository
+
+    @Singleton
+    @Binds
+    abstract fun bindAudioSettingsRepository(
+        audioSettingsRepositoryImpl: AudioSettingsRepositoryImpl,
+    ): AudioSettingsRepository
 }

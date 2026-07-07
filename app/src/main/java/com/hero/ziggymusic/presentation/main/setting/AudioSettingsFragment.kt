@@ -20,19 +20,30 @@ import androidx.fragment.app.Fragment
 import com.hero.ziggymusic.R
 import com.hero.ziggymusic.databinding.FragmentAudioSettingsBinding
 import androidx.core.content.edit
+import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import com.hero.ziggymusic.data.local.preferences.AudioSettingKeys
 import com.hero.ziggymusic.playback.audio.HeadTracker
 import com.hero.ziggymusic.playback.audio.PlayerAudioGraph
 import com.hero.ziggymusic.playback.audio.SpatializerSupport
 import com.hero.ziggymusic.playback.manager.AudioEffectManager
-import com.hero.ziggymusic.playback.manager.AudioEffectManager.equalizer
 import com.hero.ziggymusic.playback.manager.AudioEffectManager.mainColor
+import com.hero.ziggymusic.presentation.main.setting.model.AudioSettingsUiState
+import com.hero.ziggymusic.presentation.main.setting.viewmodel.AudioSettingsViewModel
 import com.hero.ziggymusic.presentation.main.setting.widget.SoundEQVerticalSeekbar
+import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 import java.util.Locale
 
+@AndroidEntryPoint
 class AudioSettingsFragment : Fragment() {
     private var _binding: FragmentAudioSettingsBinding? = null
     private val binding get() = _binding!!
+
+    private val vm by activityViewModels<AudioSettingsViewModel>()
+    private var isApplyingAudioSettingsState = false
 
     var seekbarIds: ArrayList<Int> = ArrayList()
 
@@ -70,6 +81,8 @@ class AudioSettingsFragment : Fragment() {
         initLoudnessNormalizer()
         initVirtualizerSeekbar()
         initSpatialAudioUi() // XR 기능 UI 설정
+        observeAudioSettingsState()
+        vm.refreshSettings()
     }
 
     // Spatial Audio & Head Tracking UI 설정
@@ -178,16 +191,54 @@ class AudioSettingsFragment : Fragment() {
     }
 
     private fun initSetting() {
-        prefs = requireContext().getSharedPreferences(TAG, 0)
+        prefs = requireContext().getSharedPreferences(AudioSettingKeys.PREF_AUDIO_SETTINGS, 0)
         AudioEffectManager.setEnabledFromPrefs(prefs)
 
-        val isEqualizerEnabled = prefs.getBoolean(AudioSettingKeys.KEY_EQUALIZER_ENABLED, false)
-        binding.swEqualizer.isChecked = isEqualizerEnabled
+        // 사용자가 직접 EQ 스위치를 바꾼 경우에만 상태를 갱신한다.
         binding.swEqualizer.setOnCheckedChangeListener { _, isChecked ->
-            prefs.edit { putBoolean(AudioSettingKeys.KEY_EQUALIZER_ENABLED, isChecked) }
-            AudioEffectManager.setEnabledFromPrefs(prefs)
-            updateEqualizerUiState(isChecked)
+            if (isApplyingAudioSettingsState) return@setOnCheckedChangeListener
+            vm.setEqualizerEnabled(isChecked)
         }
+    }
+
+    private fun observeAudioSettingsState() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                vm.uiState.collect { state ->
+                    renderAudioSettingsState(state)
+                }
+            }
+        }
+    }
+
+    private fun renderAudioSettingsState(state: AudioSettingsUiState) {
+        isApplyingAudioSettingsState = true
+
+        if (binding.swEqualizer.isChecked != state.isEqualizerEnabled) {
+            binding.swEqualizer.isChecked = state.isEqualizerEnabled
+        }
+
+        updateEqualizerUiState(state.isEqualizerEnabled)
+
+        if (binding.spinnerPreset.adapter != null &&
+            binding.spinnerPreset.selectedItemPosition != state.currentPresetPosition
+        ) {
+            binding.spinnerPreset.setSelection(state.currentPresetPosition)
+        }
+
+        if (binding.swLoudnessNormalizer.isChecked != state.isLoudnessNormalizerEnabled) {
+            binding.swLoudnessNormalizer.isChecked = state.isLoudnessNormalizerEnabled
+        }
+
+        if (binding.sbBass.progress != state.bassStrength) {
+            binding.sbBass.progress = state.bassStrength
+        }
+
+        if (binding.sbVirtualizer.progress != state.virtualizerStrength) {
+            binding.sbVirtualizer.progress = state.virtualizerStrength
+        }
+
+        isApplyingAudioSettingsState = false
     }
 
     private fun initPresets(min: Int) {
@@ -210,6 +261,7 @@ class AudioSettingsFragment : Fragment() {
         binding.spinnerPreset.adapter = spinnerAdapter
         binding.spinnerPreset.setSelection(prefs.getInt(AudioSettingKeys.KEY_PRESET, 1))
 
+        // 프리셋 선택은 EQ 프리셋 상태만 바꾸고 Bass/Virtualizer 값은 유지한다.
         binding.spinnerPreset.onItemSelectedListener =
             object : AdapterView.OnItemSelectedListener {
                 override fun onItemSelected(
@@ -218,21 +270,12 @@ class AudioSettingsFragment : Fragment() {
                     position: Int,
                     id: Long,
                 ) {
-                    if (equalizer != null) {
-                        prefs.edit { putInt(AudioSettingKeys.KEY_PRESET, position) }
+                    if (isApplyingAudioSettingsState) return
 
-                        if (position != 0) {
-                            AudioEffectManager.useEqualizerPreset(position - 1)
-
-                            for (i in seekbarIds.indices) {
-                                val seekbar =
-                                    requireActivity().findViewById<SoundEQVerticalSeekbar>(seekbarIds[i])
-                                seekbar.progress = 1
-                                seekbar.progress =
-                                    (AudioEffectManager.getBandLevel(i)?.toInt() ?: 0) - min
-                                seekbar.refreshThumbState()
-                            }
-                        }
+                    if (position == AudioSettingsUiState.CUSTOM_PRESET_POSITION) {
+                        vm.setCustomEqualizerPreset()
+                    } else {
+                        vm.setEqualizerPreset(position)
                     }
                 }
 
@@ -274,31 +317,20 @@ class AudioSettingsFragment : Fragment() {
                 (AudioEffectManager.getBandLevel(index)?.toInt() ?: 0) - min
             )
 
-            verticalSeekbar.setOnSeekBarChangeListener(object :
-                SeekBar.OnSeekBarChangeListener { override fun onProgressChanged(
-                seekBar: SeekBar,
-                progress: Int,
-                fromUser: Boolean,
-            ) {
-                if (!verticalSeekbar.isTrackingTouch) return
+            verticalSeekbar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+                override fun onProgressChanged(
+                    seekBar: SeekBar,
+                    progress: Int,
+                    fromUser: Boolean,
+                ) {
+                    if (!fromUser || isApplyingAudioSettingsState) return
 
-                binding.spinnerPreset.setSelection(0)
-                prefs.edit { putInt(seekBar.tag.toString(), progress) }
-
-                if (equalizer?.enabled == true) {
-                    AudioEffectManager.applyEqualizerBandLevel(
+                    // EQ 밴드 직접 조작은 Custom 프리셋 전환 조건이다.
+                    vm.updateEqualizerBandFromUser(
                         bandIndex = seekBar.tag as Int,
-                        level = (progress + min).toShort()
+                        progress = progress
                     )
                 }
-
-                val bandIndex = seekBar.tag as Int
-                val gainDb = mapEqProgressToDb(
-                    progress = progress,
-                    max = seekBar.max
-                )
-                AudioEffectManager.setBandGain(bandIndex, gainDb)
-            }
 
                 override fun onStartTrackingTouch(seekBar: SeekBar) = Unit
                 override fun onStopTrackingTouch(seekBar: SeekBar) = Unit
@@ -433,12 +465,9 @@ class AudioSettingsFragment : Fragment() {
     }
 
     private fun initLoudnessNormalizer() {
-        val loudnessEnabled = prefs.getBoolean(AudioSettingKeys.KEY_LOUDNESS_NORMALIZER_ENABLED, false)
-
-        binding.swLoudnessNormalizer.setOnCheckedChangeListener(null)
-        binding.swLoudnessNormalizer.isChecked = loudnessEnabled
         binding.swLoudnessNormalizer.setOnCheckedChangeListener { _, isChecked ->
-            AudioEffectManager.applyLoudnessNormalizer(isChecked, prefs)
+            if (isApplyingAudioSettingsState) return@setOnCheckedChangeListener
+            vm.setLoudnessNormalizerEnabled(isChecked)
         }
     }
 
@@ -451,9 +480,11 @@ class AudioSettingsFragment : Fragment() {
         binding.sbBass.thumb.setTint(mainColor)
         binding.sbBass.progress = bassProgress
 
+        // BassBoost는 EQ 프리셋과 독립된 효과이므로 프리셋 상태를 바꾸지 않는다.
         binding.sbBass.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar, progress: Int, fromUser: Boolean) {
-                AudioEffectManager.applyBassStrength(progress, prefs)
+                if (!fromUser || isApplyingAudioSettingsState) return
+                vm.updateBassStrength(progress)
             }
 
             override fun onStartTrackingTouch(seekBar: SeekBar) = Unit
@@ -470,9 +501,11 @@ class AudioSettingsFragment : Fragment() {
         binding.sbVirtualizer.thumb.setTint(mainColor)
         binding.sbVirtualizer.progress = virtualizerProgress
 
+        // Virtualizer는 EQ 프리셋과 독립된 효과이므로 프리셋 상태를 바꾸지 않는다.
         binding.sbVirtualizer.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar, progress: Int, fromUser: Boolean) {
-                AudioEffectManager.applyVirtualizerStrength(progress, prefs)
+                if (!fromUser || isApplyingAudioSettingsState) return
+                vm.updateVirtualizerStrength(progress)
             }
 
             override fun onStartTrackingTouch(seekBar: SeekBar) = Unit
