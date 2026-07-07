@@ -85,11 +85,6 @@ class AudioEffectBottomSheetDialogFragment : BottomSheetDialogFragment() {
         setupAudioSettingsState()
     }
 
-    private fun setupAudioSettingsState() {
-        observeAudioSettingsState()
-        vm.refreshSettings()
-    }
-
     private fun setupBottomSheetBehavior(dialog: BottomSheetDialog) {
         val bottomSheet = dialog.findViewById<View>(
             com.google.android.material.R.id.design_bottom_sheet,
@@ -101,23 +96,6 @@ class AudioEffectBottomSheetDialogFragment : BottomSheetDialogFragment() {
             state = BottomSheetBehavior.STATE_EXPANDED
             skipCollapsed = true
         }
-    }
-
-    private fun setupAudioEffectInitialState() {
-        binding.swLoudnessNormalizer.isChecked = prefs.getBoolean(
-            AudioSettingKeys.KEY_LOUDNESS_NORMALIZER_ENABLED,
-            false,
-        )
-
-        binding.seekBarBass.progress = prefs.getInt(
-            AudioSettingKeys.KEY_BASS,
-            DEFAULT_EFFECT_VALUE
-        )
-
-        binding.seekBarVirtualizer.progress = prefs.getInt(
-            AudioSettingKeys.KEY_VIRTUALIZER,
-            DEFAULT_EFFECT_VALUE,
-        )
     }
 
     // 바텀시트에서 프리셋을 누르면 EQ를 자동으로 켜고 프리셋을 적용한다.
@@ -171,6 +149,11 @@ class AudioEffectBottomSheetDialogFragment : BottomSheetDialogFragment() {
         }
     }
 
+    private fun setupAudioSettingsState() {
+        observeAudioSettingsState()
+        vm.refreshSettings()
+    }
+
     // 바텀시트가 보이는 동안 ViewModel의 음향 설정 상태를 관찰한다.
     private fun observeAudioSettingsState() {
         viewLifecycleOwner.lifecycleScope.launch {
@@ -213,70 +196,6 @@ class AudioEffectBottomSheetDialogFragment : BottomSheetDialogFragment() {
         }
 
         return recentPresetButtonIds.getOrNull(presetIndex)
-    }
-
-    private fun applyAudioEffectPreset(preset: AudioEffectPreset) {
-        if (preset == AudioEffectPreset.CUSTOM) {
-            saveCustomPresetSelection()
-            return
-        }
-
-        applyNativeEqualizerPresetIfAvailable(preset)
-        AudioEffectManager.setEnabledFromPrefs(prefs)
-    }
-
-    private fun applyNativeEqualizerPresetIfAvailable(preset: AudioEffectPreset) {
-        val nativePresetIndex = findNativeEqualizerPresetIndex(preset)
-
-        if (nativePresetIndex == null) {
-            saveCustomPresetSelection()
-            return
-        }
-
-        AudioEffectManager.useEqualizerPreset(nativePresetIndex)
-        prefs.edit {
-            putInt(AudioSettingKeys.KEY_PRESET, nativePresetIndex + SETTINGS_PRESET_OFFSET)
-        }
-    }
-
-    private fun findNativeEqualizerPresetIndex(preset: AudioEffectPreset): Int? {
-        val numberOfPresets = AudioEffectManager.getNumberOfPresets()
-        if (numberOfPresets <= 0) return null
-
-        val candidates = preset.config.equalizerPresetNameCandidates
-
-        return (0 until numberOfPresets).firstOrNull { index ->
-            val presetName = AudioEffectManager.getPresetName(index).orEmpty()
-            candidates.any { candidate ->
-                presetName.equals(candidate, ignoreCase = true)
-            }
-        }
-    }
-
-    private fun applyBass(progress: Int) {
-        val clampedProgress = progress.coerceIn(MIN_EFFECT_VALUE, MAX_EFFECT_VALUE) // 베이스 보정값
-
-        if (binding.seekBarBass.progress != clampedProgress) {
-            binding.seekBarBass.progress = clampedProgress
-        }
-
-        AudioEffectManager.applyBassStrength(clampedProgress, prefs)
-    }
-
-    private fun applyVirtualizer(progress: Int) {
-        val clampedProgress = progress.coerceIn(MIN_EFFECT_VALUE, MAX_EFFECT_VALUE) // 3D 버추얼라이저 보정값
-
-        if (binding.seekBarVirtualizer.progress != clampedProgress) {
-            binding.seekBarVirtualizer.progress = clampedProgress
-        }
-
-        AudioEffectManager.applyVirtualizerStrength(clampedProgress, prefs)
-    }
-
-    private fun saveCustomPresetSelection() {
-        prefs.edit {
-            putInt(AudioSettingKeys.KEY_PRESET, CUSTOM_PRESET_POSITION)
-        }
     }
 
     private fun createSeekBarChangeListener(
