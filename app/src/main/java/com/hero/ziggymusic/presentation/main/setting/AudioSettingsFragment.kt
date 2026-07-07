@@ -45,6 +45,10 @@ class AudioSettingsFragment : Fragment() {
     private val vm by activityViewModels<AudioSettingsViewModel>()
     private var isApplyingAudioSettingsState = false
 
+    // Spinner adapter 연결 직후 발생하는 초기 선택 콜백을 사용자 선택과 구분하기 위한 플래그.
+    private var isPresetSpinnerReady = false
+    private var isReverbSpinnerReady = false
+
     var seekbarIds: ArrayList<Int> = ArrayList()
 
     private lateinit var prefs: SharedPreferences
@@ -226,6 +230,13 @@ class AudioSettingsFragment : Fragment() {
             binding.spinnerPreset.setSelection(state.currentPresetPosition)
         }
 
+        // Reverb 선택 위치도 공유 상태를 기준으로 맞춘다.
+        if (binding.spinnerReverb.adapter != null &&
+            binding.spinnerReverb.selectedItemPosition != state.reverbPresetPosition
+        ) {
+            binding.spinnerReverb.setSelection(state.reverbPresetPosition)
+        }
+
         if (binding.swLoudnessNormalizer.isChecked != state.isLoudnessNormalizerEnabled) {
             binding.swLoudnessNormalizer.isChecked = state.isLoudnessNormalizerEnabled
         }
@@ -241,9 +252,11 @@ class AudioSettingsFragment : Fragment() {
         isApplyingAudioSettingsState = false
     }
 
-    private fun initPresets(min: Int) {
+    private fun initPresets() {
         val noOfPresets = AudioEffectManager.getNumberOfPresets()
         if (noOfPresets <= 0) return
+
+        isPresetSpinnerReady = false
 
         val presets = arrayOfNulls<String>(noOfPresets + 1)
         presets[0] = "Custom"
@@ -259,7 +272,11 @@ class AudioSettingsFragment : Fragment() {
         )
 
         binding.spinnerPreset.adapter = spinnerAdapter
-        binding.spinnerPreset.setSelection(prefs.getInt(AudioSettingKeys.KEY_PRESET, 1))
+
+        // Adapter 연결 직후 발생할 수 있는 초기 onItemSelected 콜백은 무시한다.
+        binding.spinnerPreset.post {
+            isPresetSpinnerReady = true
+        }
 
         // 프리셋 선택은 EQ 프리셋 상태만 바꾸고 Bass/Virtualizer 값은 유지한다.
         binding.spinnerPreset.onItemSelectedListener =
@@ -270,7 +287,8 @@ class AudioSettingsFragment : Fragment() {
                     position: Int,
                     id: Long,
                 ) {
-                    if (isApplyingAudioSettingsState) return
+                    // 초기화 중 발생한 선택 콜백은 사용자 입력이 아니므로 처리하지 않는다.
+                    if (!isPresetSpinnerReady || isApplyingAudioSettingsState) return
 
                     if (position == AudioSettingsUiState.CUSTOM_PRESET_POSITION) {
                         vm.setCustomEqualizerPreset()
@@ -373,7 +391,7 @@ class AudioSettingsFragment : Fragment() {
             AudioEffectManager.applySettingsFromPrefs(prefs, eqMaxFromUi = uiMaxForNative)
         }
 
-        initPresets(min)
+        initPresets()
         updateEqualizerUiState(binding.swEqualizer.isChecked)
     }
 
@@ -432,6 +450,8 @@ class AudioSettingsFragment : Fragment() {
     }
 
     private fun initReverb() {
+        isReverbSpinnerReady = false
+
         val reverbAdapter = ArrayAdapter(
             requireContext(),
             R.layout.item_spinner,
@@ -443,10 +463,15 @@ class AudioSettingsFragment : Fragment() {
                 "Medium Hall",
                 "Large Hall",
                 "Plate"
-            ))
+            )
+        )
 
         binding.spinnerReverb.adapter = reverbAdapter
-        binding.spinnerReverb.setSelection(prefs.getInt(AudioSettingKeys.KEY_REVERB, 0))
+
+        // Adapter 연결 직후 발생할 수 있는 초기 onItemSelected 콜백은 무시한다.
+        binding.spinnerReverb.post {
+            isReverbSpinnerReady = true
+        }
 
         binding.spinnerReverb.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(
@@ -455,9 +480,10 @@ class AudioSettingsFragment : Fragment() {
                 position: Int,
                 id: Long,
             ) {
-                if (AudioEffectManager.reverb != null) {
-                    AudioEffectManager.applyReverbPreset(position, prefs)
-                }
+                // 초기화 중 발생한 선택 콜백은 사용자 입력이 아니므로 처리하지 않는다.
+                if (!isReverbSpinnerReady || isApplyingAudioSettingsState) return
+
+                vm.setReverbPreset(position)
             }
 
             override fun onNothingSelected(parent: AdapterView<*>?) = Unit
@@ -472,13 +498,8 @@ class AudioSettingsFragment : Fragment() {
     }
 
     private fun initBassSeekBar(settings: SharedPreferences) {
-        val bassProgress = settings.getInt(AudioSettingKeys.KEY_BASS, 0)
-
-        AudioEffectManager.applyBassStrength(bassProgress)
-
         binding.sbBass.progressDrawable.setTint(mainColor)
         binding.sbBass.thumb.setTint(mainColor)
-        binding.sbBass.progress = bassProgress
 
         // BassBoost는 EQ 프리셋과 독립된 효과이므로 프리셋 상태를 바꾸지 않는다.
         binding.sbBass.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
@@ -493,15 +514,10 @@ class AudioSettingsFragment : Fragment() {
     }
 
     private fun initVirtualizerSeekbar() {
-        val virtualizerProgress = prefs.getInt(AudioSettingKeys.KEY_VIRTUALIZER, 0)
-
-        AudioEffectManager.applyVirtualizerStrength(virtualizerProgress)
-
         binding.sbVirtualizer.progressDrawable.setTint(mainColor)
         binding.sbVirtualizer.thumb.setTint(mainColor)
-        binding.sbVirtualizer.progress = virtualizerProgress
 
-        // Virtualizer는 EQ 프리셋과 독립된 효과이므로 프리셋 상태를 바꾸지 않는다.
+        // 3D Virtualizer는 EQ 프리셋과 독립된 효과이므로 프리셋 상태를 바꾸지 않는다.
         binding.sbVirtualizer.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar, progress: Int, fromUser: Boolean) {
                 if (!fromUser || isApplyingAudioSettingsState) return
@@ -516,22 +532,9 @@ class AudioSettingsFragment : Fragment() {
     override fun onResume() {
         super.onResume()
 
-        binding.sbVirtualizer.progress = prefs.getInt(AudioSettingKeys.KEY_VIRTUALIZER, 0)
-        binding.sbBass.progress = prefs.getInt(AudioSettingKeys.KEY_BASS, 0)
-
-        // 화면에 돌아왔을 때 설정에 따라 트래킹 재개
+        // 화면에 돌아왔을 때 Head Tracking이 켜져 있으면 센서 추적을 재개한다.
         if (binding.swSpatialAudio.isChecked && binding.swHeadTracking.isChecked) {
             headTracker.start()
-        }
-    }
-
-    override fun onPause() {
-        super.onPause()
-
-        // Preference 저장 로직
-        prefs.edit {
-            putInt(AudioSettingKeys.KEY_BASS, binding.sbBass.progress)
-            putInt(AudioSettingKeys.KEY_VIRTUALIZER, binding.sbVirtualizer.progress)
         }
     }
 
