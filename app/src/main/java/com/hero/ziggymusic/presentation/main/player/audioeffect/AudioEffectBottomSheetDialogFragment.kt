@@ -11,6 +11,10 @@ import android.view.ViewGroup
 import android.widget.SeekBar
 import androidx.core.content.edit
 import androidx.core.graphics.drawable.toDrawable
+import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
@@ -19,10 +23,18 @@ import com.hero.ziggymusic.data.local.preferences.AudioSettingKeys
 import com.hero.ziggymusic.databinding.FragmentAudioEffectBottomSheetBinding
 import com.hero.ziggymusic.playback.manager.AudioEffectManager
 import com.hero.ziggymusic.presentation.main.setting.AudioSettingsFragment
+import com.hero.ziggymusic.presentation.main.setting.model.AudioSettingsUiState
+import com.hero.ziggymusic.presentation.main.setting.viewmodel.AudioSettingsViewModel
+import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 
+@AndroidEntryPoint
 class AudioEffectBottomSheetDialogFragment : BottomSheetDialogFragment() {
     private var _binding: FragmentAudioEffectBottomSheetBinding? = null
     private val binding get() = _binding!!
+
+    private val vm by activityViewModels<AudioSettingsViewModel>()
+    private var isApplyingAudioSettingsState = false // StateFlow 값을 UI에 반영하는 동안 리스너가 사용자 입력으로 오인하지 않도록 막는다.
 
     private lateinit var prefs: SharedPreferences
 
@@ -62,15 +74,20 @@ class AudioEffectBottomSheetDialogFragment : BottomSheetDialogFragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         prefs = requireContext().getSharedPreferences(
-            AudioSettingsFragment.TAG,
+            AudioSettingKeys.PREF_AUDIO_SETTINGS,
             Context.MODE_PRIVATE,
         )
 
-        setupAudioEffectInitialState()
         setupPresetControls()
         setupLoudnessNormalizer()
         setupAudioEffectSeekBars()
         setupSettingsNavigation()
+        setupAudioSettingsState()
+    }
+
+    private fun setupAudioSettingsState() {
+        observeAudioSettingsState()
+        vm.refreshSettings()
     }
 
     private fun setupBottomSheetBehavior(dialog: BottomSheetDialog) {
@@ -103,36 +120,41 @@ class AudioEffectBottomSheetDialogFragment : BottomSheetDialogFragment() {
         )
     }
 
+    // 바텀시트에서 프리셋을 누르면 EQ를 자동으로 켜고 프리셋을 적용한다.
     private fun setupPresetControls() {
         binding.togglePresetGroup.addOnButtonCheckedListener { _, checkedId, isChecked ->
-            if (!isChecked) return@addOnButtonCheckedListener
+            if (!isChecked || isApplyingAudioSettingsState) return@addOnButtonCheckedListener
 
             val presetIndex = recentPresetButtonIds.indexOf(checkedId)
             val preset = recentPresets.getOrNull(presetIndex)
                 ?: return@addOnButtonCheckedListener
 
-            applyAudioEffectPreset(preset)
+            if (preset == AudioEffectPreset.CUSTOM) {
+                vm.setCustomEqualizerPreset()
+            } else {
+                vm.setEqualizerPreset(preset)
+            }
         }
     }
 
     private fun setupLoudnessNormalizer() {
         binding.swLoudnessNormalizer.setOnCheckedChangeListener { _, isChecked ->
-            AudioEffectManager.applyLoudnessNormalizer(isChecked, prefs)
+            if (isApplyingAudioSettingsState) return@setOnCheckedChangeListener
+            vm.setLoudnessNormalizerEnabled(isChecked)
         }
     }
 
+    // Bass/Virtualizer 조작은 프리셋 전환 없이 효과 값만 동기화한다.
     private fun setupAudioEffectSeekBars() {
         binding.seekBarBass.setOnSeekBarChangeListener(
             createSeekBarChangeListener { progress ->
-                applyBass(progress)
-                saveCustomPresetSelection()
+                vm.updateBassStrength(progress)
             },
         )
 
         binding.seekBarVirtualizer.setOnSeekBarChangeListener(
             createSeekBarChangeListener { progress ->
-                applyVirtualizer(progress)
-                saveCustomPresetSelection()
+                vm.updateVirtualizerStrength(progress)
             },
         )
     }
@@ -147,6 +169,50 @@ class AudioEffectBottomSheetDialogFragment : BottomSheetDialogFragment() {
             )
             dismiss()
         }
+    }
+
+    // 바텀시트가 보이는 동안 ViewModel의 음향 설정 상태를 관찰한다.
+    private fun observeAudioSettingsState() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                vm.uiState.collect { state ->
+                    renderAudioSettingsState(state)
+                }
+            }
+        }
+    }
+
+    // 공유 상태를 바텀시트의 스위치, 프리셋, 슬라이더에 반영한다.
+    private fun renderAudioSettingsState(state: AudioSettingsUiState) {
+        isApplyingAudioSettingsState = true
+
+        if (binding.swLoudnessNormalizer.isChecked != state.isLoudnessNormalizerEnabled) {
+            binding.swLoudnessNormalizer.isChecked = state.isLoudnessNormalizerEnabled
+        }
+
+        if (binding.seekBarBass.progress != state.bassStrength) {
+            binding.seekBarBass.progress = state.bassStrength
+        }
+
+        if (binding.seekBarVirtualizer.progress != state.virtualizerStrength) {
+            binding.seekBarVirtualizer.progress = state.virtualizerStrength
+        }
+
+        val checkedButtonId = findPresetButtonId(state.currentPresetPosition)
+        if (checkedButtonId != null && binding.togglePresetGroup.checkedButtonId != checkedButtonId) {
+            binding.togglePresetGroup.check(checkedButtonId)
+        }
+
+        isApplyingAudioSettingsState = false
+    }
+
+    // 현재 프리셋 position에 대응하는 바텀시트 버튼 id를 찾는다.
+    private fun findPresetButtonId(presetPosition: Int): Int? {
+        val presetIndex = recentPresets.indexOfFirst {
+            it.config.settingsPresetPosition == presetPosition
+        }
+
+        return recentPresetButtonIds.getOrNull(presetIndex)
     }
 
     private fun applyAudioEffectPreset(preset: AudioEffectPreset) {
@@ -222,13 +288,12 @@ class AudioEffectBottomSheetDialogFragment : BottomSheetDialogFragment() {
                 progress: Int,
                 fromUser: Boolean,
             ) {
-                if (fromUser) {
+                if (fromUser && !isApplyingAudioSettingsState) {
                     onProgressChangedByUser(progress)
                 }
             }
 
             override fun onStartTrackingTouch(seekBar: SeekBar?) = Unit
-
             override fun onStopTrackingTouch(seekBar: SeekBar?) = Unit
         }
     }
