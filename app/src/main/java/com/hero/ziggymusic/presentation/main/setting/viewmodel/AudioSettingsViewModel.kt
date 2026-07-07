@@ -56,6 +56,10 @@ class AudioSettingsViewModel @Inject constructor(
         audioSettingsRepository.updateVirtualizerStrength(progress)
     }
 
+    fun setReverbPreset(position: Int) {
+        audioSettingsRepository.setReverbPreset(position)
+    }
+
     fun setLoudnessNormalizerEnabled(enabled: Boolean) {
         audioSettingsRepository.setLoudnessNormalizerEnabled(enabled)
     }
