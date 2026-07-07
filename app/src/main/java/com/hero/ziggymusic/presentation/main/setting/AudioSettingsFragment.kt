@@ -45,11 +45,11 @@ class AudioSettingsFragment : Fragment() {
     private val vm by activityViewModels<AudioSettingsViewModel>()
     private var isApplyingAudioSettingsState = false
 
-    // Spinner adapter 연결 직후 발생하는 초기 선택 콜백을 사용자 선택과 구분하기 위한 플래그.
+    // Spinner adapter 연결 직후 발생하는 초기 선택 콜백을 사용자 선택과 구분하기 위한 플래그
     private var isPresetSpinnerReady = false
     private var isReverbSpinnerReady = false
 
-    var seekbarIds: ArrayList<Int> = ArrayList()
+    private val equalizerBandSeekBarIds = mutableListOf<Int>()
 
     private lateinit var prefs: SharedPreferences
 
@@ -303,39 +303,41 @@ class AudioSettingsFragment : Fragment() {
 
     private fun initEqualizer() {
         val bandLevelRange = AudioEffectManager.getBandLevelRange() ?: return
-        val max = bandLevelRange[1].toInt()
-        val min = bandLevelRange[0].toInt()
+        val minBandLevel = bandLevelRange[0].toInt()
+        val maxBandLevel = bandLevelRange[1].toInt()
         var uiMaxForNative = 0
 
-        seekbarIds.clear()
+        equalizerBandSeekBarIds.clear()
         binding.tvSeekbar.removeAllViews()
         binding.seekbarContainer.removeAllViews()
 
         val numberOfBands = AudioEffectManager.getNumberOfBands()
 
         for (index in 0 until numberOfBands) {
-            val verticalSeekbar = SoundEQVerticalSeekbar(requireContext())
-            seekbarIds.add(index, View.generateViewId())
-            verticalSeekbar.max = max - min
-            verticalSeekbar.tag = index
-            uiMaxForNative = verticalSeekbar.max
+            val equalizerBandSeekBar = SoundEQVerticalSeekbar(requireContext())
+
+            equalizerBandSeekBarIds.add(index, View.generateViewId())
+
+            equalizerBandSeekBar.max = maxBandLevel - minBandLevel
+            equalizerBandSeekBar.tag = index
+            uiMaxForNative = equalizerBandSeekBar.max
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                verticalSeekbar.maxHeight = 1
+                equalizerBandSeekBar.maxHeight = 1
             }
 
-            verticalSeekbar.id = seekbarIds[index]
-            verticalSeekbar.splitTrack = true
+            equalizerBandSeekBar.id = equalizerBandSeekBarIds[index]
+            equalizerBandSeekBar.splitTrack = true
 
-            verticalSeekbar.progressDrawable.setTint(mainColor)
-            verticalSeekbar.thumb.setTint(mainColor)
+            equalizerBandSeekBar.progressDrawable.setTint(mainColor)
+            equalizerBandSeekBar.thumb.setTint(mainColor)
 
-            verticalSeekbar.progress = prefs.getInt(
+            equalizerBandSeekBar.progress = prefs.getInt(
                 index.toString(),
-                (AudioEffectManager.getBandLevel(index)?.toInt() ?: 0) - min
+                (AudioEffectManager.getBandLevel(index)?.toInt() ?: 0) - minBandLevel
             )
 
-            verticalSeekbar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            equalizerBandSeekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
                 override fun onProgressChanged(
                     seekBar: SeekBar,
                     progress: Int,
@@ -354,36 +356,37 @@ class AudioSettingsFragment : Fragment() {
                 override fun onStopTrackingTouch(seekBar: SeekBar) = Unit
             })
 
-            val seekbarLayoutParams =
+            val equalizerBandSeekBarLayoutParams =
                 LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1.0f)
-            verticalSeekbar.layoutParams = seekbarLayoutParams
+            equalizerBandSeekBar.layoutParams = equalizerBandSeekBarLayoutParams
 
             val centerFreq = AudioEffectManager.getCenterFreq(index) ?: 0
-            val title = formatCenterFreq(centerFreq)
+            val frequencyLabel = formatCenterFreq(centerFreq)
 
-            val textView = TextView(requireContext())
-            textView.text = title
-            textView.includeFontPadding = false
-            textView.maxLines = 1
-            textView.setTextSize(
+            val frequencyLabelView = TextView(requireContext())
+            frequencyLabelView.text = frequencyLabel
+            frequencyLabelView.includeFontPadding = false
+            frequencyLabelView.maxLines = 1
+            frequencyLabelView.setTextSize(
                 TypedValue.COMPLEX_UNIT_PX,
                 resources.getDimension(R.dimen.setting_eq_label_text_size)
             )
-            textView.setTextColor(ContextCompat.getColor(requireContext(), R.color.white))
+            frequencyLabelView.setTextColor(ContextCompat.getColor(requireContext(), R.color.white))
 
-            val params =
+            val frequencyLabelLayoutParams =
                 LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)
-            textView.gravity = Gravity.CENTER
-            textView.layoutParams = params
+            frequencyLabelView.gravity = Gravity.CENTER
+            frequencyLabelView.layoutParams = frequencyLabelLayoutParams
 
-            binding.tvSeekbar.addView(textView)
-            binding.seekbarContainer.addView(verticalSeekbar)
-            verticalSeekbar.post { verticalSeekbar.refreshThumbState() }
+            binding.tvSeekbar.addView(frequencyLabelView)
+            binding.seekbarContainer.addView(equalizerBandSeekBar)
+            equalizerBandSeekBar.post { equalizerBandSeekBar.refreshThumbState() }
 
             val initialGainDb = mapEqProgressToDb(
-                progress = verticalSeekbar.progress,
-                max = verticalSeekbar.max
+                progress = equalizerBandSeekBar.progress,
+                max = equalizerBandSeekBar.max
             )
+
             AudioEffectManager.setBandGain(index, initialGainDb)
         }
 
@@ -413,14 +416,14 @@ class AudioSettingsFragment : Fragment() {
         binding.tvSeekbar.alpha = contentAlpha
 
         for (index in 0 until binding.seekbarContainer.childCount) {
-            val seekbar = binding.seekbarContainer.getChildAt(index) as? SoundEQVerticalSeekbar
+            val equalizerBandSeekBar = binding.seekbarContainer.getChildAt(index) as? SoundEQVerticalSeekbar
                 ?: continue
 
-            seekbar.isEnabled = isEnabled
-            seekbar.progressDrawable.mutate().setTint(seekbarTint)
-            seekbar.thumb.mutate().setTint(seekbarTint)
-            seekbar.setTickAlpha(tickAlpha)
-            seekbar.refreshThumbState()
+            equalizerBandSeekBar.isEnabled = isEnabled
+            equalizerBandSeekBar.progressDrawable.mutate().setTint(seekbarTint)
+            equalizerBandSeekBar.thumb.mutate().setTint(seekbarTint)
+            equalizerBandSeekBar.setTickAlpha(tickAlpha)
+            equalizerBandSeekBar.refreshThumbState()
         }
 
         for (index in 0 until binding.tvSeekbar.childCount) {
@@ -545,13 +548,13 @@ class AudioSettingsFragment : Fragment() {
     }
 
     companion object {
-        fun newInstance(): AudioSettingsFragment = AudioSettingsFragment()
-
         const val TAG = "AudioSettingsFragment"
 
         private const val EQ_ENABLED_ALPHA = 1.0f
         private const val EQ_DISABLED_CONTENT_ALPHA = 0.55f
         private const val EQ_DISABLED_SCALE_ALPHA = 0.5f
         private const val EQ_DISABLED_TICK_ALPHA = 0.45f
+
+        fun newInstance(): AudioSettingsFragment = AudioSettingsFragment()
     }
 }
