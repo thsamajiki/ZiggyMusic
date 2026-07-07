@@ -34,7 +34,6 @@ class AudioSettingsRepositoryImpl @Inject constructor(
     override fun applySavedSettings() {
         val savedAudioSettings = loadAudioSettingsState()
 
-        // 저장된 프리셋이 Custom이 아니면 Android Equalizer 프리셋을 먼저 적용한다.
         if (savedAudioSettings.currentPresetPosition > AudioSettingsUiState.CUSTOM_PRESET_POSITION) {
             AudioEffectManager.useEqualizerPreset(
                 savedAudioSettings.currentPresetPosition - SETTINGS_PRESET_OFFSET
@@ -43,8 +42,10 @@ class AudioSettingsRepositoryImpl @Inject constructor(
             applySavedEqualizerBands()
         }
 
+        // 저장된 별도 음향 효과 값도 프리셋과 함께 복원한다.
         AudioEffectManager.applyBassStrength(savedAudioSettings.bassStrength)
         AudioEffectManager.applyVirtualizerStrength(savedAudioSettings.virtualizerStrength)
+        AudioEffectManager.applyReverbPreset(savedAudioSettings.reverbPresetPosition)
         AudioEffectManager.setEnabledFromPrefs(prefs)
 
         updateStateFromStorage()
@@ -185,6 +186,20 @@ class AudioSettingsRepositoryImpl @Inject constructor(
         updateStateFromStorage()
     }
 
+    // Reverb 값은 EQ 프리셋 선택 상태를 유지한 채 별도로 저장한다.
+    override fun setReverbPreset(position: Int) {
+        val normalizedPosition = position.coerceIn(MIN_REVERB_PRESET_POSITION, MAX_REVERB_PRESET_POSITION)
+
+        prefs.edit {
+            putInt(AudioSettingKeys.KEY_REVERB, normalizedPosition)
+        }
+
+        AudioEffectManager.applyReverbPreset(normalizedPosition)
+        AudioEffectManager.setEnabledFromPrefs(prefs)
+
+        updateStateFromStorage()
+    }
+
     override fun setLoudnessNormalizerEnabled(enabled: Boolean) {
         prefs.edit {
             putBoolean(AudioSettingKeys.KEY_LOUDNESS_NORMALIZER_ENABLED, enabled)
@@ -214,6 +229,10 @@ class AudioSettingsRepositoryImpl @Inject constructor(
                 AudioSettingKeys.KEY_VIRTUALIZER,
                 AudioSettingsUiState.DEFAULT_EFFECT_VALUE,
             ),
+            reverbPresetPosition = prefs.getInt(
+                AudioSettingKeys.KEY_REVERB,
+                AudioSettingsUiState.DEFAULT_REVERB_PRESET_POSITION,
+            ),
             isLoudnessNormalizerEnabled = prefs.getBoolean(
                 AudioSettingKeys.KEY_LOUDNESS_NORMALIZER_ENABLED,
                 false,
@@ -225,5 +244,7 @@ class AudioSettingsRepositoryImpl @Inject constructor(
         const val SETTINGS_PRESET_OFFSET = 1
         const val MIN_EFFECT_VALUE = 0
         const val MAX_EFFECT_VALUE = 100
+        const val MIN_REVERB_PRESET_POSITION = 0
+        const val MAX_REVERB_PRESET_POSITION = 6
     }
 }

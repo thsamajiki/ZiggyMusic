@@ -25,8 +25,12 @@ interface AudioSettingsRepository {
 
     // BassBoost는 EQ 프리셋과 별도 효과이므로 currentPreset은 변경하지 않는다.
     fun updateBassStrength(progress: Int)
+
     // Virtualizer는 EQ 프리셋과 별도 효과이므로 currentPreset은 변경하지 않는다.
     fun updateVirtualizerStrength(progress: Int)
+
+    // Reverb는 EQ 프리셋과 별도 효과이므로 currentPreset은 변경하지 않는다.
+    fun setReverbPreset(position: Int)
 
     fun setLoudnessNormalizerEnabled(enabled: Boolean)
 }
