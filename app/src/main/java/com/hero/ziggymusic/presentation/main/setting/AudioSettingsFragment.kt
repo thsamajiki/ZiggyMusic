@@ -32,7 +32,7 @@ import com.hero.ziggymusic.playback.manager.AudioEffectManager
 import com.hero.ziggymusic.playback.manager.AudioEffectManager.mainColor
 import com.hero.ziggymusic.presentation.main.setting.model.AudioSettingsUiState
 import com.hero.ziggymusic.presentation.main.setting.viewmodel.AudioSettingsViewModel
-import com.hero.ziggymusic.presentation.main.setting.widget.SoundEQVerticalSeekbar
+import com.hero.ziggymusic.presentation.main.setting.widget.EqualizerBandSeekBar
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import java.util.Locale
@@ -53,7 +53,7 @@ class AudioSettingsFragment : Fragment() {
 
     private lateinit var prefs: SharedPreferences
 
-    // XR / Spatial Audio Components
+    // XR / Spatial Audio 컴포넌트
     private lateinit var headTracker: HeadTracker
     private lateinit var spatializerSupport: SpatializerSupport
 
@@ -80,11 +80,15 @@ class AudioSettingsFragment : Fragment() {
         initSetting()
 
         initEqualizer()
-        initBassSeekBar(prefs)
         initReverb()
         initLoudnessNormalizer()
+        initBassSeekBar()
         initVirtualizerSeekbar()
         initSpatialAudioUi() // XR 기능 UI 설정
+        setupAudioSettingsState()
+    }
+
+    private fun setupAudioSettingsState() {
         observeAudioSettingsState()
         vm.refreshSettings()
     }
@@ -96,7 +100,7 @@ class AudioSettingsFragment : Fragment() {
         binding.swSpatialAudio.setOnCheckedChangeListener(null)
         binding.swHeadTracking.setOnCheckedChangeListener(null)
 
-        // 1. Spatial Audio & Head Tracking Enable Switch
+        // 1. Spatial Audio & Head Tracking 활성화 스위치
         val spatialEnabled = prefs.getBoolean(AudioSettingKeys.KEY_SPATIAL_ENABLED, false)
         val headEnabled = prefs.getBoolean(AudioSettingKeys.KEY_HEAD_TRACKING_ENABLED, false)
 
@@ -111,10 +115,16 @@ class AudioSettingsFragment : Fragment() {
             AudioEffectManager.setHeadTrackingEnabled(spatialEnabled && headEnabled)
 
             if (spatialEnabled && headEnabled) {
-                PlayerAudioGraph.setHeadTrackingActive(true, true)
+                PlayerAudioGraph.setHeadTrackingActive(
+                    spatialEnabled = true,
+                    headTrackingEnabled = true
+                )
                 headTracker.start()
             } else {
-                PlayerAudioGraph.setHeadTrackingActive(false, false)
+                PlayerAudioGraph.setHeadTrackingActive(
+                    spatialEnabled = false,
+                    headTrackingEnabled = false
+                )
                 headTracker.stop()
             }
         }
@@ -230,6 +240,8 @@ class AudioSettingsFragment : Fragment() {
             binding.spinnerPreset.setSelection(state.currentPresetPosition)
         }
 
+        updateEqualizerBandSeekBars(state.equalizerBandProgresses)
+
         // Reverb 선택 위치도 공유 상태를 기준으로 맞춘다.
         if (binding.spinnerReverb.adapter != null &&
             binding.spinnerReverb.selectedItemPosition != state.reverbPresetPosition
@@ -314,7 +326,7 @@ class AudioSettingsFragment : Fragment() {
         val numberOfBands = AudioEffectManager.getNumberOfBands()
 
         for (index in 0 until numberOfBands) {
-            val equalizerBandSeekBar = SoundEQVerticalSeekbar(requireContext())
+            val equalizerBandSeekBar = EqualizerBandSeekBar(requireContext())
 
             equalizerBandSeekBarIds.add(index, View.generateViewId())
 
@@ -343,7 +355,7 @@ class AudioSettingsFragment : Fragment() {
                     progress: Int,
                     fromUser: Boolean,
                 ) {
-                    if (!fromUser || isApplyingAudioSettingsState) return
+                    if (!isEqualizerBandChangedByUser(seekBar, fromUser) || isApplyingAudioSettingsState) return
 
                     // EQ 밴드 직접 조작은 Custom 프리셋 전환 조건이다.
                     vm.updateEqualizerBandFromUser(
@@ -398,6 +410,35 @@ class AudioSettingsFragment : Fragment() {
         updateEqualizerUiState(binding.swEqualizer.isChecked)
     }
 
+    private fun updateEqualizerBandSeekBars(equalizerBandProgresses: List<Int>) {
+        if (equalizerBandProgresses.isEmpty()) return
+
+        for (index in 0 until binding.seekbarContainer.childCount) {
+            val equalizerBandSeekBar = binding.seekbarContainer.getChildAt(index) as? EqualizerBandSeekBar
+                ?: continue
+
+            val progress = equalizerBandProgresses.getOrNull(index)
+                ?.coerceIn(0, equalizerBandSeekBar.max)
+                ?: continue
+
+            if (equalizerBandSeekBar.progress != progress) {
+                equalizerBandSeekBar.progress = progress
+                equalizerBandSeekBar.refreshThumbState()
+            }
+        }
+    }
+
+    // SoundEQVerticalSeekbar는 터치를 직접 처리하므로 fromUser 대신 tracking 상태도 함께 확인한다.
+    private fun isEqualizerBandChangedByUser(
+        seekBar: SeekBar,
+        fromUser: Boolean,
+    ): Boolean {
+        val isVerticalSeekBarTracking =
+            (seekBar as? EqualizerBandSeekBar)?.isTrackingTouch == true
+
+        return fromUser || isVerticalSeekBarTracking
+    }
+
     private fun updateEqualizerUiState(isEnabled: Boolean) {
         val contentAlpha = if (isEnabled) EQ_ENABLED_ALPHA else EQ_DISABLED_CONTENT_ALPHA
         val scaleAlpha = if (isEnabled) EQ_ENABLED_ALPHA else EQ_DISABLED_SCALE_ALPHA
@@ -416,7 +457,7 @@ class AudioSettingsFragment : Fragment() {
         binding.tvSeekbar.alpha = contentAlpha
 
         for (index in 0 until binding.seekbarContainer.childCount) {
-            val equalizerBandSeekBar = binding.seekbarContainer.getChildAt(index) as? SoundEQVerticalSeekbar
+            val equalizerBandSeekBar = binding.seekbarContainer.getChildAt(index) as? EqualizerBandSeekBar
                 ?: continue
 
             equalizerBandSeekBar.isEnabled = isEnabled
@@ -431,7 +472,7 @@ class AudioSettingsFragment : Fragment() {
         }
     }
 
-    // SettingsFragment의 progress 범위를 기준으로 dB로 환산
+    // EQ SeekBar progress(0..max)를 DSP EQ gain 범위(-12dB..+12dB)에 맞춰 변환한다.
     private fun mapEqProgressToDb(progress: Int, max: Int): Float {
         if (max <= 0) return 0.0f
         val normalized = (progress.toFloat() / max.toFloat()).coerceIn(0.0f, 1.0f) // 0..1
@@ -500,7 +541,7 @@ class AudioSettingsFragment : Fragment() {
         }
     }
 
-    private fun initBassSeekBar(settings: SharedPreferences) {
+    private fun initBassSeekBar() {
         binding.sbBass.progressDrawable.setTint(mainColor)
         binding.sbBass.thumb.setTint(mainColor)
 
