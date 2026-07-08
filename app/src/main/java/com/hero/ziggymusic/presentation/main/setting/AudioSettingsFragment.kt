@@ -80,9 +80,9 @@ class AudioSettingsFragment : Fragment() {
         initSetting()
 
         initEqualizer()
-        initBassSeekBar(prefs)
         initReverb()
         initLoudnessNormalizer()
+        initBassSeekBar()
         initVirtualizerSeekbar()
         initSpatialAudioUi() // XR 기능 UI 설정
         observeAudioSettingsState()
@@ -531,7 +531,7 @@ class AudioSettingsFragment : Fragment() {
         }
     }
 
-    private fun initBassSeekBar(settings: SharedPreferences) {
+    private fun initBassSeekBar() {
         binding.sbBass.progressDrawable.setTint(mainColor)
         binding.sbBass.thumb.setTint(mainColor)
 
