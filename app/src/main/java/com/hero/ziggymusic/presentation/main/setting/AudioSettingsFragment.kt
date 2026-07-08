@@ -53,7 +53,7 @@ class AudioSettingsFragment : Fragment() {
 
     private lateinit var prefs: SharedPreferences
 
-    // XR / Spatial Audio Components
+    // XR / Spatial Audio 컴포넌트
     private lateinit var headTracker: HeadTracker
     private lateinit var spatializerSupport: SpatializerSupport
 
@@ -100,7 +100,7 @@ class AudioSettingsFragment : Fragment() {
         binding.swSpatialAudio.setOnCheckedChangeListener(null)
         binding.swHeadTracking.setOnCheckedChangeListener(null)
 
-        // 1. Spatial Audio & Head Tracking Enable Switch
+        // 1. Spatial Audio & Head Tracking 활성화 스위치
         val spatialEnabled = prefs.getBoolean(AudioSettingKeys.KEY_SPATIAL_ENABLED, false)
         val headEnabled = prefs.getBoolean(AudioSettingKeys.KEY_HEAD_TRACKING_ENABLED, false)
 
@@ -115,10 +115,16 @@ class AudioSettingsFragment : Fragment() {
             AudioEffectManager.setHeadTrackingEnabled(spatialEnabled && headEnabled)
 
             if (spatialEnabled && headEnabled) {
-                PlayerAudioGraph.setHeadTrackingActive(true, true)
+                PlayerAudioGraph.setHeadTrackingActive(
+                    spatialEnabled = true,
+                    headTrackingEnabled = true
+                )
                 headTracker.start()
             } else {
-                PlayerAudioGraph.setHeadTrackingActive(false, false)
+                PlayerAudioGraph.setHeadTrackingActive(
+                    spatialEnabled = false,
+                    headTrackingEnabled = false
+                )
                 headTracker.stop()
             }
         }
