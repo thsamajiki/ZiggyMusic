@@ -230,6 +230,8 @@ class AudioSettingsFragment : Fragment() {
             binding.spinnerPreset.setSelection(state.currentPresetPosition)
         }
 
+        updateEqualizerBandSeekBars(state.equalizerBandProgresses)
+
         // Reverb 선택 위치도 공유 상태를 기준으로 맞춘다.
         if (binding.spinnerReverb.adapter != null &&
             binding.spinnerReverb.selectedItemPosition != state.reverbPresetPosition
@@ -343,7 +345,7 @@ class AudioSettingsFragment : Fragment() {
                     progress: Int,
                     fromUser: Boolean,
                 ) {
-                    if (!fromUser || isApplyingAudioSettingsState) return
+                    if (!isEqualizerBandChangedByUser(seekBar, fromUser) || isApplyingAudioSettingsState) return
 
                     // EQ 밴드 직접 조작은 Custom 프리셋 전환 조건이다.
                     vm.updateEqualizerBandFromUser(
@@ -396,6 +398,35 @@ class AudioSettingsFragment : Fragment() {
 
         initPresets()
         updateEqualizerUiState(binding.swEqualizer.isChecked)
+    }
+
+    private fun updateEqualizerBandSeekBars(equalizerBandProgresses: List<Int>) {
+        if (equalizerBandProgresses.isEmpty()) return
+
+        for (index in 0 until binding.seekbarContainer.childCount) {
+            val equalizerBandSeekBar = binding.seekbarContainer.getChildAt(index) as? SoundEQVerticalSeekbar
+                ?: continue
+
+            val progress = equalizerBandProgresses.getOrNull(index)
+                ?.coerceIn(0, equalizerBandSeekBar.max)
+                ?: continue
+
+            if (equalizerBandSeekBar.progress != progress) {
+                equalizerBandSeekBar.progress = progress
+                equalizerBandSeekBar.refreshThumbState()
+            }
+        }
+    }
+
+    // SoundEQVerticalSeekbar는 터치를 직접 처리하므로 fromUser 대신 tracking 상태도 함께 확인한다.
+    private fun isEqualizerBandChangedByUser(
+        seekBar: SeekBar,
+        fromUser: Boolean,
+    ): Boolean {
+        val isVerticalSeekBarTracking =
+            (seekBar as? SoundEQVerticalSeekbar)?.isTrackingTouch == true
+
+        return fromUser || isVerticalSeekBarTracking
     }
 
     private fun updateEqualizerUiState(isEnabled: Boolean) {
