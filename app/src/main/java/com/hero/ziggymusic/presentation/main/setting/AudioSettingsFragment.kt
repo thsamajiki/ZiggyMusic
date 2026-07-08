@@ -85,6 +85,10 @@ class AudioSettingsFragment : Fragment() {
         initBassSeekBar()
         initVirtualizerSeekbar()
         initSpatialAudioUi() // XR 기능 UI 설정
+        setupAudioSettingsState()
+    }
+
+    private fun setupAudioSettingsState() {
         observeAudioSettingsState()
         vm.refreshSettings()
     }
