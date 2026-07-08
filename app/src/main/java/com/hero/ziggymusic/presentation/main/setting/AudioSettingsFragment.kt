@@ -472,7 +472,7 @@ class AudioSettingsFragment : Fragment() {
         }
     }
 
-    // SettingsFragment의 progress 범위를 기준으로 dB로 환산
+    // EQ SeekBar progress(0..max)를 DSP EQ gain 범위(-12dB..+12dB)에 맞춰 변환한다.
     private fun mapEqProgressToDb(progress: Int, max: Int): Float {
         if (max <= 0) return 0.0f
         val normalized = (progress.toFloat() / max.toFloat()).coerceIn(0.0f, 1.0f) // 0..1
