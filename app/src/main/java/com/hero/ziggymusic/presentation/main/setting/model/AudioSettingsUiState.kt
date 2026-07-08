@@ -9,6 +9,7 @@ package com.hero.ziggymusic.presentation.main.setting.model
 data class AudioSettingsUiState(
     val isEqualizerEnabled: Boolean = false,
     val currentPresetPosition: Int = DEFAULT_PRESET_POSITION,
+    val equalizerBandProgresses: List<Int> = emptyList(),
     val recentPresetPositions: List<Int> = DEFAULT_RECENT_PRESET_POSITIONS,
     val bassStrength: Int = DEFAULT_EFFECT_VALUE,
     val virtualizerStrength: Int = DEFAULT_EFFECT_VALUE,
