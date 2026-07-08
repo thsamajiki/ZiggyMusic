@@ -276,15 +276,6 @@ class AudioEffectBottomSheetDialogFragment : BottomSheetDialogFragment() {
         // 바텀시트 최근 프리셋 버튼 중 Custom을 제외한 일반 EQ 프리셋 슬롯 개수
         private const val RECENT_NON_CUSTOM_PRESET_COUNT = 3
 
-        // SeekBar 기반 음향 효과 값은 0~100 범위로 통일한다.
-        private const val MIN_EFFECT_VALUE = 0
-        private const val MAX_EFFECT_VALUE = 100
-        private const val DEFAULT_EFFECT_VALUE = 0
-
-        // AudioSettingsFragment의 프리셋 목록은 0번을 Custom으로 사용한다.
-        private const val CUSTOM_PRESET_POSITION = 0
-        private const val SETTINGS_PRESET_OFFSET = 1
-
         fun newInstance(): AudioEffectBottomSheetDialogFragment =
             AudioEffectBottomSheetDialogFragment()
 
