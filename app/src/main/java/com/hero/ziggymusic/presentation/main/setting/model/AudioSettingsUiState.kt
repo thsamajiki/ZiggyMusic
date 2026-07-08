@@ -9,6 +9,7 @@ package com.hero.ziggymusic.presentation.main.setting.model
 data class AudioSettingsUiState(
     val isEqualizerEnabled: Boolean = false,
     val currentPresetPosition: Int = DEFAULT_PRESET_POSITION,
+    val recentPresetPositions: List<Int> = DEFAULT_RECENT_PRESET_POSITIONS,
     val bassStrength: Int = DEFAULT_EFFECT_VALUE,
     val virtualizerStrength: Int = DEFAULT_EFFECT_VALUE,
     val reverbPresetPosition: Int = DEFAULT_REVERB_PRESET_POSITION,
@@ -25,5 +26,15 @@ data class AudioSettingsUiState(
         const val DEFAULT_REVERB_PRESET_POSITION = 0
 
         const val DEFAULT_EFFECT_VALUE = 0
+
+        private const val POP_PRESET_POSITION = 9
+        private const val ROCK_PRESET_POSITION = 10
+
+        // 저장된 최근 프리셋이 없을 때 사용하는 기본 일반 EQ 프리셋 목록
+        val DEFAULT_RECENT_PRESET_POSITIONS = listOf(
+            DEFAULT_PRESET_POSITION,
+            POP_PRESET_POSITION,
+            ROCK_PRESET_POSITION,
+        )
     }
 }

@@ -18,6 +18,7 @@ import androidx.lifecycle.repeatOnLifecycle
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
+import com.google.android.material.button.MaterialButton
 import com.hero.ziggymusic.R
 import com.hero.ziggymusic.data.local.preferences.AudioSettingKeys
 import com.hero.ziggymusic.databinding.FragmentAudioEffectBottomSheetBinding
@@ -45,12 +46,14 @@ class AudioEffectBottomSheetDialogFragment : BottomSheetDialogFragment() {
         R.id.btnRecentPresetFourth,
     )
 
-    private val recentPresets = listOf(
+    private val defaultRecentPresets = listOf(
         AudioEffectPreset.NORMAL,
         AudioEffectPreset.POP,
         AudioEffectPreset.ROCK,
         AudioEffectPreset.CUSTOM,
     )
+
+    private var recentPresets = defaultRecentPresets
 
     override fun getTheme(): Int = R.style.PlayerBottomSheet
 
@@ -181,12 +184,52 @@ class AudioEffectBottomSheetDialogFragment : BottomSheetDialogFragment() {
             binding.seekBarVirtualizer.progress = state.virtualizerStrength
         }
 
+        // 저장소에 저장된 최근 프리셋 순서를 버튼 라벨에 반영한다.
+        updateRecentPresetButtons(state.recentPresetPositions)
+
         val checkedButtonId = findPresetButtonId(state.currentPresetPosition)
         if (checkedButtonId != null && binding.togglePresetGroup.checkedButtonId != checkedButtonId) {
             binding.togglePresetGroup.check(checkedButtonId)
         }
 
         isApplyingAudioSettingsState = false
+    }
+
+    // 최근 프리셋 position 목록을 버튼 모델로 변환하고 각 MaterialButton의 표시 텍스트를 갱신한다.
+    private fun updateRecentPresetButtons(recentPresetPositions: List<Int>) {
+        recentPresets = buildRecentPresetButtonModels(recentPresetPositions)
+
+        recentPresetButtonIds.forEachIndexed { index, buttonId ->
+            val preset = recentPresets.getOrNull(index) ?: return@forEachIndexed
+            binding.togglePresetGroup.findViewById<MaterialButton>(buttonId)?.text =
+                getString(preset.labelResId)
+        }
+    }
+
+    // Custom은 사용자가 직접 조정한 EQ 상태를 되돌리는 진입점이므로 마지막 버튼에 고정하고,
+    // 일반 EQ 프리셋만 최근 선택 순서대로 앞 3개 버튼에 배치한다.
+    private fun buildRecentPresetButtonModels(
+        recentPresetPositions: List<Int>,
+    ): List<AudioEffectPreset> {
+        // 저장된 position 값을 바텀시트 프리셋 모델로 변환한 일반 EQ 프리셋 목록
+        val nonCustomPresets = recentPresetPositions
+            .mapNotNull(::findPresetBySettingsPosition)
+            .filterNot { it == AudioEffectPreset.CUSTOM }
+            .distinct()
+
+        // 저장된 목록이 부족하거나 유효하지 않을 때 빈 슬롯을 채울 기본 프리셋 후보
+        val fallbackPresets = defaultRecentPresets
+            .filterNot { it == AudioEffectPreset.CUSTOM || it in nonCustomPresets }
+
+        return (nonCustomPresets + fallbackPresets)
+            .take(RECENT_NON_CUSTOM_PRESET_COUNT) + AudioEffectPreset.CUSTOM
+    }
+
+    // 설정 화면의 spinner position 값에 대응하는 바텀시트 프리셋 모델을 찾는다.
+    private fun findPresetBySettingsPosition(presetPosition: Int): AudioEffectPreset? {
+        return AudioEffectPreset.entries.firstOrNull {
+            it.config.settingsPresetPosition == presetPosition
+        }
     }
 
     // 현재 프리셋 position에 대응하는 바텀시트 버튼 id를 찾는다.
@@ -225,10 +268,13 @@ class AudioEffectBottomSheetDialogFragment : BottomSheetDialogFragment() {
     companion object {
         const val TAG = "AudioEffectBottomSheetDialogFragment"
 
-        // Fragment Result로 PlayerFragment에 전달할 바텀시트 액션 정보.
+        // Fragment Result로 PlayerFragment에 전달할 바텀시트 액션 정보
         const val REQUEST_KEY = "audio_effect_bottom_sheet_request"
         const val RESULT_ACTION_KEY = "audio_effect_bottom_sheet_action"
         const val ACTION_OPEN_AUDIO_SETTINGS = "open_audio_settings"
+
+        // 바텀시트 최근 프리셋 버튼 중 Custom을 제외한 일반 EQ 프리셋 슬롯 개수
+        private const val RECENT_NON_CUSTOM_PRESET_COUNT = 3
 
         // SeekBar 기반 음향 효과 값은 0~100 범위로 통일한다.
         private const val MIN_EFFECT_VALUE = 0

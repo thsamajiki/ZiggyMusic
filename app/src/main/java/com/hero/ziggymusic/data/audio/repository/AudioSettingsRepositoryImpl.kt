@@ -68,9 +68,20 @@ class AudioSettingsRepositoryImpl @Inject constructor(
             AudioSettingsUiState.CUSTOM_PRESET_POSITION,
         )
 
+        // 어떤 화면에서 프리셋을 선택하든 최근 프리셋 목록을 같은 기준으로 갱신한다.
+        val recentPresetPositions = buildRecentPresetPositions(normalizedPresetPosition)
+
         prefs.edit {
             putBoolean(AudioSettingKeys.KEY_EQUALIZER_ENABLED, true)
             putInt(AudioSettingKeys.KEY_PRESET, normalizedPresetPosition)
+
+            // Custom은 고정 슬롯으로 처리하므로 일반 EQ 프리셋을 선택했을 때만 최근 목록을 저장한다.
+            if (normalizedPresetPosition > AudioSettingsUiState.CUSTOM_PRESET_POSITION) {
+                putString(
+                    AudioSettingKeys.KEY_RECENT_PRESET_POSITIONS,
+                    serializeRecentPresetPositions(recentPresetPositions),
+                )
+            }
         }
 
         if (normalizedPresetPosition > AudioSettingsUiState.CUSTOM_PRESET_POSITION) {
@@ -221,6 +232,7 @@ class AudioSettingsRepositoryImpl @Inject constructor(
                 AudioSettingKeys.KEY_PRESET,
                 AudioSettingsUiState.DEFAULT_PRESET_POSITION,
             ),
+            recentPresetPositions = loadRecentPresetPositions(),
             bassStrength = prefs.getInt(
                 AudioSettingKeys.KEY_BASS,
                 AudioSettingsUiState.DEFAULT_EFFECT_VALUE,
@@ -240,10 +252,67 @@ class AudioSettingsRepositoryImpl @Inject constructor(
         )
     }
 
+    // 선택한 일반 EQ 프리셋을 맨 앞에 두고, 기존 최근 목록을 뒤로 밀어 최신순 목록을 만든다.
+    private fun buildRecentPresetPositions(selectedPresetPosition: Int): List<Int> {
+        if (selectedPresetPosition <= AudioSettingsUiState.CUSTOM_PRESET_POSITION) {
+            return loadRecentPresetPositions()
+        }
+
+        val recentPresetPositions = mutableListOf(selectedPresetPosition)
+
+        loadRecentPresetPositions()
+            .filterNot { it == selectedPresetPosition }
+            .forEach { presetPosition ->
+                if (presetPosition !in recentPresetPositions) {
+                    recentPresetPositions += presetPosition
+                }
+            }
+
+        AudioSettingsUiState.DEFAULT_RECENT_PRESET_POSITIONS
+            .filterNot { it == selectedPresetPosition }
+            .forEach { presetPosition ->
+                if (presetPosition !in recentPresetPositions) {
+                    recentPresetPositions += presetPosition
+                }
+            }
+
+        return recentPresetPositions.take(RECENT_NON_CUSTOM_PRESET_COUNT)
+    }
+
+    // 저장된 최근 프리셋 목록을 읽고, 값이 없거나 부족하면 기본 프리셋으로 보충한다.
+    private fun loadRecentPresetPositions(): List<Int> {
+        val savedPresetPositions = prefs.getString(
+            AudioSettingKeys.KEY_RECENT_PRESET_POSITIONS,
+            null,
+        )
+            ?.split(RECENT_PRESET_POSITION_SEPARATOR)
+            ?.mapNotNull { it.toIntOrNull() }
+            .orEmpty()
+
+        return (savedPresetPositions + AudioSettingsUiState.DEFAULT_RECENT_PRESET_POSITIONS)
+            .filter { it > AudioSettingsUiState.CUSTOM_PRESET_POSITION }
+            .distinct()
+            .take(RECENT_NON_CUSTOM_PRESET_COUNT)
+    }
+
+    // SharedPreferences에 저장할 수 있도록 최근 프리셋 position 목록을 문자열로 변환한다.
+    private fun serializeRecentPresetPositions(presetPositions: List<Int>): String {
+        return presetPositions.joinToString(RECENT_PRESET_POSITION_SEPARATOR)
+    }
+
     private companion object {
         const val SETTINGS_PRESET_OFFSET = 1
+
+        // Custom을 제외하고 저장/표시할 일반 EQ 최근 프리셋 개수
+        const val RECENT_NON_CUSTOM_PRESET_COUNT = 3
+
+        // SharedPreferences에 최근 프리셋 position 목록을 저장할 때 사용하는 구분자
+        const val RECENT_PRESET_POSITION_SEPARATOR = ","
+
+        // SeekBar 기반 음향 효과 값은 0~100 범위로 통일한다.
         const val MIN_EFFECT_VALUE = 0
         const val MAX_EFFECT_VALUE = 100
+
         const val MIN_REVERB_PRESET_POSITION = 0
         const val MAX_REVERB_PRESET_POSITION = 6
     }
