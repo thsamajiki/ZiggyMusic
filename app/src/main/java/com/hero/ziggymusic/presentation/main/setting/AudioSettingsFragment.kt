@@ -32,7 +32,7 @@ import com.hero.ziggymusic.playback.manager.AudioEffectManager
 import com.hero.ziggymusic.playback.manager.AudioEffectManager.mainColor
 import com.hero.ziggymusic.presentation.main.setting.model.AudioSettingsUiState
 import com.hero.ziggymusic.presentation.main.setting.viewmodel.AudioSettingsViewModel
-import com.hero.ziggymusic.presentation.main.setting.widget.SoundEQVerticalSeekbar
+import com.hero.ziggymusic.presentation.main.setting.widget.EqualizerBandSeekBar
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import java.util.Locale
@@ -326,7 +326,7 @@ class AudioSettingsFragment : Fragment() {
         val numberOfBands = AudioEffectManager.getNumberOfBands()
 
         for (index in 0 until numberOfBands) {
-            val equalizerBandSeekBar = SoundEQVerticalSeekbar(requireContext())
+            val equalizerBandSeekBar = EqualizerBandSeekBar(requireContext())
 
             equalizerBandSeekBarIds.add(index, View.generateViewId())
 
@@ -414,7 +414,7 @@ class AudioSettingsFragment : Fragment() {
         if (equalizerBandProgresses.isEmpty()) return
 
         for (index in 0 until binding.seekbarContainer.childCount) {
-            val equalizerBandSeekBar = binding.seekbarContainer.getChildAt(index) as? SoundEQVerticalSeekbar
+            val equalizerBandSeekBar = binding.seekbarContainer.getChildAt(index) as? EqualizerBandSeekBar
                 ?: continue
 
             val progress = equalizerBandProgresses.getOrNull(index)
@@ -434,7 +434,7 @@ class AudioSettingsFragment : Fragment() {
         fromUser: Boolean,
     ): Boolean {
         val isVerticalSeekBarTracking =
-            (seekBar as? SoundEQVerticalSeekbar)?.isTrackingTouch == true
+            (seekBar as? EqualizerBandSeekBar)?.isTrackingTouch == true
 
         return fromUser || isVerticalSeekBarTracking
     }
@@ -457,7 +457,7 @@ class AudioSettingsFragment : Fragment() {
         binding.tvSeekbar.alpha = contentAlpha
 
         for (index in 0 until binding.seekbarContainer.childCount) {
-            val equalizerBandSeekBar = binding.seekbarContainer.getChildAt(index) as? SoundEQVerticalSeekbar
+            val equalizerBandSeekBar = binding.seekbarContainer.getChildAt(index) as? EqualizerBandSeekBar
                 ?: continue
 
             equalizerBandSeekBar.isEnabled = isEnabled

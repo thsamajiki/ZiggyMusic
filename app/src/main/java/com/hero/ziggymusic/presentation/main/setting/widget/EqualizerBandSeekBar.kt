@@ -10,7 +10,7 @@ import androidx.appcompat.widget.AppCompatSeekBar
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.withRotation
 
-class SoundEQVerticalSeekbar @JvmOverloads constructor(
+class EqualizerBandSeekBar @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
     defStyleAttr: Int = R.attr.seekBarStyle,
