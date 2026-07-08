@@ -9,7 +9,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.SeekBar
-import androidx.core.content.edit
 import androidx.core.graphics.drawable.toDrawable
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle
@@ -22,8 +21,6 @@ import com.google.android.material.button.MaterialButton
 import com.hero.ziggymusic.R
 import com.hero.ziggymusic.data.local.preferences.AudioSettingKeys
 import com.hero.ziggymusic.databinding.FragmentAudioEffectBottomSheetBinding
-import com.hero.ziggymusic.playback.manager.AudioEffectManager
-import com.hero.ziggymusic.presentation.main.setting.AudioSettingsFragment
 import com.hero.ziggymusic.presentation.main.setting.model.AudioSettingsUiState
 import com.hero.ziggymusic.presentation.main.setting.viewmodel.AudioSettingsViewModel
 import dagger.hilt.android.AndroidEntryPoint
