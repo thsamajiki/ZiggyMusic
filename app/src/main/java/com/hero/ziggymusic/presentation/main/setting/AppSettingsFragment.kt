@@ -44,9 +44,11 @@ class AppSettingsFragment : Fragment() {
         }
 
         binding.rowTermsOfService.setOnClickListener {
+            mainVm.requestTermsOfService()
         }
 
         binding.rowPrivacyPolicy.setOnClickListener {
+            mainVm.requestOpenPrivacyPolicy()
         }
 
         binding.rowOpenSourceLicenses.setOnClickListener {
