@@ -13,6 +13,8 @@ import javax.inject.Inject
 sealed class MainNavigationCommand {
     object AppSettings : MainNavigationCommand()
     object AudioSettings : MainNavigationCommand()
+    object TermsOfService : MainNavigationCommand()
+    object PrivacyPolicy : MainNavigationCommand()
 }
 
 @HiltViewModel
@@ -34,6 +36,14 @@ class MainViewModel @Inject constructor(
 
     fun requestOpenAudioSettings() {
         _navigationEvent.value = SingleEvent(MainNavigationCommand.AudioSettings)
+    }
+
+    fun requestTermsOfService() {
+        _navigationEvent.value = SingleEvent(MainNavigationCommand.TermsOfService)
+    }
+
+    fun requestOpenPrivacyPolicy() {
+        _navigationEvent.value = SingleEvent(MainNavigationCommand.PrivacyPolicy)
     }
 
     fun setTitle(title: MainTitle) {
