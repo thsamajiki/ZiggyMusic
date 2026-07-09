@@ -2,7 +2,6 @@ package com.hero.ziggymusic
 
 import android.app.Application
 import android.app.NotificationManager
-import com.hero.ziggymusic.playback.audio.AudioDspChainHolder
 import com.hero.ziggymusic.playback.service.MusicService
 import com.hero.ziggymusic.playback.service.MusicServiceState
 import dagger.hilt.android.HiltAndroidApp
@@ -27,14 +26,6 @@ class ZiggyMusicApp : Application() {
             }
             defaultExceptionHandler?.uncaughtException(thread, throwable)
         }
-
-        runCatching { AudioDspChainHolder.ensureNativeDspChainInitialized(this) }
-    }
-
-    override fun onTerminate() {
-        super.onTerminate()
-        // 에뮬/디버그에서만 호출될 수 있지만, 정리 루틴은 두는 편이 안전
-        AudioDspChainHolder.releaseNativeChain()
     }
 
     private fun cancelStaleMusicNotification() {
