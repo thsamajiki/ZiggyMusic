@@ -52,6 +52,7 @@ import com.hero.ziggymusic.presentation.main.player.manager.PlayerController
 import com.hero.ziggymusic.presentation.main.player.manager.PlayerMotionManager
 import com.hero.ziggymusic.presentation.main.player.viewmodel.PlayerViewModel
 import com.hero.ziggymusic.presentation.main.setting.AppSettingsFragment
+import com.hero.ziggymusic.presentation.main.setting.WebPageFragment
 import com.hero.ziggymusic.presentation.main.setting.viewmodel.AudioSettingsViewModel
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
@@ -133,6 +134,7 @@ class MainActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedListen
                 is FavoriteMusicTracksFragment -> vm.setTitle(MainTitle.FavoriteTracks)
                 is AppSettingsFragment -> vm.setTitle(MainTitle.AppSettings)
                 is AudioSettingsFragment -> vm.setTitle(MainTitle.AudioSettings)
+                is WebPageFragment -> vm.setTitle(MainTitle.WebPage(currentFragment.titleResId))
             }
         }
 
@@ -247,6 +249,53 @@ class MainActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedListen
             .commit()
     }
 
+    private fun showWebPageFragment(
+        tag: String,
+        url: String,
+        titleResId: Int,
+    ) {
+        val existingWebPageFragment = supportFragmentManager.findFragmentByTag(tag)
+
+        if (
+            existingWebPageFragment != null &&
+            existingWebPageFragment.isAdded &&
+            !existingWebPageFragment.isHidden
+        ) {
+            return
+        }
+
+        var appSettingsFragment = supportFragmentManager.findFragmentByTag(TAG_APP_SETTINGS)
+
+        if (appSettingsFragment == null) {
+            showAppSettingsFragment()
+            supportFragmentManager.executePendingTransactions()
+
+            appSettingsFragment = supportFragmentManager.findFragmentByTag(TAG_APP_SETTINGS) ?: return
+        }
+
+        val webPageFragment =
+            existingWebPageFragment ?: WebPageFragment.newInstance(
+                url = url,
+                titleResId = titleResId
+            )
+
+        supportFragmentManager.beginTransaction()
+            .setReorderingAllowed(true)
+            .hide(appSettingsFragment)
+            .setMaxLifecycle(appSettingsFragment, Lifecycle.State.STARTED)
+            .apply {
+                if (webPageFragment.isAdded) {
+                    show(webPageFragment)
+                } else {
+                    add(binding.fcvMain.id, webPageFragment, tag)
+                }
+            }
+            .setMaxLifecycle(webPageFragment, Lifecycle.State.RESUMED)
+            .setPrimaryNavigationFragment(webPageFragment)
+            .addToBackStack(tag)
+            .commit()
+    }
+
     override fun onStart() {
         super.onStart()
     }
@@ -277,6 +326,16 @@ class MainActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedListen
                 when (event.getContentIfNotHandled()) {
                     MainNavigationCommand.AppSettings -> showAppSettingsFragment()
                     MainNavigationCommand.AudioSettings -> showAudioSettingsFragment()
+                    MainNavigationCommand.TermsOfService -> showWebPageFragment(
+                        tag = TAG_TERMS_OF_SERVICE,
+                        url = TERMS_OF_SERVICE_URL,
+                        titleResId = R.string.settings_terms_of_service
+                    )
+                    is MainNavigationCommand.PrivacyPolicy -> showWebPageFragment(
+                        tag = TAG_PRIVACY_POLICY,
+                        url = PRIVACY_POLICY_URL,
+                        titleResId = R.string.settings_privacy_policy
+                    )
                     null -> Unit
                 }
             }
@@ -763,5 +822,13 @@ class MainActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedListen
         private const val TAG_FAVORITES = "favorites"
         private const val TAG_APP_SETTINGS = "app_settings"
         private const val TAG_AUDIO_SETTINGS = "audio_settings"
+        private const val TAG_PRIVACY_POLICY = "privacy_policy"
+        private const val TAG_TERMS_OF_SERVICE = "terms_of_service"
+
+        private const val PRIVACY_POLICY_URL =
+            "https://thsamajiki.github.io/ziggymusic-privacy-policy.html"
+
+        private const val TERMS_OF_SERVICE_URL =
+            "https://thsamajiki.github.io/ziggymusic-terms-of-service.html"
     }
 }
