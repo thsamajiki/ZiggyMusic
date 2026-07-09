@@ -21,4 +21,12 @@ sealed class MainTitle(
         showBackButton = true,
         showAppSettingsButton = false
     )
+
+    data class WebPage(
+        @param:StringRes val titleResId: Int,
+    ) : MainTitle(
+        resId = titleResId,
+        showBackButton = true,
+        showAppSettingsButton = false
+    )
 }
