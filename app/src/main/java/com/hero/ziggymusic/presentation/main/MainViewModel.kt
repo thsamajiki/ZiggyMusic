@@ -15,6 +15,7 @@ sealed class MainNavigationCommand {
     object AudioSettings : MainNavigationCommand()
     object TermsOfService : MainNavigationCommand()
     object PrivacyPolicy : MainNavigationCommand()
+    object LicenseNotices : MainNavigationCommand()
 }
 
 @HiltViewModel
@@ -44,6 +45,10 @@ class MainViewModel @Inject constructor(
 
     fun requestOpenPrivacyPolicy() {
         _navigationEvent.value = SingleEvent(MainNavigationCommand.PrivacyPolicy)
+    }
+
+    fun requestOpenSourceLicenses() {
+        _navigationEvent.value = SingleEvent(MainNavigationCommand.LicenseNotices)
     }
 
     fun setTitle(title: MainTitle) {
