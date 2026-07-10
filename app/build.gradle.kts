@@ -9,6 +9,7 @@ plugins {
     alias(libs.plugins.hilt.android)
     alias(libs.plugins.kotlin.kapt)
     alias(libs.plugins.devtools.ksp)
+    alias(libs.plugins.aboutlibraries)
 }
 
 extensions.configure<ApplicationExtension> {
@@ -109,8 +110,6 @@ dependencies {
     implementation(libs.androidx.recyclerview)
     implementation(libs.material)
 
-    implementation(libs.lifecycle.viewmodel.compose.android)
-
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.testjunit)
     androidTestImplementation(libs.espresso.core)
@@ -140,8 +139,6 @@ dependencies {
 
     // Media3
     implementation(libs.bundles.media3)
-
-    implementation(libs.lottie)
 
     implementation(libs.oboe)
 }
