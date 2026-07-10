@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:clickable="true"
+    android:focusable="true"
+    android:foreground="?attr/selectableItemBackground"
+    android:gravity="center_vertical"
+    android:minHeight="@dimen/app_settings_single_line_row_min_height"
+    android:orientation="vertical"
+    android:paddingStart="@dimen/app_settings_content_horizontal_inset"
+    android:paddingTop="@dimen/app_settings_row_padding_vertical"
+    android:paddingEnd="@dimen/app_settings_content_horizontal_inset"
+    android:paddingBottom="@dimen/app_settings_row_padding_vertical">
+
+    <TextView
+        android:id="@+id/tvLicenseName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textAppearance="@style/TextAppearance.ZiggyMusic.AppSettings.RowTitle" />
+
+    <TextView
+        android:id="@+id/tvLicenseSummary"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/app_settings_row_text_vertical_gap"
+        android:textAppearance="@style/TextAppearance.ZiggyMusic.AppSettings.Description" />
+
+</LinearLayout>
