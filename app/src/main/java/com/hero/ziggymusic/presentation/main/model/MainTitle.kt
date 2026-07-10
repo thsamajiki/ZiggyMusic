@@ -29,4 +29,10 @@ sealed class MainTitle(
         showBackButton = true,
         showAppSettingsButton = false
     )
+
+    object LicenseNotices : MainTitle(
+        resId = R.string.settings_license_notices,
+        showBackButton = true,
+        showAppSettingsButton = false
+    )
 }
