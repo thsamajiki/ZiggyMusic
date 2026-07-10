@@ -54,6 +54,7 @@ import com.hero.ziggymusic.presentation.main.player.viewmodel.PlayerViewModel
 import com.hero.ziggymusic.presentation.main.setting.AppSettingsFragment
 import com.hero.ziggymusic.presentation.main.setting.WebPageFragment
 import com.hero.ziggymusic.presentation.main.setting.viewmodel.AudioSettingsViewModel
+import com.hero.ziggymusic.presentation.main.setting.LicenseNoticesFragment
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 
@@ -135,6 +136,7 @@ class MainActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedListen
                 is AppSettingsFragment -> vm.setTitle(MainTitle.AppSettings)
                 is AudioSettingsFragment -> vm.setTitle(MainTitle.AudioSettings)
                 is WebPageFragment -> vm.setTitle(MainTitle.WebPage(currentFragment.titleResId))
+                is LicenseNoticesFragment -> vm.setTitle(MainTitle.LicenseNotices)
             }
         }
 
@@ -296,6 +298,47 @@ class MainActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedListen
             .commit()
     }
 
+    private fun showLicenseNoticesFragment() {
+        val existingOpenSourceLicensesFragment =
+            supportFragmentManager.findFragmentByTag(TAG_LICENSE_NOTICES)
+
+        if (
+            existingOpenSourceLicensesFragment != null &&
+            existingOpenSourceLicensesFragment.isAdded &&
+            !existingOpenSourceLicensesFragment.isHidden
+        ) {
+            return
+        }
+
+        var appSettingsFragment = supportFragmentManager.findFragmentByTag(TAG_APP_SETTINGS)
+
+        if (appSettingsFragment == null) {
+            showAppSettingsFragment()
+            supportFragmentManager.executePendingTransactions()
+
+            appSettingsFragment = supportFragmentManager.findFragmentByTag(TAG_APP_SETTINGS) ?: return
+        }
+
+        val licenseNoticesFragment =
+            existingOpenSourceLicensesFragment ?: LicenseNoticesFragment.newInstance()
+
+        supportFragmentManager.beginTransaction()
+            .setReorderingAllowed(true)
+            .hide(appSettingsFragment)
+            .setMaxLifecycle(appSettingsFragment, Lifecycle.State.STARTED)
+            .apply {
+                if (licenseNoticesFragment.isAdded) {
+                    show(licenseNoticesFragment)
+                } else {
+                    add(binding.fcvMain.id, licenseNoticesFragment, TAG_LICENSE_NOTICES)
+                }
+            }
+            .setMaxLifecycle(licenseNoticesFragment, Lifecycle.State.RESUMED)
+            .setPrimaryNavigationFragment(licenseNoticesFragment)
+            .addToBackStack(TAG_LICENSE_NOTICES)
+            .commit()
+    }
+
     override fun onStart() {
         super.onStart()
     }
@@ -336,6 +379,7 @@ class MainActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedListen
                         url = PRIVACY_POLICY_URL,
                         titleResId = R.string.settings_privacy_policy
                     )
+                    MainNavigationCommand.LicenseNotices -> showLicenseNoticesFragment()
                     null -> Unit
                 }
             }
@@ -824,6 +868,7 @@ class MainActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedListen
         private const val TAG_AUDIO_SETTINGS = "audio_settings"
         private const val TAG_PRIVACY_POLICY = "privacy_policy"
         private const val TAG_TERMS_OF_SERVICE = "terms_of_service"
+        private const val TAG_LICENSE_NOTICES = "license_notices"
 
         private const val PRIVACY_POLICY_URL =
             "https://thsamajiki.github.io/ziggymusic-privacy-policy.html"
