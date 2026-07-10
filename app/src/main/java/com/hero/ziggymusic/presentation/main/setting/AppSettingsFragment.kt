@@ -52,6 +52,7 @@ class AppSettingsFragment : Fragment() {
         }
 
         binding.rowOpenSourceLicenses.setOnClickListener {
+            mainVm.requestOpenSourceLicenses()
         }
     }
 
