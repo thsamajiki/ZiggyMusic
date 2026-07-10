@@ -367,9 +367,9 @@ class MainActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedListen
 
             navigationEvent.observe(this@MainActivity) { event ->
                 when (event.getContentIfNotHandled()) {
-                    MainNavigationCommand.AppSettings -> showAppSettingsFragment()
-                    MainNavigationCommand.AudioSettings -> showAudioSettingsFragment()
-                    MainNavigationCommand.TermsOfService -> showWebPageFragment(
+                    is MainNavigationCommand.AppSettings -> showAppSettingsFragment()
+                    is MainNavigationCommand.AudioSettings -> showAudioSettingsFragment()
+                    is MainNavigationCommand.TermsOfService -> showWebPageFragment(
                         tag = TAG_TERMS_OF_SERVICE,
                         url = TERMS_OF_SERVICE_URL,
                         titleResId = R.string.settings_terms_of_service
@@ -379,7 +379,7 @@ class MainActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedListen
                         url = PRIVACY_POLICY_URL,
                         titleResId = R.string.settings_privacy_policy
                     )
-                    MainNavigationCommand.LicenseNotices -> showLicenseNoticesFragment()
+                    is MainNavigationCommand.LicenseNotices -> showLicenseNoticesFragment()
                     null -> Unit
                 }
             }
