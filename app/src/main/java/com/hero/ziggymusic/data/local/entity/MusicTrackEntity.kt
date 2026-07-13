@@ -25,6 +25,8 @@ data class MusicTrackEntity(
     val album: String? = "",    // 앨범명
     @ColumnInfo(name = "duration")
     val duration: Long? = 0,     // 음원 재생 시간
+    @ColumnInfo(name = "date_added")
+    val dateAdded: Long,    // MediaStore에 추가된 시각(초 단위)
     @ColumnInfo(name = "is_playing")
     val isPlaying: Boolean = false,
 ) : Parcelable {
