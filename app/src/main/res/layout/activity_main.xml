@@ -26,8 +26,8 @@
                 android:layout_height="@dimen/toolbar_icon_touch_size"
                 android:layout_marginStart="@dimen/space_sm"
                 android:padding="@dimen/toolbar_icon_padding"
-                android:src="@drawable/ic_left_arrow"
                 android:scaleType="fitCenter"
+                android:src="@drawable/ic_left_arrow"
                 android:visibility="invisible"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
@@ -45,13 +45,30 @@
                 tools:text="음악 목록" />
 
             <ImageView
+                android:id="@+id/ivSortMusicTracks"
+                android:layout_width="@dimen/toolbar_icon_touch_size"
+                android:layout_height="@dimen/toolbar_icon_touch_size"
+                android:layout_marginEnd="@dimen/space_xxs"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:clickable="true"
+                android:contentDescription="@string/music_track_sort"
+                android:focusable="true"
+                android:padding="@dimen/toolbar_music_tracks_sort_icon_padding"
+                android:scaleType="fitCenter"
+                android:src="@drawable/ic_sort_music_tracks"
+                android:visibility="gone"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toStartOf="@+id/ivAppSettings"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <ImageView
                 android:id="@+id/ivAppSettings"
                 android:layout_width="@dimen/toolbar_icon_touch_size"
                 android:layout_height="@dimen/toolbar_icon_touch_size"
                 android:layout_marginEnd="@dimen/space_sm"
                 android:padding="@dimen/toolbar_icon_padding"
-                android:src="@drawable/ic_app_settings"
                 android:scaleType="fitCenter"
+                android:src="@drawable/ic_app_settings"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
