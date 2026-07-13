@@ -51,6 +51,9 @@ import com.hero.ziggymusic.data.local.preferences.LastPlaybackStore
 import com.hero.ziggymusic.presentation.main.player.manager.PlayerController
 import com.hero.ziggymusic.presentation.main.player.manager.PlayerMotionManager
 import com.hero.ziggymusic.presentation.main.player.viewmodel.PlayerViewModel
+import com.hero.ziggymusic.domain.music.model.MusicTracksSortOrder
+import com.hero.ziggymusic.presentation.main.musictracks.viewmodel.MusicTracksViewModel
+import com.hero.ziggymusic.presentation.main.popup.MusicTracksSortMenuPopup
 import com.hero.ziggymusic.presentation.main.setting.AppSettingsFragment
 import com.hero.ziggymusic.presentation.main.setting.WebPageFragment
 import com.hero.ziggymusic.presentation.main.setting.viewmodel.AudioSettingsViewModel
@@ -63,6 +66,7 @@ class MainActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedListen
     private lateinit var binding: ActivityMainBinding
     private val vm by viewModels<MainViewModel>()
     private val playerVm by viewModels<PlayerViewModel>()
+    private val musicTracksVm by viewModels<MusicTracksViewModel>()
     private val audioSettingsVm by viewModels<AudioSettingsViewModel>()
 
     @Inject
@@ -138,6 +142,10 @@ class MainActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedListen
                 is WebPageFragment -> vm.setTitle(MainTitle.WebPage(currentFragment.titleResId))
                 is LicenseNoticesFragment -> vm.setTitle(MainTitle.LicenseNotices)
             }
+        }
+
+        binding.ivSortMusicTracks.setOnClickListener {
+            showMusicTrackSortMenu()
         }
 
         // 현재 메인 탭을 숨기고 설정 화면을 백스택 위에 표시한다.
@@ -360,6 +368,8 @@ class MainActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedListen
                 currentTitle.observe(this@MainActivity) { mainTitle ->
                     binding.tvMainTitle.text = getString(mainTitle.resId)
                     binding.ivBack.isVisible = mainTitle.showBackButton
+                    binding.ivSortMusicTracks.isVisible = mainTitle.showMusicTrackSortButton
+                    binding.ivSortMusicTracks.isEnabled = mainTitle.showMusicTrackSortButton
                     binding.ivAppSettings.isVisible = mainTitle.showAppSettingsButton
                     binding.ivAppSettings.isEnabled = mainTitle.showAppSettingsButton
                 }
@@ -593,6 +603,20 @@ class MainActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedListen
             context = this,
             action = MusicService.ACTION_REFRESH_NOTIFICATION
         )
+    }
+
+    private fun showMusicTrackSortMenu() {
+        val selectedSortOrder =
+            musicTracksVm.musicTracksSortOrder.value
+                ?: MusicTracksSortOrder.TITLE_ASCENDING
+
+        MusicTracksSortMenuPopup(
+            anchorView = binding.ivSortMusicTracks,
+            selectedSortOrder = selectedSortOrder,
+            onSortOrderSelected = { sortOrder ->
+                musicTracksVm.setMusicTrackSortOrder(sortOrder)
+            }
+        ).show()
     }
 
     // 하단 탭 이동 시 설정 계열 백스택을 한 번에 제거한다.

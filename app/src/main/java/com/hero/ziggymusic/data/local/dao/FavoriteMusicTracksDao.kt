@@ -12,8 +12,11 @@ interface FavoriteMusicTracksDao {
         FROM music_tracks
         INNER JOIN favorite_music_tracks
         ON music_tracks.id = favorite_music_tracks.id
-        ORDER BY favorite_music_tracks.created_at DESC
-    """)
+        ORDER BY
+            favorite_music_tracks.created_at ASC,
+            favorite_music_tracks.id ASC
+        """
+    )
     fun getFavoriteMusicTracks(): LiveData<List<MusicTrackEntity>>
 
     @Query("SELECT id FROM favorite_music_tracks")

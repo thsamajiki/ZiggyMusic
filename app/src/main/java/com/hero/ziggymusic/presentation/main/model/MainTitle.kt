@@ -7,9 +7,15 @@ sealed class MainTitle(
     @get:StringRes val resId: Int,
     val showBackButton: Boolean = false,
     val showAppSettingsButton: Boolean = true,
+    val showMusicTrackSortButton: Boolean = false,
 ) {
-    object MusicTracks : MainTitle(R.string.title_music_tracks)
+    object MusicTracks : MainTitle(
+        resId = R.string.title_music_tracks,
+        showMusicTrackSortButton = true
+    )
+
     object FavoriteTracks : MainTitle(R.string.title_favorite_tracks)
+
     object AppSettings : MainTitle(
         resId = R.string.title_app_settings,
         showBackButton = true,

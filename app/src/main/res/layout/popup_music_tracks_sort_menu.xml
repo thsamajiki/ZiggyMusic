@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="@dimen/music_tracks_sort_menu_popup_width"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_popup_music_option_menu"
+    android:orientation="vertical"
+    android:paddingVertical="@dimen/music_option_menu_popup_vertical_padding">
+
+    <!-- 제목 정렬 -->
+    <LinearLayout
+        android:id="@+id/layoutTitleSort"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/music_tracks_sort_menu_item_height"
+        android:background="?selectableItemBackground"
+        android:clickable="true"
+        android:focusable="true"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="@dimen/music_tracks_sort_menu_horizontal_padding"
+        android:paddingEnd="@dimen/music_tracks_sort_menu_horizontal_padding">
+
+        <ImageView
+            android:id="@+id/ivCheckTitleSort"
+            android:layout_width="@dimen/icon_sm"
+            android:layout_height="@dimen/icon_sm"
+            android:contentDescription="@null"
+            android:importantForAccessibility="no"
+            android:src="@drawable/ic_check"
+            android:visibility="invisible"
+            app:tint="@color/white" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/music_tracks_sort_menu_text_margin_start"
+            android:layout_weight="1"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:text="@string/sort_title"
+            android:textAppearance="@style/TextAppearance.ZiggyMusic.White.Caption" />
+
+        <ImageView
+            android:id="@+id/ivDirectionTitleSort"
+            android:layout_width="@dimen/music_tracks_sort_menu_direction_icon_size"
+            android:layout_height="@dimen/music_tracks_sort_menu_direction_icon_size"
+            android:layout_marginStart="@dimen/music_tracks_sort_menu_direction_icon_margin_start"
+            android:contentDescription="@null"
+            android:importantForAccessibility="no"
+            android:scaleType="centerInside"
+            android:src="@drawable/ic_sort_ascending"
+            android:visibility="invisible"
+            app:tint="@color/white" />
+
+    </LinearLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginStart="@dimen/music_tracks_sort_menu_divider_margin"
+        android:layout_marginEnd="@dimen/music_tracks_sort_menu_divider_margin"
+        android:background="@color/music_option_menu_popup_divider" />
+
+    <!-- 아티스트 정렬 -->
+    <LinearLayout
+        android:id="@+id/layoutArtistSort"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/music_tracks_sort_menu_item_height"
+        android:background="?selectableItemBackground"
+        android:clickable="true"
+        android:focusable="true"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="@dimen/music_tracks_sort_menu_horizontal_padding"
+        android:paddingEnd="@dimen/music_tracks_sort_menu_horizontal_padding">
+
+        <ImageView
+            android:id="@+id/ivCheckArtistSort"
+            android:layout_width="@dimen/icon_sm"
+            android:layout_height="@dimen/icon_sm"
+            android:contentDescription="@null"
+            android:importantForAccessibility="no"
+            android:src="@drawable/ic_check"
+            android:visibility="invisible"
+            app:tint="@color/white" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/music_tracks_sort_menu_text_margin_start"
+            android:layout_weight="1"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:text="@string/sort_artist"
+            android:textAppearance="@style/TextAppearance.ZiggyMusic.White.Caption" />
+
+        <ImageView
+            android:id="@+id/ivDirectionArtistSort"
+            android:layout_width="@dimen/music_tracks_sort_menu_direction_icon_size"
+            android:layout_height="@dimen/music_tracks_sort_menu_direction_icon_size"
+            android:layout_marginStart="@dimen/music_tracks_sort_menu_direction_icon_margin_start"
+            android:contentDescription="@null"
+            android:importantForAccessibility="no"
+            android:scaleType="centerInside"
+            android:src="@drawable/ic_sort_ascending"
+            android:visibility="invisible"
+            app:tint="@color/white" />
+
+    </LinearLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginStart="@dimen/music_tracks_sort_menu_divider_margin"
+        android:layout_marginEnd="@dimen/music_tracks_sort_menu_divider_margin"
+        android:background="@color/music_option_menu_popup_divider" />
+
+    <!-- 추가된 날짜  정렬 -->
+    <LinearLayout
+        android:id="@+id/layoutAddedDateSort"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/music_tracks_sort_menu_item_height"
+        android:background="?selectableItemBackground"
+        android:clickable="true"
+        android:focusable="true"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="@dimen/music_tracks_sort_menu_horizontal_padding"
+        android:paddingEnd="@dimen/music_tracks_sort_menu_horizontal_padding">
+
+        <ImageView
+            android:id="@+id/ivCheckAddedDateSort"
+            android:layout_width="@dimen/icon_sm"
+            android:layout_height="@dimen/icon_sm"
+            android:contentDescription="@null"
+            android:importantForAccessibility="no"
+            android:src="@drawable/ic_check"
+            android:visibility="invisible"
+            app:tint="@color/white" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/music_tracks_sort_menu_text_margin_start"
+            android:layout_weight="1"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:text="@string/sort_added_date"
+            android:textAppearance="@style/TextAppearance.ZiggyMusic.White.Caption" />
+
+        <ImageView
+            android:id="@+id/ivDirectionAddedDateSort"
+            android:layout_width="@dimen/music_tracks_sort_menu_direction_icon_size"
+            android:layout_height="@dimen/music_tracks_sort_menu_direction_icon_size"
+            android:layout_marginStart="@dimen/music_tracks_sort_menu_direction_icon_margin_start"
+            android:contentDescription="@null"
+            android:importantForAccessibility="no"
+            android:scaleType="centerInside"
+            android:src="@drawable/ic_sort_ascending"
+            android:visibility="invisible"
+            app:tint="@color/white" />
+
+    </LinearLayout>
+
+</LinearLayout>

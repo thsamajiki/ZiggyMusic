@@ -108,6 +108,17 @@
     <dimen name="seekbar_volume">350dp</dimen>
     <dimen name="layout_volume_padding">70dp</dimen>
 
+    <!-- Music tracks sort popup -->
+
+    <dimen name="toolbar_music_tracks_sort_icon_padding">15dp</dimen>
+    <dimen name="music_tracks_sort_menu_popup_width">232dp</dimen>
+    <dimen name="music_tracks_sort_menu_item_height">62dp</dimen>
+    <dimen name="music_tracks_sort_menu_horizontal_padding">18dp</dimen>
+    <dimen name="music_tracks_sort_menu_text_margin_start">14dp</dimen>
+    <dimen name="music_tracks_sort_menu_direction_icon_size">26dp</dimen>
+    <dimen name="music_tracks_sort_menu_direction_icon_margin_start">12dp</dimen>
+    <dimen name="music_tracks_sort_menu_divider_margin">18dp</dimen>
+
     <!-- App Settings -->
 
     <dimen name="app_settings_content_horizontal_inset">48dp</dimen>
