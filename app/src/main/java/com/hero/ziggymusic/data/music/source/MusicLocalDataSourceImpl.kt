@@ -33,7 +33,8 @@ class MusicLocalDataSourceImpl @Inject constructor(
                 MediaStore.Audio.Media.ARTIST,
                 MediaStore.Audio.Media.ALBUM_ID,
                 MediaStore.Audio.Media.ALBUM,
-                MediaStore.Audio.Media.DURATION
+                MediaStore.Audio.Media.DURATION,
+                MediaStore.Audio.Media.DATE_ADDED
             )
 
             val selection = "${MediaStore.Audio.Media.IS_MUSIC} != 0 AND ${MediaStore.Audio.Media.DURATION} > 0"
@@ -56,6 +57,7 @@ class MusicLocalDataSourceImpl @Inject constructor(
                 val albumIdColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM_ID)
                 val albumTitleColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM)
                 val durationColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DURATION)
+                val dateAddedColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DATE_ADDED)
 
                 while (cursor.moveToNext()) {
                     val musicTrack = MusicTrackEntity(
@@ -64,7 +66,8 @@ class MusicLocalDataSourceImpl @Inject constructor(
                         artist = cursor.getString(artistColumn),
                         albumId = cursor.getString(albumIdColumn),
                         album = cursor.getString(albumTitleColumn),
-                        duration = cursor.getLong(durationColumn)
+                        duration = cursor.getLong(durationColumn),
+                        dateAdded = cursor.getLong(dateAddedColumn)
                     )
 
                     musicTrackList.add(musicTrack)
