@@ -22,7 +22,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.doOnNextLayout
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.viewModels
+import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
@@ -34,6 +34,7 @@ import com.hero.ziggymusic.databinding.FragmentMusicTracksBinding
 import com.hero.ziggymusic.presentation.common.event.EventBus
 import com.hero.ziggymusic.presentation.common.ext.playMusic
 import com.hero.ziggymusic.playback.queue.PlaybackQueueSource
+import com.hero.ziggymusic.domain.music.model.MusicTracksSortOrder
 import com.hero.ziggymusic.presentation.main.popup.MusicTrackOptionMenuPopup
 import com.hero.ziggymusic.presentation.main.musictracks.viewmodel.MusicTrackSearchResult
 import com.hero.ziggymusic.presentation.main.musictracks.viewmodel.MusicTrackListUiState
@@ -47,7 +48,7 @@ class MusicTracksFragment : Fragment() {
     private var _binding: FragmentMusicTracksBinding? = null
     private val binding get() = _binding!!
 
-    private val vm by viewModels<MusicTracksViewModel>()
+    private val vm by activityViewModels<MusicTracksViewModel>()
 
     private lateinit var musicTrackAdapter: MusicTrackAdapter
     private var isRefreshedAfterPermission = false
@@ -60,6 +61,9 @@ class MusicTracksFragment : Fragment() {
     private var lastRecyclerTouchY = 0f
     private var lastSearchContainerTouchY = 0f
     private var searchRequestId = 0L
+    private var lastMusicTracksSortOrder: MusicTracksSortOrder? = null
+    private var pendingMusicTrackScrollPosition: MusicTrackScrollPosition? = null
+    private var scrollToTopAfterSortPending = false
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -82,6 +86,8 @@ class MusicTracksFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
+
+        vm.updateMusicTrackSortForCurrentLanguage()
 
         if (hasAudioPermission()) {
             if (!isRefreshedAfterPermission) {
@@ -281,6 +287,9 @@ class MusicTracksFragment : Fragment() {
 
             binding.rvMusicTracks.isVisible = searchResult.hasOriginalItems || searchResult.items.isNotEmpty()
 
+            // 정렬된 목록이 반영된 뒤 예약된 스크롤을 적용한다.
+            applyMusicTrackScrollAfterSort()
+
             if (searchResult.items.isEmpty()) {
                 showEmptySearchMessageAfterListSettled(
                     requestId = currentRequestId,
@@ -471,6 +480,25 @@ class MusicTracksFragment : Fragment() {
     }
 
     private fun collectUiState() {
+        vm.musicTracksSortOrder.observe(
+            viewLifecycleOwner
+        ) { sortOrder ->
+            val previousSortOrder = lastMusicTracksSortOrder
+
+            // 저장된 정렬 상태의 최초 전달에는 스크롤 정책을 적용하지 않는다.
+            if (previousSortOrder != null && previousSortOrder != sortOrder) {
+                if (sortOrder.isDateAddedOrder) {
+                    scrollToTopAfterSortPending = true
+                    pendingMusicTrackScrollPosition = null
+                } else {
+                    scrollToTopAfterSortPending = false
+                    pendingMusicTrackScrollPosition = captureMusicTrackScrollPosition()
+                }
+            }
+
+            lastMusicTracksSortOrder = sortOrder
+        }
+
         vm.uiState.observe(viewLifecycleOwner) { state ->
             when (state) {
                 is MusicTrackListUiState.Idle -> {
@@ -517,6 +545,84 @@ class MusicTracksFragment : Fragment() {
                 Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
             }
         }
+    }
+
+    private fun applyMusicTrackScrollAfterSort() {
+        if (scrollToTopAfterSortPending) {
+            scrollToTopAfterSortPending = false
+            pendingMusicTrackScrollPosition = null
+
+            scrollMusicTracksToTop()
+            return
+        }
+
+        val scrollPosition = pendingMusicTrackScrollPosition ?: return
+
+        pendingMusicTrackScrollPosition = null
+
+        restoreMusicTrackScrollPosition(scrollPosition)
+    }
+
+    private fun captureMusicTrackScrollPosition(): MusicTrackScrollPosition? {
+        val layoutManager =
+            binding.rvMusicTracks.layoutManager
+                    as? LinearLayoutManager
+                ?: return null
+
+        val firstVisiblePosition = layoutManager.findFirstVisibleItemPosition()
+
+        if (firstVisiblePosition == RecyclerView.NO_POSITION) return null
+
+        val firstVisibleView =
+            layoutManager.findViewByPosition(
+                firstVisiblePosition
+            ) ?: return null
+
+        return MusicTrackScrollPosition(
+            adapterPosition = firstVisiblePosition,
+
+            // 검색창으로 paddingTop이 바뀌어도 같은 화면 위치를 복원하도록 상대 offset을 저장한다.
+            topOffset = firstVisibleView.top - binding.rvMusicTracks.paddingTop
+        )
+    }
+
+    private fun restoreMusicTrackScrollPosition(
+        scrollPosition: MusicTrackScrollPosition,
+    ) {
+        val layoutManager =
+            binding.rvMusicTracks.layoutManager
+                    as? LinearLayoutManager
+                ?: return
+
+        val lastAdapterPosition = musicTrackAdapter.itemCount - 1
+
+        if (lastAdapterPosition < 0) return
+
+        // 목록 갱신 중 항목 수가 바뀌어도 유효한 위치로 보정한다.
+        val availablePosition =
+            scrollPosition.adapterPosition.coerceIn(
+                minimumValue = 0,
+                maximumValue = lastAdapterPosition
+            )
+
+        layoutManager.scrollToPositionWithOffset(
+            availablePosition,
+            scrollPosition.topOffset
+        )
+    }
+
+    private fun scrollMusicTracksToTop() {
+        val layoutManager =
+            binding.rvMusicTracks.layoutManager
+                    as? LinearLayoutManager
+                ?: return
+
+        if (musicTrackAdapter.itemCount == 0) return
+
+        layoutManager.scrollToPositionWithOffset(
+            0,
+            0
+        )
     }
 
     private fun hasAudioPermission(): Boolean {
@@ -597,6 +703,11 @@ class MusicTracksFragment : Fragment() {
             }
         }
     }
+
+    private data class MusicTrackScrollPosition(
+        val adapterPosition: Int,
+        val topOffset: Int,
+    )
 
     companion object {
         private const val SEARCH_ANIMATION_DURATION_MS = 180L
