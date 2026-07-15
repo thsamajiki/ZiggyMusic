@@ -3,31 +3,16 @@
 #include <thread>
 #include <mutex>
 #include <atomic>
-#include <android/log.h>
-#include "Superpowered.h"
 #include "AudioDspChain.h"
 #include "AudioIoEngine.h"
-#include "SuperpoweredConfig.h"
-
-#define LOG_TAG "AudioDspChainJNI"
-#define ALOGI(...) __android_log_print(ANDROID_LOG_INFO, LOG_TAG, __VA_ARGS__)
-#define ALOGE(...) __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, __VA_ARGS__)
 
 static std::atomic<bool> gShuttingDown{false};
 static std::atomic<int>  gInFlight{0};
 static std::shared_ptr<AudioDspChain> gChain;
 static std::mutex gChainMutex;
-static std::once_flag gSuperpoweredInitOnce;
 
 static std::unique_ptr<AudioIOEngine> gAudioIO;
 static std::mutex gAudioIOMutex;
-
-static void ensureSuperpoweredInit() {
-    std::call_once(gSuperpoweredInitOnce, []() {
-        Superpowered::Initialize(SUPERPOWERED_LICENSE_KEY);
-        ALOGI("Superpowered initialized.");
-    });
-}
 
 static std::shared_ptr<AudioDspChain> getChainSnapshot() {
     std::lock_guard<std::mutex> lock(gChainMutex);
@@ -50,8 +35,6 @@ static std::shared_ptr<AudioDspChain> getOrCreateChainLocked(int sampleRate) {
 extern "C" JNIEXPORT void JNICALL
 Java_com_hero_ziggymusic_playback_audio_AudioProcessorChainController_createChain(
         JNIEnv* /*env*/, jobject /*thiz*/, jint sampleRate) {
-    ensureSuperpoweredInit();
-
     std::lock_guard<std::mutex> lock(gChainMutex);
     gChain = std::make_shared<AudioDspChain>((unsigned int)sampleRate);
     gChain->prepare((int)sampleRate);
@@ -80,67 +63,12 @@ Java_com_hero_ziggymusic_playback_audio_AudioProcessorChainController_destroyCha
 // DSP 제어
 // ------------------------------------------------------
 extern "C" JNIEXPORT void JNICALL
-Java_com_hero_ziggymusic_playback_audio_AudioProcessorChainController_setEQBand(
-        JNIEnv* /*env*/, jobject /*thiz*/, jint bandIndex, jfloat gainDb) {
-    auto chain = getChainSnapshot();
-    if (!chain) return;
-    chain->setEQBand((int)bandIndex, (float)gainDb);
-}
-
-extern "C" JNIEXPORT void JNICALL
 Java_com_hero_ziggymusic_playback_audio_AudioProcessorChainController_setCompressor(
         JNIEnv* /*env*/, jobject /*thiz*/,
         jfloat thresholdDb, jfloat ratio, jfloat attackMs, jfloat releaseMs, jfloat makeupDb) {
     auto chain = getChainSnapshot();
     if (!chain) return;
     chain->setCompressor((float)thresholdDb, (float)ratio, (float)attackMs, (float)releaseMs, (float)makeupDb);
-}
-
-extern "C" JNIEXPORT void JNICALL
-Java_com_hero_ziggymusic_playback_audio_AudioProcessorChainController_setReverb(
-        JNIEnv* /*env*/, jobject /*thiz*/, jboolean enabled, jfloat wet) {
-    auto chain = getChainSnapshot();
-    if (!chain) return;
-    chain->setReverb((bool)enabled, (float)wet);
-}
-
-// ------------------------------------------------------
-// In-app Spatial
-// ------------------------------------------------------
-extern "C" JNIEXPORT void JNICALL
-Java_com_hero_ziggymusic_playback_audio_AudioProcessorChainController_setSpatialEnabled(
-        JNIEnv* /*env*/, jobject /*thiz*/, jboolean enabled) {
-    auto chain = getChainSnapshot();
-    if (!chain) return;
-    chain->setSpatialEnabled((bool)enabled);
-}
-
-extern "C" JNIEXPORT void JNICALL
-Java_com_hero_ziggymusic_playback_audio_AudioProcessorChainController_setSpatialPosition(
-        JNIEnv* /*env*/, jobject /*thiz*/,
-        jfloat azimuthDeg, jfloat elevationDeg, jfloat distanceMeters) {
-    auto chain = getChainSnapshot();
-    if (!chain) return;
-    chain->setSpatialPosition((float)azimuthDeg, (float)elevationDeg, (float)distanceMeters);
-}
-
-// ------------------------------------------------------
-// Head tracking
-// ------------------------------------------------------
-extern "C" JNIEXPORT void JNICALL
-Java_com_hero_ziggymusic_playback_audio_AudioProcessorChainController_setHeadTrackingEnabled(
-        JNIEnv* /*env*/, jobject /*thiz*/, jboolean enabled) {
-    auto chain = getChainSnapshot();
-    if (!chain) return;
-    chain->setHeadTrackingEnabled((bool)enabled);
-}
-
-extern "C" JNIEXPORT void JNICALL
-Java_com_hero_ziggymusic_playback_audio_AudioProcessorChainController_setHeadTrackingYaw(
-        JNIEnv* /*env*/, jobject /*thiz*/, jfloat yawDeg) {
-    auto chain = getChainSnapshot();
-    if (!chain) return;
-    chain->setHeadTrackingYaw((float)yawDeg);
 }
 
 static inline bool tryEnterProcess() noexcept {
@@ -188,8 +116,6 @@ Java_com_hero_ziggymusic_playback_audio_AudioProcessorChainController_processBuf
 extern "C" JNIEXPORT void JNICALL
 Java_com_hero_ziggymusic_playback_audio_AudioProcessorChainController_nativeStartAudioIO(
         JNIEnv* /*env*/, jobject /*thiz*/, jint sampleRate, jint framesPerCallback) {
-    ensureSuperpoweredInit();
-
     std::lock_guard<std::mutex> lk(gAudioIOMutex);
     if (!gAudioIO) gAudioIO = std::make_unique<AudioIOEngine>();
 
