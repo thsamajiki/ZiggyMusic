@@ -19,7 +19,6 @@ object AudioProcessorChainController {
     external fun createChain(sampleRate: Int)
     external fun destroyChain()
 
-    external fun setEQBand(bandIndex: Int, gainDb: Float)
     external fun setCompressor(
         thresholdDb: Float,
         ratio: Float,
@@ -27,16 +26,6 @@ object AudioProcessorChainController {
         releaseMs: Float,
         makeupDb: Float
     )
-
-    external fun setReverb(enabled: Boolean, wet: Float)
-
-    // In-app spatial (Superpowered DSP 내부 처리)
-    external fun setSpatialEnabled(enabled: Boolean)
-    external fun setSpatialPosition(azimuthDeg: Float, elevationDeg: Float, distanceMeters: Float)
-
-    // Head tracking (Yaw in degrees)
-    external fun setHeadTrackingEnabled(enabled: Boolean)
-    external fun setHeadTrackingYaw(yawDeg: Float)
 
     /**
      * Media3 AudioProcessorAdapter 에서 DIRECT ByteBuffer의 주소(ptr)를 얻어 전달합니다.

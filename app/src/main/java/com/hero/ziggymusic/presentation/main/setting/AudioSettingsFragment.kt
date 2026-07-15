@@ -1,10 +1,8 @@
 package com.hero.ziggymusic.presentation.main.setting
 
-import android.content.Context
 import android.content.SharedPreferences
 import android.os.Build
 import android.os.Bundle
-import android.util.Log
 import android.util.TypedValue
 import android.view.Gravity
 import android.view.LayoutInflater
@@ -25,9 +23,6 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.hero.ziggymusic.data.local.preferences.AudioSettingKeys
-import com.hero.ziggymusic.playback.audio.HeadTracker
-import com.hero.ziggymusic.playback.audio.PlayerAudioGraph
-import com.hero.ziggymusic.playback.audio.SpatializerSupport
 import com.hero.ziggymusic.playback.manager.AudioEffectManager
 import com.hero.ziggymusic.playback.manager.AudioEffectManager.mainColor
 import com.hero.ziggymusic.presentation.main.setting.model.AudioSettingsUiState
@@ -53,17 +48,6 @@ class AudioSettingsFragment : Fragment() {
 
     private lateinit var prefs: SharedPreferences
 
-    // XR / Spatial Audio 컴포넌트
-    private lateinit var headTracker: HeadTracker
-    private lateinit var spatializerSupport: SpatializerSupport
-
-    override fun onAttach(context: Context) {
-        super.onAttach(context)
-        // 초기화 시점이 빠를수록 좋음
-        headTracker = HeadTracker(context)
-        spatializerSupport = SpatializerSupport(context)
-    }
-
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -84,124 +68,12 @@ class AudioSettingsFragment : Fragment() {
         initLoudnessNormalizer()
         initBassSeekBar()
         initVirtualizerSeekbar()
-        initSpatialAudioUi() // XR 기능 UI 설정
         setupAudioSettingsState()
     }
 
     private fun setupAudioSettingsState() {
         observeAudioSettingsState()
         vm.refreshSettings()
-    }
-
-    // Spatial Audio & Head Tracking UI 설정
-    private fun initSpatialAudioUi() {
-        Log.d(TAG, "Spatializer status: ${spatializerSupport.describeStatus()}")
-
-        binding.swSpatialAudio.setOnCheckedChangeListener(null)
-        binding.swHeadTracking.setOnCheckedChangeListener(null)
-
-        // 1. Spatial Audio & Head Tracking 활성화 스위치
-        val spatialEnabled = prefs.getBoolean(AudioSettingKeys.KEY_SPATIAL_ENABLED, false)
-        val headEnabled = prefs.getBoolean(AudioSettingKeys.KEY_HEAD_TRACKING_ENABLED, false)
-
-        binding.swSpatialAudio.isChecked = spatialEnabled
-        binding.swHeadTracking.isChecked = spatialEnabled && headEnabled
-
-        updateHeadTrackingUiState(spatialEnabled)
-
-        // 2. 초기 적용: 네이티브에 현재 prefs 반영
-        runCatching {
-            AudioEffectManager.setSpatialEnabled(spatialEnabled)
-            AudioEffectManager.setHeadTrackingEnabled(spatialEnabled && headEnabled)
-
-            if (spatialEnabled && headEnabled) {
-                PlayerAudioGraph.setHeadTrackingActive(
-                    spatialEnabled = true,
-                    headTrackingEnabled = true
-                )
-                headTracker.start()
-            } else {
-                PlayerAudioGraph.setHeadTrackingActive(
-                    spatialEnabled = false,
-                    headTrackingEnabled = false
-                )
-                headTracker.stop()
-            }
-        }
-
-        headTracker.setOnHeadPoseListener { yawDeg ->
-            val isSpatialOn = binding.swSpatialAudio.isChecked
-            val isHeadTrackingOn = binding.swHeadTracking.isChecked
-
-            if (isSpatialOn && isHeadTrackingOn) {
-                AudioEffectManager.setHeadTrackingYaw(yawDeg)
-            }
-        }
-
-        // 3. head switch는 한 번만 설정
-        binding.swHeadTracking.setOnCheckedChangeListener { _, isChecked ->
-            prefs.edit { putBoolean(AudioSettingKeys.KEY_HEAD_TRACKING_ENABLED, isChecked) }
-
-            val isSpatialOn = binding.swSpatialAudio.isChecked
-            val shouldTrack = isSpatialOn && isChecked
-
-            AudioEffectManager.setHeadTrackingEnabled(shouldTrack)
-
-            // JNI Controller로 센서값 주입
-            PlayerAudioGraph.setHeadTrackingActive(shouldTrack, shouldTrack)
-
-            if (shouldTrack) {
-                headTracker.start()
-            } else {
-                headTracker.stop()
-            }
-        }
-
-        // 4. spatial switch 단일 리스너
-        binding.swSpatialAudio.setOnCheckedChangeListener { _, isChecked ->
-            prefs.edit {
-                putBoolean(AudioSettingKeys.KEY_SPATIAL_ENABLED, isChecked)
-                if (!isChecked) putBoolean(AudioSettingKeys.KEY_HEAD_TRACKING_ENABLED, false)
-            }
-
-            AudioEffectManager.setSpatialEnabled(isChecked)
-
-            if (!isChecked) {
-                // spatial off -> 강제 head off, 리스너는 유지(한 번만 설정)
-                binding.swHeadTracking.isChecked = false
-                AudioEffectManager.setHeadTrackingEnabled(false)
-                PlayerAudioGraph.setHeadTrackingActive(
-                    spatialEnabled = false,
-                    headTrackingEnabled = false
-                )
-                headTracker.stop()
-            } else {
-                // spatial on: 기존 head 상태가 on이면 시작, head 스위치는 활성화
-                val shouldTrack = binding.swHeadTracking.isChecked
-                AudioEffectManager.setHeadTrackingEnabled(shouldTrack)
-                PlayerAudioGraph.setHeadTrackingActive(shouldTrack, shouldTrack)
-
-                if (shouldTrack) {
-                    headTracker.start()
-                }
-            }
-
-            updateHeadTrackingUiState(isChecked)
-        }
-    }
-
-    private fun updateHeadTrackingUiState(isSpatialEnabled: Boolean) {
-        binding.swHeadTracking.isEnabled = isSpatialEnabled
-        binding.tvHeadTracking.alpha = if (isSpatialEnabled) 1.0f else 0.5f
-
-        // Spatial 활성 여부에 따라 보이기/숨기기 처리
-        if (isSpatialEnabled) {
-            binding.tvHeadTracking.visibility = View.VISIBLE
-            binding.swHeadTracking.visibility = View.VISIBLE
-        } else {
-            binding.tvHeadTracking.visibility = View.GONE
-            binding.swHeadTracking.visibility = View.GONE
-        }
     }
 
     private fun initSetting() {
@@ -573,17 +445,7 @@ class AudioSettingsFragment : Fragment() {
         })
     }
 
-    override fun onResume() {
-        super.onResume()
-
-        // 화면에 돌아왔을 때 Head Tracking이 켜져 있으면 센서 추적을 재개한다.
-        if (binding.swSpatialAudio.isChecked && binding.swHeadTracking.isChecked) {
-            headTracker.start()
-        }
-    }
-
     override fun onDestroyView() {
-        headTracker.stop()
         super.onDestroyView()
         _binding = null
     }

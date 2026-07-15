@@ -10,24 +10,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # -funroll-loops: 반복문 펼치기 (CPU 파이프라인 최적화)
 add_compile_options(-O3 -ffast-math -funroll-loops -fexceptions -frtti)
 
-# JNI_LIBS_DIR (정규화)
-file(TO_CMAKE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../jniLibs" JNI_LIBS_DIR)
-message(STATUS "JNI_LIBS_DIR: ${JNI_LIBS_DIR}")
-
 # Oboe 패키지 찾기 (Prefab 사용 시 필수)
 find_package(oboe REQUIRED CONFIG)
-
-# PATH_TO_SUPERPOWERED: Gradle -D 인자 또는 환경변수에서 가져오기
-if(NOT DEFINED PATH_TO_SUPERPOWERED AND DEFINED ENV{PATH_TO_SUPERPOWERED})
-    set(PATH_TO_SUPERPOWERED $ENV{PATH_TO_SUPERPOWERED})
-endif()
-
-if(DEFINED PATH_TO_SUPERPOWERED)
-    file(TO_CMAKE_PATH "${PATH_TO_SUPERPOWERED}" PATH_TO_SUPERPOWERED)
-    message(STATUS "Using Superpowered path: ${PATH_TO_SUPERPOWERED}")
-else()
-    message(FATAL_ERROR "PATH_TO_SUPERPOWERED is not defined. Set it in Gradle (cmake.arguments) or as environment variable PATH_TO_SUPERPOWERED.")
-endif()
 
 # 1) 소스 파일은 명시 리스트로 고정
 set(APP_SOURCES
@@ -39,27 +23,9 @@ set(APP_SOURCES
 
 add_library(ziggymusic_audio_dsp SHARED ${APP_SOURCES})
 
-# --- Superpowered license key (injected via Gradle) ---
-if(NOT DEFINED SUPERPOWERED_LICENSE_KEY OR SUPERPOWERED_LICENSE_KEY STREQUAL "")
-    message(FATAL_ERROR "SUPERPOWERED_LICENSE_KEY is not set. See README for setup.")
-endif()
-
-# Generate header at build time (do NOT commit any generated output)
-set(GENERATED_DIR "${CMAKE_BINARY_DIR}/generated")
-file(MAKE_DIRECTORY "${GENERATED_DIR}")
-
-configure_file(
-        ${CMAKE_CURRENT_LIST_DIR}/SuperpoweredConfig.h
-        ${GENERATED_DIR}/SuperpoweredConfig.h
-        @ONLY
-)
-
-target_include_directories(ziggymusic_audio_dsp PRIVATE ${GENERATED_DIR})
-
-# 2) include 경로 (Superpowered 헤더 사용이 필수)
+# 2) include 경로
 target_include_directories(ziggymusic_audio_dsp PRIVATE
         "${CMAKE_CURRENT_SOURCE_DIR}"
-        "${CMAKE_CURRENT_SOURCE_DIR}/OpenSource"
         "${CMAKE_CURRENT_SOURCE_DIR}/SLES"
         "${CMAKE_CURRENT_SOURCE_DIR}/android"
 )
@@ -76,50 +42,7 @@ set_target_properties(ziggymusic_audio_dsp PROPERTIES
 # 3) 시스템 라이브러리 링크
 find_library(log-lib log)
 
-# 4) Superpowered 정적 라이브러리 찾기/링크
-if(DEFINED ANDROID_ABI)
-    if(ANDROID_ABI STREQUAL "x86")
-        set(SUPERPOWERED_SUFFIX "X86")
-    elseif(ANDROID_ABI STREQUAL "x86_64")
-        set(SUPERPOWERED_SUFFIX "X86_64")
-    else()
-        # arm64-v8a, armeabi-v7a etc.
-        set(SUPERPOWERED_SUFFIX "${ANDROID_ABI}")
-    endif()
-else()
-    set(SUPERPOWERED_SUFFIX "")
-endif()
-
-set(CANDIDATE_LIBS
-        "${JNI_LIBS_DIR}/${ANDROID_ABI}/libSuperpoweredAndroid${SUPERPOWERED_SUFFIX}.a"
-        "${JNI_LIBS_DIR}/${ANDROID_ABI}/libSuperpoweredAndroid.a"
-        "${PATH_TO_SUPERPOWERED}/libSuperpoweredAndroid${SUPERPOWERED_SUFFIX}.a"
-        "${PATH_TO_SUPERPOWERED}/libSuperpoweredAndroid.a"
-        "${CMAKE_CURRENT_SOURCE_DIR}/libSuperpoweredAndroid${SUPERPOWERED_SUFFIX}.a"
-        "${CMAKE_CURRENT_SOURCE_DIR}/libSuperpoweredAndroid.a"
-)
-
-set(SUPERPOWERED_LIB_PATH "")
-foreach(p IN LISTS CANDIDATE_LIBS)
-    if(EXISTS "${p}")
-        set(SUPERPOWERED_LIB_PATH "${p}")
-        break()
-    endif()
-endforeach()
-
-if(NOT SUPERPOWERED_LIB_PATH)
-    message(FATAL_ERROR
-            "Superpowered static lib not found. Checked:\n  ${CANDIDATE_LIBS}\n"
-            "Put ABI \".a\" files into `app/src/main/jniLibs/<abi>/` or set `PATH_TO_SUPERPOWERED` to folder containing the .a files."
-    )
-endif()
-
-message(STATUS "Found Superpowered static lib: ${SUPERPOWERED_LIB_PATH}")
-add_library(Superpowered STATIC IMPORTED)
-set_target_properties(Superpowered PROPERTIES IMPORTED_LOCATION "${SUPERPOWERED_LIB_PATH}")
-
 target_link_libraries(ziggymusic_audio_dsp PRIVATE
-        Superpowered
         ${log-lib}
         android
         OpenSLES
