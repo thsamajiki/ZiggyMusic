@@ -14,8 +14,6 @@ object AudioSettingKeys {
     const val KEY_VIRTUALIZER = "VIRTUALIZER"
     const val KEY_REVERB = "REVERB"
     const val KEY_LOUDNESS_NORMALIZER_ENABLED = "LOUDNESS_NORMALIZER_ENABLED"
-    const val KEY_SPATIAL_ENABLED = "SPATIAL_ENABLED"
-    const val KEY_HEAD_TRACKING_ENABLED = "HEAD_TRACKING_ENABLED"
 
     const val PREF_AUDIO_SETTINGS = "audio_settings"
 }
