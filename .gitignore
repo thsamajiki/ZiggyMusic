@@ -229,13 +229,6 @@ fabric.properties
 /app/config/lint/lint.xml
 /app/config/lint/lint-baseline.xml
 
-# Native prebuilt libraries
-app/src/main/jniLibs/
-app/src/main/cpp/android/
-app/src/main/cpp/oboe/
-app/src/main/cpp/OpenSource/
-app/src/main/cpp/SLES/
-
 # Etc
 secrets/
 /images/
