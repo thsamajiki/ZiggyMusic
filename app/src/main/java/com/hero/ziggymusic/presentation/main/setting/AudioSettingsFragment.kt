@@ -189,8 +189,6 @@ class AudioSettingsFragment : Fragment() {
         val bandLevelRange = AudioEffectManager.getBandLevelRange() ?: return
         val minBandLevel = bandLevelRange[0].toInt()
         val maxBandLevel = bandLevelRange[1].toInt()
-        var uiMaxForNative = 0
-
         equalizerBandSeekBarIds.clear()
         binding.tvSeekbar.removeAllViews()
         binding.seekbarContainer.removeAllViews()
@@ -204,8 +202,6 @@ class AudioSettingsFragment : Fragment() {
 
             equalizerBandSeekBar.max = maxBandLevel - minBandLevel
             equalizerBandSeekBar.tag = index
-            uiMaxForNative = equalizerBandSeekBar.max
-
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 equalizerBandSeekBar.maxHeight = 1
             }
@@ -266,16 +262,10 @@ class AudioSettingsFragment : Fragment() {
             binding.seekbarContainer.addView(equalizerBandSeekBar)
             equalizerBandSeekBar.post { equalizerBandSeekBar.refreshThumbState() }
 
-            val initialGainDb = mapEqProgressToDb(
-                progress = equalizerBandSeekBar.progress,
-                max = equalizerBandSeekBar.max
-            )
-
-            AudioEffectManager.setBandGain(index, initialGainDb)
         }
 
         runCatching {
-            AudioEffectManager.applySettingsFromPrefs(prefs, eqMaxFromUi = uiMaxForNative)
+            AudioEffectManager.applySettingsFromPrefs(prefs)
         }
 
         initPresets()
@@ -342,13 +332,6 @@ class AudioSettingsFragment : Fragment() {
         for (index in 0 until binding.tvSeekbar.childCount) {
             binding.tvSeekbar.getChildAt(index).isEnabled = isEnabled
         }
-    }
-
-    // EQ SeekBar progress(0..max)를 DSP EQ gain 범위(-12dB..+12dB)에 맞춰 변환한다.
-    private fun mapEqProgressToDb(progress: Int, max: Int): Float {
-        if (max <= 0) return 0.0f
-        val normalized = (progress.toFloat() / max.toFloat()).coerceIn(0.0f, 1.0f) // 0..1
-        return (normalized * 24.0f) - 12.0f // -12..+12
     }
 
     private fun formatCenterFreq(centerFreqMilliHz: Int): String {
