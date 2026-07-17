@@ -30,18 +30,6 @@
 -keepattributes Signature,*Annotation*,InnerClasses,EnclosingMethod,SourceFile,LineNumberTable
 -keep class kotlin.Metadata { *; }
 
-# JNI native method names are resolved from the Java/Kotlin package, class,
-# and method names when RegisterNatives is not used. These two classes are
-# exported from app/src/main/cpp with Java_com_hero_... symbols, so their
-# binary names and native methods must not be obfuscated.
--keepclasseswithmembernames,includedescriptorclasses class com.hero.ziggymusic.playback.audio.AudioProcessorChainController {
-    native <methods>;
-}
-
--keepclasseswithmembernames,includedescriptorclasses class com.hero.ziggymusic.playback.audio.BufferAddressHelper {
-    native <methods>;
-}
-
 # Data Binding calls generated binding adapters by annotation. Keep adapter
 # method names and signatures so layout binding remains stable after R8.
 -keepclassmembers class * {
