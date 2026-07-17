@@ -14,7 +14,6 @@ plugins {
 extensions.configure<ApplicationExtension> {
     namespace = "com.hero.ziggymusic"
     compileSdk = 36
-    ndkVersion = "28.2.13676358"
 
     defaultConfig {
         applicationId = "com.hero.ziggymusic"
@@ -26,15 +25,6 @@ extensions.configure<ApplicationExtension> {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
 
-        @Suppress("UnstableApiUsage")
-        externalNativeBuild {
-            cmake {
-                arguments += "-DANDROID_STL=c++_shared"
-
-                cppFlags += listOf("-std=c++17", "-O3")
-
-            }
-        }
     }
 
     buildTypes {
@@ -58,13 +48,6 @@ extensions.configure<ApplicationExtension> {
     buildFeatures {
         viewBinding = true
         dataBinding = true
-        prefab = true
-    }
-    externalNativeBuild {
-        cmake {
-            path = file("src/main/cpp/CMakeLists.txt")
-            version = "3.22.1"
-        }
     }
 }
 
@@ -113,7 +96,6 @@ dependencies {
     // Media3
     implementation(libs.bundles.media3)
 
-    implementation(libs.oboe)
 }
 
 kapt {
