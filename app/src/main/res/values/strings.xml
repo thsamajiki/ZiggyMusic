@@ -11,8 +11,10 @@
         <item>설정</item>
     </string-array>
 
+    <!-- Player -->
     <string name="current_playing_time">0:00</string>
     <string name="total_playing_time">3:10</string>
+    <string name="playback_control_unavailable">재생 서비스에 연결할 수 없습니다. 잠시 후 다시 시도해 주세요.</string>
 
     <string name="current_song_title">제목</string>
     <string name="current_song_artist">아티스트</string>

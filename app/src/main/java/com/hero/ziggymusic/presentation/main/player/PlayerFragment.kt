@@ -175,8 +175,13 @@ class PlayerFragment : Fragment() {
 
     private fun initMediaController() {
         mediaControllerConnector = MusicMediaControllerConnector(requireContext())
+
         viewLifecycleOwner.lifecycleScope.launch {
-            mediaControllerConnector.connect()
+            val controller = mediaControllerConnector.connect()
+
+            if (controller == null) {
+                Log.e(TAG, "MediaController 초기 연결에 실패했습니다.")
+            }
         }
     }
 
@@ -525,12 +530,17 @@ class PlayerFragment : Fragment() {
     private fun initPlayControlButtons() {
         binding.ivPlayPause.setOnClickListener {
             viewLifecycleOwner.lifecycleScope.launch {
-                mediaControllerConnector.withController { controller ->
-                    if (player.isPlaying) {
-                        controller.pause()
-                    } else {
-                        controller.play()
+                val executed =
+                    mediaControllerConnector.withController { controller ->
+                        if (player.isPlaying) {
+                            controller.pause()
+                        } else {
+                            controller.play()
+                        }
                     }
+
+                if (!executed) {
+                    showPlaybackControlUnavailableMessage()
                 }
             }
         }
@@ -545,19 +555,37 @@ class PlayerFragment : Fragment() {
             }
 
             viewLifecycleOwner.lifecycleScope.launch {
-                mediaControllerConnector.withController { controller ->
-                    controller.seekToNext()
+                val executed =
+                    mediaControllerConnector.withController { controller ->
+                        controller.seekToNext()
+                    }
+
+                if (!executed) {
+                    showPlaybackControlUnavailableMessage()
                 }
             }
         }
 
         binding.ivPrevious.setOnClickListener {
             viewLifecycleOwner.lifecycleScope.launch {
-                mediaControllerConnector.withController { controller ->
-                    controller.seekToPrevious()
+                val executed =
+                    mediaControllerConnector.withController { controller ->
+                        controller.seekToPrevious()
+                    }
+
+                if (!executed) {
+                    showPlaybackControlUnavailableMessage()
                 }
             }
         }
+    }
+
+    private fun showPlaybackControlUnavailableMessage() {
+        Toast.makeText(
+            context,
+            R.string.playback_control_unavailable,
+            Toast.LENGTH_SHORT
+        ).show()
     }
 
     private fun moveToFirstTrack(): Boolean {
