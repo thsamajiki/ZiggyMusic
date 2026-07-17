@@ -17,7 +17,7 @@ import javax.inject.Singleton
 class AudioSettingsRepositoryImpl @Inject constructor(
     @ApplicationContext context: Context,
 ) : AudioSettingsRepository {
-    // EQ, BassBoost, Virtualizer, Loudness 설정을 Repository에서 공통 관리한다.
+    // EQ, BassBoost, Virtualizer 설정을 Repository에서 공통 관리한다.
     private val prefs = context.getSharedPreferences(
         AudioSettingKeys.PREF_AUDIO_SETTINGS,
         Context.MODE_PRIVATE,
@@ -92,9 +92,7 @@ class AudioSettingsRepositoryImpl @Inject constructor(
             normalizedPresetPosition - SETTINGS_PRESET_OFFSET,
         )
 
-        if (wasApplied) {
-            applyCurrentEqualizerBandsToDsp()
-        } else {
+        if (!wasApplied) {
             // 프리셋 적용에 실패하면 유효한 Custom 값으로 안전하게 전환한다.
             prefs.edit {
                 putInt(
@@ -264,24 +262,11 @@ class AudioSettingsRepositoryImpl @Inject constructor(
 
         savedProgresses.forEachIndexed { bandIndex, progress ->
             val nativeLevel = (progress + minBandLevel).toShort()
-            val gainDb = mapEqProgressToDb(
-                progress = progress,
-                max = maxBandProgress,
-            )
-
             AudioEffectManager.applyEqualizerBandLevel(
                 bandIndex = bandIndex,
                 level = nativeLevel,
             )
-            AudioEffectManager.setBandGain(bandIndex, gainDb)
         }
-    }
-
-    private fun mapEqProgressToDb(progress: Int, max: Int): Float {
-        if (max <= 0) return 0.0f
-        val normalized = (progress.toFloat() / max.toFloat()).coerceIn(0.0f, 1.0f)
-
-        return (normalized * 24.0f) - 12.0f
     }
 
     // 사용자가 밴드를 조절하면 현재 EQ 전체 값을 Custom으로 저장하고 즉시 적용한다.
@@ -326,19 +311,14 @@ class AudioSettingsRepositoryImpl @Inject constructor(
             }
         }
 
-        // 저장한 Custom 밴드 값을 Android Equalizer와 DSP EQ 양쪽에 즉시 반영한다.
+        // 저장한 Custom 밴드 값을 Android Equalizer에 즉시 반영한다.
         customBandProgresses.forEachIndexed { index, bandProgress ->
             val nativeBandLevel = (bandProgress + minBandLevel).toShort()
-            val gainDb = mapEqProgressToDb(
-                progress = bandProgress,
-                max = maxBandProgress,
-            )
 
             AudioEffectManager.applyEqualizerBandLevel(
                 bandIndex = index,
                 level = nativeBandLevel,
             )
-            AudioEffectManager.setBandGain(index, gainDb)
         }
 
         AudioEffectManager.setEnabledFromPrefs(prefs)
@@ -421,7 +401,6 @@ class AudioSettingsRepositoryImpl @Inject constructor(
             putBoolean(AudioSettingKeys.KEY_LOUDNESS_NORMALIZER_ENABLED, enabled)
         }
 
-        AudioEffectManager.setEnabledFromPrefs(prefs)
         updateStateFromStorage()
     }
 
@@ -501,21 +480,6 @@ class AudioSettingsRepositoryImpl @Inject constructor(
                     maxBandProgress,
                 )
             }
-        }
-    }
-
-    private fun applyCurrentEqualizerBandsToDsp() {
-        val bandLevelRange = AudioEffectManager.getBandLevelRange() ?: return
-        val minBandLevel = bandLevelRange[0].toInt()
-        val maxBandProgress = bandLevelRange[1].toInt() - minBandLevel
-        val numberOfBands = AudioEffectManager.getNumberOfBands()
-
-        for (bandIndex in 0 until numberOfBands) {
-            val nativeBandLevel = AudioEffectManager.getBandLevel(bandIndex)?.toInt() ?: continue
-            val progress = (nativeBandLevel - minBandLevel).coerceIn(0, maxBandProgress)
-            val gainDb = mapEqProgressToDb(progress, maxBandProgress)
-
-            AudioEffectManager.setBandGain(bandIndex, gainDb)
         }
     }
 
