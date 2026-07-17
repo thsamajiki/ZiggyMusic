@@ -62,31 +62,47 @@ class AudioSettingsRepositoryImpl @Inject constructor(
         updateStateFromStorage()
     }
 
-    // 프리셋 선택은 EQ 사용 의도가 명확하므로 EQ를 자동으로 켠다.
+    // 선택한 프리셋을 현재 기기 지원 범위로 보정해 저장하고 적용한다.
     override fun setEqualizerPreset(presetPosition: Int) {
-        val normalizedPresetPosition = presetPosition.coerceAtLeast(
-            AudioSettingsUiState.CUSTOM_PRESET_POSITION,
-        )
+        val normalizedPresetPosition = normalizePresetPosition(presetPosition)
 
-        // 어떤 화면에서 프리셋을 선택하든 최근 프리셋 목록을 같은 기준으로 갱신한다.
+        if (
+            normalizedPresetPosition ==
+            AudioSettingsUiState.CUSTOM_PRESET_POSITION
+        ) {
+            setCustomEqualizerPreset()
+            return
+        }
+
         val recentPresetPositions = buildRecentPresetPositions(normalizedPresetPosition)
 
         prefs.edit {
             putBoolean(AudioSettingKeys.KEY_EQUALIZER_ENABLED, true)
-            putInt(AudioSettingKeys.KEY_PRESET, normalizedPresetPosition)
-
-            // Custom은 고정 슬롯으로 처리하므로 일반 EQ 프리셋을 선택했을 때만 최근 목록을 저장한다.
-            if (normalizedPresetPosition > AudioSettingsUiState.CUSTOM_PRESET_POSITION) {
-                putString(
-                    AudioSettingKeys.KEY_RECENT_PRESET_POSITIONS,
-                    serializeRecentPresetPositions(recentPresetPositions),
-                )
-            }
+            putInt(
+                AudioSettingKeys.KEY_PRESET,
+                normalizedPresetPosition,
+            )
+            putString(
+                AudioSettingKeys.KEY_RECENT_PRESET_POSITIONS,
+                serializeRecentPresetPositions(recentPresetPositions),
+            )
         }
 
-        if (normalizedPresetPosition > AudioSettingsUiState.CUSTOM_PRESET_POSITION) {
-            AudioEffectManager.useEqualizerPreset(normalizedPresetPosition - SETTINGS_PRESET_OFFSET)
+        val wasApplied = AudioEffectManager.useEqualizerPreset(
+            normalizedPresetPosition - SETTINGS_PRESET_OFFSET,
+        )
+
+        if (wasApplied) {
             applyCurrentEqualizerBandsToDsp()
+        } else {
+            // 프리셋 적용에 실패하면 유효한 Custom 값으로 안전하게 전환한다.
+            prefs.edit {
+                putInt(
+                    AudioSettingKeys.KEY_PRESET,
+                    AudioSettingsUiState.CUSTOM_PRESET_POSITION,
+                )
+            }
+            applySavedEqualizerBands()
         }
 
         AudioEffectManager.setEnabledFromPrefs(prefs)
@@ -106,19 +122,152 @@ class AudioSettingsRepositoryImpl @Inject constructor(
         updateStateFromStorage()
     }
 
-    // 저장된 EQ 밴드 progress를 실제 Equalizer와 DSP EQ 값으로 복원한다.
+    // 저장 또는 요청된 프리셋 위치를 현재 기기가 지원하는 범위로 보정한다.
+    private fun normalizePresetPosition(
+        presetPosition: Int,
+    ): Int {
+        val candidate = presetPosition.coerceAtLeast(
+            AudioSettingsUiState.CUSTOM_PRESET_POSITION,
+        )
+
+        // Equalizer가 아직 생성되지 않았다면 기기 지원 개수를 알 수 없으므로
+        // 음수가 아닌 값으로만 보정한다.
+        if (AudioEffectManager.equalizer == null) return candidate
+
+        val numberOfPresets =
+            AudioEffectManager.getNumberOfPresets().coerceAtLeast(0)
+
+        if (numberOfPresets == 0) {
+            return AudioSettingsUiState.CUSTOM_PRESET_POSITION
+        }
+
+        // Settings position은 Custom=0,
+        // Android preset index 0은 Settings position 1이다.
+        return if (candidate in
+            AudioSettingsUiState.CUSTOM_PRESET_POSITION..numberOfPresets
+        ) {
+            candidate
+        } else {
+            AudioSettingsUiState.DEFAULT_PRESET_POSITION.coerceAtMost(
+                numberOfPresets,
+            )
+        }
+    }
+
+    // Android Equalizer의 0 mB를 SeekBar progress로 변환한다.
+    private fun getNeutralBandProgress(
+        minBandLevel: Int,
+        maxBandProgress: Int,
+    ): Int {
+        // native band level = progress + minBandLevel이므로,
+        // native 0 mB에 해당하는 progress는 -minBandLevel이다.
+        return (-minBandLevel).coerceIn(0, maxBandProgress)
+    }
+
+    // 저장된 Custom EQ가 현재 기기의 밴드 수와 레벨 범위에 맞는지 확인한다.
+    private fun isCustomEqStorageCompatible(
+        numberOfBands: Int,
+        minBandLevel: Int,
+        maxBandLevel: Int,
+    ): Boolean {
+        return prefs.getInt(AudioSettingKeys.KEY_CUSTOM_EQ_BAND_COUNT, -1) == numberOfBands &&
+                prefs.getInt(AudioSettingKeys.KEY_CUSTOM_EQ_MIN_LEVEL, Int.MIN_VALUE) == minBandLevel &&
+                prefs.getInt(AudioSettingKeys.KEY_CUSTOM_EQ_MAX_LEVEL, Int.MAX_VALUE) == maxBandLevel
+    }
+
+    // 현재 EQ 밴드 값을 읽고, 읽지 못한 밴드는 저장된 Custom 값으로 보완한다.
+    private fun loadCustomEqualizerBandProgresses(
+        numberOfBands: Int,
+        minBandLevel: Int,
+        maxBandLevel: Int,
+    ): List<Int> {
+        val maxBandProgress = maxBandLevel - minBandLevel
+        val neutralProgress = getNeutralBandProgress(
+            minBandLevel = minBandLevel,
+            maxBandProgress = maxBandProgress,
+        )
+
+        val isCompatible = isCustomEqStorageCompatible(
+            numberOfBands = numberOfBands,
+            minBandLevel = minBandLevel,
+            maxBandLevel = maxBandLevel,
+        )
+
+        return (0 until numberOfBands).map { bandIndex ->
+            if (isCompatible) {
+                prefs.getInt(
+                    bandIndex.toString(),
+                    neutralProgress,
+                ).coerceIn(0, maxBandProgress)
+            } else {
+                neutralProgress
+            }
+        }
+    }
+
+    // Custom 밴드 값과 현재 기기의 EQ 구성 정보를 함께 저장한다.
+    private fun saveCustomEqualizerBandProgresses(
+        progresses: List<Int>,
+        numberOfBands: Int,
+        minBandLevel: Int,
+        maxBandLevel: Int,
+    ) {
+        val maxBandProgress = maxBandLevel - minBandLevel
+
+        prefs.edit {
+            putInt(AudioSettingKeys.KEY_CUSTOM_EQ_BAND_COUNT, numberOfBands)
+            putInt(AudioSettingKeys.KEY_CUSTOM_EQ_MIN_LEVEL, minBandLevel)
+            putInt(AudioSettingKeys.KEY_CUSTOM_EQ_MAX_LEVEL, maxBandLevel)
+
+            progresses.forEachIndexed { bandIndex, progress ->
+                putInt(
+                    bandIndex.toString(),
+                    progress.coerceIn(0, maxBandProgress),
+                )
+            }
+        }
+    }
+
+    // 현재 기기와 호환되는 Custom 밴드 값을 실제 Equalizer에 복원한다.
     private fun applySavedEqualizerBands() {
         val bandLevelRange = AudioEffectManager.getBandLevelRange() ?: return
-        val minBandLevel = bandLevelRange[0].toInt() // 실제 Equalizer가 받을 수 있는 최소 밴드 레벨
-        val maxBandLevel = bandLevelRange[1].toInt() // 실제 Equalizer가 받을 수 있는 최대 밴드 레벨
-        val maxBandProgress = maxBandLevel - minBandLevel // SeekBar가 가질 수 있는 최대 progress
+        if (bandLevelRange.size < 2) return
+
+        val minBandLevel = bandLevelRange[0].toInt()
+        val maxBandLevel = bandLevelRange[1].toInt()
+        val maxBandProgress = maxBandLevel - minBandLevel
         val numberOfBands = AudioEffectManager.getNumberOfBands()
 
-        for (bandIndex in 0 until numberOfBands) {
-            val savedProgress = prefs.getInt(bandIndex.toString(), 0)
-            val clampedProgress = savedProgress.coerceIn(0, maxBandProgress)
-            val nativeLevel = (clampedProgress + minBandLevel).toShort()
-            val gainDb = mapEqProgressToDb(clampedProgress, maxBandProgress)
+        if (numberOfBands <= 0 || maxBandProgress < 0) return
+
+        val wasCompatible = isCustomEqStorageCompatible(
+            numberOfBands = numberOfBands,
+            minBandLevel = minBandLevel,
+            maxBandLevel = maxBandLevel,
+        )
+
+        val savedProgresses = loadCustomEqualizerBandProgresses(
+            numberOfBands = numberOfBands,
+            minBandLevel = minBandLevel,
+            maxBandLevel = maxBandLevel,
+        )
+
+        // 최초 선택 또는 기기 EQ 구성이 달라진 경우 중립값으로 저장 형식을 초기화한다.
+        if (!wasCompatible) {
+            saveCustomEqualizerBandProgresses(
+                progresses = savedProgresses,
+                numberOfBands = numberOfBands,
+                minBandLevel = minBandLevel,
+                maxBandLevel = maxBandLevel,
+            )
+        }
+
+        savedProgresses.forEachIndexed { bandIndex, progress ->
+            val nativeLevel = (progress + minBandLevel).toShort()
+            val gainDb = mapEqProgressToDb(
+                progress = progress,
+                max = maxBandProgress,
+            )
 
             AudioEffectManager.applyEqualizerBandLevel(
                 bandIndex = bandIndex,
@@ -135,7 +284,7 @@ class AudioSettingsRepositoryImpl @Inject constructor(
         return (normalized * 24.0f) - 12.0f
     }
 
-    // 사용자가 EQ 밴드를 직접 조정하면 현재 프리셋을 Custom으로 전환하고 전체 밴드 값을 저장/적용한다.
+    // 사용자가 밴드를 조절하면 현재 EQ 전체 값을 Custom으로 저장하고 즉시 적용한다.
     override fun updateEqualizerBandFromUser(
         bandIndex: Int,
         progress: Int,
@@ -160,11 +309,20 @@ class AudioSettingsRepositoryImpl @Inject constructor(
 
         prefs.edit {
             putBoolean(AudioSettingKeys.KEY_EQUALIZER_ENABLED, true)
-            putInt(AudioSettingKeys.KEY_PRESET, AudioSettingsUiState.CUSTOM_PRESET_POSITION)
+            putInt(
+                AudioSettingKeys.KEY_PRESET,
+                AudioSettingsUiState.CUSTOM_PRESET_POSITION,
+            )
 
-            // Custom 복원에 사용할 전체 EQ 밴드 progress를 SharedPreferences에 저장한다.
+            putInt(AudioSettingKeys.KEY_CUSTOM_EQ_BAND_COUNT, numberOfBands)
+            putInt(AudioSettingKeys.KEY_CUSTOM_EQ_MIN_LEVEL, minBandLevel)
+            putInt(AudioSettingKeys.KEY_CUSTOM_EQ_MAX_LEVEL, maxBandLevel)
+
             customBandProgresses.forEachIndexed { index, bandProgress ->
-                putInt(index.toString(), bandProgress)
+                putInt(
+                    index.toString(),
+                    bandProgress.coerceIn(0, maxBandProgress),
+                )
             }
         }
 
@@ -193,12 +351,26 @@ class AudioSettingsRepositoryImpl @Inject constructor(
         maxBandProgress: Int,
     ): List<Int> {
         val numberOfBands = AudioEffectManager.getNumberOfBands()
+        val maxBandLevel = minBandLevel + maxBandProgress
+
+        val fallbackProgresses = loadCustomEqualizerBandProgresses(
+            numberOfBands = numberOfBands,
+            minBandLevel = minBandLevel,
+            maxBandLevel = maxBandLevel,
+        )
 
         return (0 until numberOfBands).map { bandIndex ->
-            val nativeBandLevel = AudioEffectManager.getBandLevel(bandIndex)?.toInt()
-                ?: (prefs.getInt(bandIndex.toString(), 0) + minBandLevel)
+            val fallbackNativeLevel =
+                fallbackProgresses[bandIndex] + minBandLevel
 
-            (nativeBandLevel - minBandLevel).coerceIn(0, maxBandProgress)
+            val nativeBandLevel =
+                AudioEffectManager.getBandLevel(bandIndex)?.toInt()
+                    ?: fallbackNativeLevel
+
+            (nativeBandLevel - minBandLevel).coerceIn(
+                0,
+                maxBandProgress,
+            )
         }
     }
 
@@ -257,12 +429,25 @@ class AudioSettingsRepositoryImpl @Inject constructor(
         _settingsState.value = loadAudioSettingsState()
     }
 
-    // SharedPreferences에 저장된 값을 UI 상태 모델로 변환
+    // 저장된 음향 설정을 현재 기기에서 유효한 UI 상태로 변환한다.
     private fun loadAudioSettingsState(): AudioSettingsUiState {
-        val currentPresetPosition = prefs.getInt(
+        val savedPresetPosition = prefs.getInt(
             AudioSettingKeys.KEY_PRESET,
             AudioSettingsUiState.DEFAULT_PRESET_POSITION,
         )
+
+        val currentPresetPosition =
+            normalizePresetPosition(savedPresetPosition)
+
+        // 지원하지 않는 저장값은 보정된 프리셋 위치로 교체한다.
+        if (savedPresetPosition != currentPresetPosition) {
+            prefs.edit {
+                putInt(
+                    AudioSettingKeys.KEY_PRESET,
+                    currentPresetPosition,
+                )
+            }
+        }
 
         return AudioSettingsUiState(
             isEqualizerEnabled = prefs.getBoolean(AudioSettingKeys.KEY_EQUALIZER_ENABLED, false),
@@ -288,20 +473,33 @@ class AudioSettingsRepositoryImpl @Inject constructor(
         )
     }
 
+    // 현재 프리셋에 맞는 밴드 progress를 UI 표시용으로 구성한다.
     private fun loadEqualizerBandProgresses(currentPresetPosition: Int): List<Int> {
         val bandLevelRange = AudioEffectManager.getBandLevelRange() ?: return emptyList()
+        if (bandLevelRange.size < 2) return emptyList()
+
         val minBandLevel = bandLevelRange[0].toInt()
-        val maxBandProgress = bandLevelRange[1].toInt() - minBandLevel
+        val maxBandLevel = bandLevelRange[1].toInt()
+        val maxBandProgress = maxBandLevel - minBandLevel
         val numberOfBands = AudioEffectManager.getNumberOfBands()
 
+        if (numberOfBands <= 0 || maxBandProgress < 0) return emptyList()
+
         return if (currentPresetPosition == AudioSettingsUiState.CUSTOM_PRESET_POSITION) {
-            (0 until numberOfBands).map { bandIndex ->
-                prefs.getInt(bandIndex.toString(), 0).coerceIn(0, maxBandProgress)
-            }
+            loadCustomEqualizerBandProgresses(
+                numberOfBands = numberOfBands,
+                minBandLevel = minBandLevel,
+                maxBandLevel = maxBandLevel,
+            )
         } else {
             (0 until numberOfBands).map { bandIndex ->
-                val nativeBandLevel = AudioEffectManager.getBandLevel(bandIndex)?.toInt() ?: 0
-                (nativeBandLevel - minBandLevel).coerceIn(0, maxBandProgress)
+                val nativeBandLevel =
+                    AudioEffectManager.getBandLevel(bandIndex)?.toInt() ?: 0
+
+                (nativeBandLevel - minBandLevel).coerceIn(
+                    0,
+                    maxBandProgress,
+                )
             }
         }
     }
@@ -348,7 +546,7 @@ class AudioSettingsRepositoryImpl @Inject constructor(
         return recentPresetPositions.take(RECENT_NON_CUSTOM_PRESET_COUNT)
     }
 
-    // 저장된 최근 프리셋 목록을 읽고, 값이 없거나 부족하면 기본 프리셋으로 보충한다.
+    // 저장된 최근 프리셋 중 현재 기기가 지원하는 항목만 반환한다.
     private fun loadRecentPresetPositions(): List<Int> {
         val savedPresetPositions = prefs.getString(
             AudioSettingKeys.KEY_RECENT_PRESET_POSITIONS,
@@ -358,8 +556,23 @@ class AudioSettingsRepositoryImpl @Inject constructor(
             ?.mapNotNull { it.toIntOrNull() }
             .orEmpty()
 
-        return (savedPresetPositions + AudioSettingsUiState.DEFAULT_RECENT_PRESET_POSITIONS)
-            .filter { it > AudioSettingsUiState.CUSTOM_PRESET_POSITION }
+        val maxSupportedPresetPosition =
+            if (AudioEffectManager.equalizer != null) {
+                AudioEffectManager.getNumberOfPresets()
+                    .coerceAtLeast(0)
+            } else {
+                Int.MAX_VALUE
+            }
+
+        return (
+                savedPresetPositions +
+                        AudioSettingsUiState.DEFAULT_RECENT_PRESET_POSITIONS
+                )
+            .filter { presetPosition ->
+                presetPosition >
+                        AudioSettingsUiState.CUSTOM_PRESET_POSITION &&
+                        presetPosition <= maxSupportedPresetPosition
+            }
             .distinct()
             .take(RECENT_NON_CUSTOM_PRESET_COUNT)
     }
