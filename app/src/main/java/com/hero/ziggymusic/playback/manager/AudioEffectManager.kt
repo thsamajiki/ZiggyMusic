@@ -7,7 +7,6 @@ import android.media.audiofx.PresetReverb
 import android.media.audiofx.Virtualizer
 import androidx.core.content.edit
 import androidx.core.graphics.toColorInt
-import com.hero.ziggymusic.playback.audio.AudioProcessorChainController
 import com.hero.ziggymusic.data.local.preferences.AudioSettingKeys
 
 object AudioEffectManager {
@@ -22,8 +21,6 @@ object AudioEffectManager {
 
     var mainColor: Int = "#00ffee".toColorInt()
         private set
-
-    private val bandGainsDb = FloatArray(5)
 
     /**
      * 음향 효과 설정을 초기화함.
@@ -50,7 +47,6 @@ object AudioEffectManager {
         reverb?.enabled = enabled && reverbPreset != 0
         bassBoost?.enabled = enabled && bassProgress > 0
         virtualizer?.enabled = enabled && virtualizerProgress > 0
-        setLoudnessNormalizerEnabled(enabled && loudnessNormalizerEnabled)
     }
 
     fun applyBassStrength(progress: Int, prefs: SharedPreferences? = null) {
@@ -81,11 +77,6 @@ object AudioEffectManager {
         prefs?.edit { putInt(AudioSettingKeys.KEY_REVERB, position) }
         reverb?.preset = position.toShort()
         prefs?.let { setEnabledFromPrefs(it) }
-    }
-
-    fun applyLoudnessNormalizer(enabled: Boolean, prefs: SharedPreferences) {
-        prefs.edit { putBoolean(AudioSettingKeys.KEY_LOUDNESS_NORMALIZER_ENABLED, enabled) }
-        setEnabledFromPrefs(prefs)
     }
 
     fun applyEqualizerBandLevel(
@@ -136,81 +127,15 @@ object AudioEffectManager {
         return equalizer?.getPresetName(index.toShort())
     }
 
-    fun setBandGain(bandIndex: Int, gainDb: Float) {
-        if (bandIndex in bandGainsDb.indices) {
-            bandGainsDb[bandIndex] = gainDb
-        }
-    }
-
-    fun setCompressor(thresholdDb: Float, ratio: Float, attackMs: Float, releaseMs: Float, makeupDb: Float) {
-        AudioProcessorChainController.setCompressor(thresholdDb, ratio, attackMs, releaseMs, makeupDb)
-    }
-
-    private fun setLoudnessNormalizerEnabled(enabled: Boolean) {
-        if (enabled) {
-            setCompressor(
-                thresholdDb = LOUDNESS_NORMALIZER_THRESHOLD_DB,
-                ratio = LOUDNESS_NORMALIZER_RATIO,
-                attackMs = LOUDNESS_NORMALIZER_ATTACK_MS,
-                releaseMs = LOUDNESS_NORMALIZER_RELEASE_MS,
-                makeupDb = LOUDNESS_NORMALIZER_MAKEUP_DB
-            )
-        } else {
-            setCompressor(
-                thresholdDb = COMPRESSOR_BYPASS_THRESHOLD_DB,
-                ratio = COMPRESSOR_BYPASS_RATIO,
-                attackMs = COMPRESSOR_BYPASS_ATTACK_MS,
-                releaseMs = COMPRESSOR_BYPASS_RELEASE_MS,
-                makeupDb = COMPRESSOR_BYPASS_MAKEUP_DB
-            )
-        }
-    }
-
     // 저장된 음향 효과 값을 현재 AudioEffect 상태에 다시 반영한다.
-    fun applySettingsFromPrefs(
-        prefs: SharedPreferences,
-        bandCount: Int = bandGainsDb.size,
-        eqMaxFromUi: Int,
-    ) {
-        // 저장값이 없으면 중앙값인 0 dB를 사용한다.
-        val neutralProgress = (eqMaxFromUi / 2).coerceIn(0, eqMaxFromUi)
-
-        for (bandIndex in 0 until bandCount) {
-            val progress = prefs.getInt(
-                bandIndex.toString(),
-                neutralProgress,
-            ).coerceIn(0, eqMaxFromUi)
-
-            val gainDb = mapEqProgressToDb(progress, eqMaxFromUi)
-            setBandGain(bandIndex, gainDb)
-        }
-
+    fun applySettingsFromPrefs(prefs: SharedPreferences) {
         applyBassStrength(prefs.getInt(AudioSettingKeys.KEY_BASS, 0), null)
         applyVirtualizerStrength(prefs.getInt(AudioSettingKeys.KEY_VIRTUALIZER, 0), null)
         applyReverbPreset(prefs.getInt("REVERB", 0), null)
         setEnabledFromPrefs(prefs)
     }
 
-    private fun mapEqProgressToDb(progress: Int, max: Int): Float {
-        if (max <= 0) return 0.0f
-        val normalized = (progress.toFloat() / max.toFloat()).coerceIn(0.0f, 1.0f)
-        return (normalized * 24.0f) - 12.0f
-    }
-
-    private const val LOUDNESS_NORMALIZER_THRESHOLD_DB = -18.0f
-    private const val LOUDNESS_NORMALIZER_RATIO = 3.0f
-    private const val LOUDNESS_NORMALIZER_ATTACK_MS = 8.0f
-    private const val LOUDNESS_NORMALIZER_RELEASE_MS = 180.0f
-    private const val LOUDNESS_NORMALIZER_MAKEUP_DB = 4.0f
-
-    private const val COMPRESSOR_BYPASS_THRESHOLD_DB = 0.0f
-    private const val COMPRESSOR_BYPASS_RATIO = 1.0f
-    private const val COMPRESSOR_BYPASS_ATTACK_MS = 10.0f
-    private const val COMPRESSOR_BYPASS_RELEASE_MS = 100.0f
-    private const val COMPRESSOR_BYPASS_MAKEUP_DB = 0.0f
-
     fun release() {
-        runCatching { setLoudnessNormalizerEnabled(false) }
         runCatching { equalizer?.release() }
         runCatching { bassBoost?.release() }
         runCatching { virtualizer?.release() }
