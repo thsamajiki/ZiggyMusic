@@ -22,16 +22,22 @@ import androidx.media3.session.MediaSession
 import androidx.media3.session.MediaStyleNotificationHelper
 import com.hero.ziggymusic.R
 import com.hero.ziggymusic.data.local.entity.MusicTrackEntity
+import com.hero.ziggymusic.domain.audio.repository.AudioSettingsRepository
+import com.hero.ziggymusic.playback.manager.AudioEffectManager
 import com.hero.ziggymusic.playback.state.PlayerStateHolder
 import com.hero.ziggymusic.playback.queue.PlaybackQueueManager
 import com.hero.ziggymusic.presentation.main.MainActivity
 import javax.inject.Inject
 import dagger.hilt.android.AndroidEntryPoint
 
+@OptIn(UnstableApi::class)
 @AndroidEntryPoint
 class MusicService : MediaLibraryService() {
     @Inject
     lateinit var player: ExoPlayer
+
+    @Inject
+    lateinit var audioSettingsRepository: AudioSettingsRepository
 
     @Inject
     lateinit var playbackQueueManager: PlaybackQueueManager
@@ -40,6 +46,8 @@ class MusicService : MediaLibraryService() {
 
     @Volatile
     private var isExiting: Boolean = false
+
+    private var attachedAudioSessionId: Int = 0
 
     private val playerListener = object : Player.Listener {
         override fun onIsPlayingChanged(isPlaying: Boolean) {
@@ -65,6 +73,11 @@ class MusicService : MediaLibraryService() {
 
             updateNotification()
         }
+
+        override fun onAudioSessionIdChanged(audioSessionId: Int) {
+            if (isExiting) return
+            attachAudioEffects(audioSessionId)
+        }
     }
 
     private lateinit var mediaLibrarySession: MediaLibrarySession
@@ -84,6 +97,9 @@ class MusicService : MediaLibraryService() {
         MusicServiceState.onForegroundEntered()
 
         player.addListener(playerListener)
+
+        // 서비스 시작 시 이미 생성된 오디오 세션이 있으면 즉시 효과를 연결한다.
+        attachAudioEffects(player.audioSessionId)
     }
 
     override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaLibrarySession? {
@@ -319,6 +335,17 @@ class MusicService : MediaLibraryService() {
         )
     }
 
+    // 오디오 세션이 바뀌면 효과를 다시 연결하고 저장된 설정을 복원한다.
+    private fun attachAudioEffects(audioSessionId: Int) {
+        if (audioSessionId == 0) return
+        if (audioSessionId == attachedAudioSessionId) return
+
+        AudioEffectManager.init(audioSessionId)
+        audioSettingsRepository.applySavedSettings()
+
+        attachedAudioSessionId = audioSessionId
+    }
+
     override fun onTaskRemoved(rootIntent: Intent?) {
         exitPlayer()
         super.onTaskRemoved(rootIntent)
@@ -351,6 +378,12 @@ class MusicService : MediaLibraryService() {
     }
 
     override fun onDestroy() {
+        player.removeListener(playerListener)
+
+        // 서비스 종료 시 오디오 세션에 연결된 효과 리소스를 해제한다.
+        AudioEffectManager.release()
+        attachedAudioSessionId = 0
+
         MusicServiceState.reset()
 
         stopForeground(STOP_FOREGROUND_REMOVE)

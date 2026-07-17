@@ -10,6 +10,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.SeekBar
 import androidx.core.graphics.drawable.toDrawable
+import androidx.core.view.isVisible
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
@@ -21,6 +22,7 @@ import com.google.android.material.button.MaterialButton
 import com.hero.ziggymusic.R
 import com.hero.ziggymusic.data.local.preferences.AudioSettingKeys
 import com.hero.ziggymusic.databinding.FragmentAudioEffectBottomSheetBinding
+import com.hero.ziggymusic.playback.manager.AudioEffectManager
 import com.hero.ziggymusic.presentation.main.setting.model.AudioSettingsUiState
 import com.hero.ziggymusic.presentation.main.setting.viewmodel.AudioSettingsViewModel
 import dagger.hilt.android.AndroidEntryPoint
@@ -192,34 +194,62 @@ class AudioEffectBottomSheetDialogFragment : BottomSheetDialogFragment() {
         isApplyingAudioSettingsState = false
     }
 
-    // 최근 프리셋 position 목록을 버튼 모델로 변환하고 각 MaterialButton의 표시 텍스트를 갱신한다.
+    // 현재 기기가 지원하는 프리셋만 버튼에 표시한다.
     private fun updateRecentPresetButtons(recentPresetPositions: List<Int>) {
-        recentPresets = buildRecentPresetButtonModels(recentPresetPositions)
+        recentPresets =
+            buildRecentPresetButtonModels(recentPresetPositions)
 
         recentPresetButtonIds.forEachIndexed { index, buttonId ->
-            val preset = recentPresets.getOrNull(index) ?: return@forEachIndexed
-            binding.togglePresetGroup.findViewById<MaterialButton>(buttonId)?.text =
-                getString(preset.labelResId)
+            val button =
+                binding.togglePresetGroup.findViewById<MaterialButton>(
+                    buttonId,
+                )
+
+            val preset = recentPresets.getOrNull(index)
+
+            button.isVisible = preset != null
+            button.isEnabled = preset != null
+
+            if (preset != null) {
+                button.text = getString(preset.labelResId)
+            }
         }
     }
 
-    // Custom은 사용자가 직접 조정한 EQ 상태를 되돌리는 진입점이므로 마지막 버튼에 고정하고,
-    // 일반 EQ 프리셋만 최근 선택 순서대로 앞 3개 버튼에 배치한다.
+    // 지원되는 최근 프리셋을 우선 배치하고 부족한 항목은 지원 프리셋으로 채운다.
     private fun buildRecentPresetButtonModels(
         recentPresetPositions: List<Int>,
     ): List<AudioEffectPreset> {
-        // 저장된 position 값을 바텀시트 프리셋 모델로 변환한 일반 EQ 프리셋 목록
-        val nonCustomPresets = recentPresetPositions
+        val maxSupportedPresetPosition =
+            AudioEffectManager.getNumberOfPresets()
+                .coerceAtLeast(0)
+
+        val supportedPresets = AudioEffectPreset.entries
+            .filter { preset ->
+                preset == AudioEffectPreset.CUSTOM ||
+                        preset.config.settingsPresetPosition in
+                        1..maxSupportedPresetPosition
+            }
+
+        val recentNonCustomPresets = recentPresetPositions
             .mapNotNull(::findPresetBySettingsPosition)
-            .filterNot { it == AudioEffectPreset.CUSTOM }
+            .filter { preset ->
+                preset != AudioEffectPreset.CUSTOM &&
+                        preset in supportedPresets
+            }
             .distinct()
 
-        // 저장된 목록이 부족하거나 유효하지 않을 때 빈 슬롯을 채울 기본 프리셋 후보
-        val fallbackPresets = defaultRecentPresets
-            .filterNot { it == AudioEffectPreset.CUSTOM || it in nonCustomPresets }
+        val fallbackPresets = supportedPresets
+            .filterNot { preset ->
+                preset == AudioEffectPreset.CUSTOM ||
+                        preset in recentNonCustomPresets
+            }
 
-        return (nonCustomPresets + fallbackPresets)
-            .take(RECENT_NON_CUSTOM_PRESET_COUNT) + AudioEffectPreset.CUSTOM
+        return (
+                recentNonCustomPresets + fallbackPresets
+                )
+            .take(RECENT_NON_CUSTOM_PRESET_COUNT) +
+                AudioEffectPreset.CUSTOM
     }
 
     // 설정 화면의 spinner position 값에 대응하는 바텀시트 프리셋 모델을 찾는다.

@@ -12,22 +12,18 @@ import android.view.MenuItem
 import android.view.WindowManager
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
-import androidx.annotation.OptIn
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
 import androidx.core.view.isGone
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
-import androidx.media3.common.Player
-import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.navigation.NavigationBarView
 import com.hero.ziggymusic.R
 import com.hero.ziggymusic.playback.state.PlayerStateHolder
 import com.hero.ziggymusic.databinding.ActivityMainBinding
-import com.hero.ziggymusic.playback.manager.AudioEffectManager
 import com.hero.ziggymusic.presentation.main.setting.AudioSettingsFragment
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
@@ -56,7 +52,6 @@ import com.hero.ziggymusic.presentation.main.musictracks.viewmodel.MusicTracksVi
 import com.hero.ziggymusic.presentation.main.popup.MusicTracksSortMenuPopup
 import com.hero.ziggymusic.presentation.main.setting.AppSettingsFragment
 import com.hero.ziggymusic.presentation.main.setting.WebPageFragment
-import com.hero.ziggymusic.presentation.main.setting.viewmodel.AudioSettingsViewModel
 import com.hero.ziggymusic.presentation.main.setting.LicenseNoticesFragment
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
@@ -67,7 +62,6 @@ class MainActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedListen
     private val vm by viewModels<MainViewModel>()
     private val playerVm by viewModels<PlayerViewModel>()
     private val musicTracksVm by viewModels<MusicTracksViewModel>()
-    private val audioSettingsVm by viewModels<AudioSettingsViewModel>()
 
     @Inject
     lateinit var player: ExoPlayer
@@ -89,7 +83,6 @@ class MainActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedListen
         initBottomNavigationView()
         initViewModel()
         initPlayerController()
-        initSoundEQSettings()
         initListeners()
         requestPermissions()
     }
@@ -864,24 +857,6 @@ class MainActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedListen
         } else {
             ViewCompat.setOnApplyWindowInsetsListener(binding.containerPlayer, null)
             binding.containerPlayer.setPadding(0, 0, 0, 0)
-        }
-    }
-
-    @OptIn(UnstableApi::class)
-    private fun initSoundEQSettings() {
-        if (player.audioSessionId != 0) {
-            AudioEffectManager.init(player.audioSessionId)
-            audioSettingsVm.applySavedSettings()
-        } else {
-            player.addListener(object : Player.Listener {
-                override fun onAudioSessionIdChanged(audioSessionId: Int) {
-                    if (audioSessionId != 0) {
-                        AudioEffectManager.init(audioSessionId)
-                        audioSettingsVm.applySavedSettings()
-                        player.removeListener(this)
-                    }
-                }
-            })
         }
     }
 

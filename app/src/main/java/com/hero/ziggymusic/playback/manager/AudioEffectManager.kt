@@ -95,8 +95,21 @@ object AudioEffectManager {
         equalizer?.setBandLevel(bandIndex.toShort(), level)
     }
 
-    fun useEqualizerPreset(presetIndex: Int) {
-        equalizer?.usePreset(presetIndex.toShort())
+    // 프리셋 인덱스를 검증한 뒤 적용하고 성공 여부를 반환한다.
+    fun useEqualizerPreset(presetIndex: Int): Boolean {
+        val effect = equalizer ?: return false
+
+        val numberOfPresets = runCatching {
+            effect.numberOfPresets.toInt()
+        }.getOrDefault(0)
+
+        if (presetIndex !in 0 until numberOfPresets) {
+            return false
+        }
+
+        return runCatching {
+            effect.usePreset(presetIndex.toShort())
+        }.isSuccess
     }
 
     fun getBandLevel(bandIndex: Int): Short? {
@@ -153,17 +166,21 @@ object AudioEffectManager {
         }
     }
 
-    /**
-     * - Fragment는 체인 생성/파괴를 하지 않고, 현재 저장된 설정값을 네이티브에 반영.
-     * - EQ band 값은 prefs에 저장된 progress를 dB로 변환해서 반영.
-     */
+    // 저장된 음향 효과 값을 현재 AudioEffect 상태에 다시 반영한다.
     fun applySettingsFromPrefs(
         prefs: SharedPreferences,
         bandCount: Int = bandGainsDb.size,
         eqMaxFromUi: Int,
     ) {
+        // 저장값이 없으면 중앙값인 0 dB를 사용한다.
+        val neutralProgress = (eqMaxFromUi / 2).coerceIn(0, eqMaxFromUi)
+
         for (bandIndex in 0 until bandCount) {
-            val progress = prefs.getInt(bandIndex.toString(), 0)
+            val progress = prefs.getInt(
+                bandIndex.toString(),
+                neutralProgress,
+            ).coerceIn(0, eqMaxFromUi)
+
             val gainDb = mapEqProgressToDb(progress, eqMaxFromUi)
             setBandGain(bandIndex, gainDb)
         }
