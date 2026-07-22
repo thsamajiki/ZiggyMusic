@@ -145,7 +145,7 @@
             android:layout_weight="1"
             android:ellipsize="end"
             android:maxLines="1"
-            android:text="@string/sort_added_date"
+            android:text="@string/sort_added_to_music_tracks_date"
             android:textAppearance="@style/TextAppearance.ZiggyMusic.White.Caption" />
 
         <ImageView
