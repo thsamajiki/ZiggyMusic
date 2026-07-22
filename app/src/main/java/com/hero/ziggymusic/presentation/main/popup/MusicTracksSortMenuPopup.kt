@@ -16,6 +16,8 @@ import com.hero.ziggymusic.domain.music.model.MusicTracksSortOrder
 class MusicTracksSortMenuPopup(
     private val anchorView: View,
     private val selectedSortOrder: MusicTracksSortOrder,
+    @get:StringRes
+    private val dateAddedLabelResId: Int = R.string.sort_added_to_music_tracks_date,
     private val onSortOrderSelected: (MusicTracksSortOrder) -> Unit,
 ) {
     fun show() {
@@ -62,7 +64,7 @@ class MusicTracksSortMenuPopup(
             checkIcon = binding.ivCheckAddedDateSort,
             directionIcon = binding.ivDirectionAddedDateSort,
             isSelected = selectedSortOrder.isDateAddedOrder,
-            labelResId = R.string.sort_added_date
+            labelResId = dateAddedLabelResId
         )
 
         binding.layoutTitleSort.setOnClickListener {
