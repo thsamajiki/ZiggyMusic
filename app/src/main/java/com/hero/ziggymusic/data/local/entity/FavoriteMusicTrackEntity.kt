@@ -12,6 +12,6 @@ data class FavoriteMusicTrackEntity(
     @PrimaryKey
     @ColumnInfo(name = "id")
     val id: String,
-    @ColumnInfo(name = "created_at")
-    val createdAt: Long = System.currentTimeMillis(),
+    @ColumnInfo(name = "added_at")
+    val addedAt: Long = System.currentTimeMillis(),
 ) : Parcelable
