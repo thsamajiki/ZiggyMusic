@@ -4,7 +4,11 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.ViewModel
 import com.hero.ziggymusic.data.local.entity.MusicTrackEntity
+import com.hero.ziggymusic.data.local.preferences.FavoriteMusicTrackSortStore
+import com.hero.ziggymusic.domain.music.model.FavoriteMusicTrack
+import com.hero.ziggymusic.domain.music.model.MusicTrackSortOrder
 import com.hero.ziggymusic.domain.music.repository.MusicRepository
+import com.hero.ziggymusic.presentation.common.sort.MusicTrackSorter
 import com.hero.ziggymusic.presentation.main.player.manager.PlayerMotionManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -14,7 +18,9 @@ import javax.inject.Inject
 
 @HiltViewModel
 class PlayerViewModel @Inject constructor(
-    musicRepository: MusicRepository
+    musicRepository: MusicRepository,
+    private val favoriteSortStore: FavoriteMusicTrackSortStore,
+    private val musicTrackSorter: MusicTrackSorter,
 ) : ViewModel() {
     private val _motionState: MutableStateFlow<PlayerMotionManager.State> =
         MutableStateFlow(PlayerMotionManager.State.COLLAPSED)
@@ -22,28 +28,53 @@ class PlayerViewModel @Inject constructor(
 
     val musicTrackList: LiveData<List<MusicTrackEntity>> = musicRepository.observeMusicTracks()
 
-    private val favoriteMusicTracks: LiveData<List<MusicTrackEntity>> =
+    private val favoriteMusicTracks: LiveData<List<FavoriteMusicTrack>> =
         musicRepository.observeFavoriteMusicTracks()
 
-    // 실제 파일이 남아 있는 즐겨찾기만 재생 큐에 사용한다.
-    val availableFavoriteTracks: LiveData<List<MusicTrackEntity>> =
-        MediatorLiveData<List<MusicTrackEntity>>().apply {
-            fun updateAvailableFavorites() {
-                val favoriteTracks = favoriteMusicTracks.value ?: return
-                val musicTracks = musicTrackList.value ?: return
-                val availableIds = musicTracks.mapTo(mutableSetOf()) { it.id }
+    private val _availableFavoriteTracks = MediatorLiveData<List<MusicTrackEntity>>()
 
-                value = favoriteTracks.filter { it.id in availableIds }
-            }
+    val availableFavoriteTracks: LiveData<List<MusicTrackEntity>>
+        get() = _availableFavoriteTracks
 
-            addSource(favoriteMusicTracks) {
-                updateAvailableFavorites()
-            }
+    private var lastFavoriteSortLocaleTag: String? = null
 
-            addSource(musicTrackList) {
-                updateAvailableFavorites()
-            }
+    init {
+        _availableFavoriteTracks.addSource(favoriteMusicTracks) {
+            updateFavoriteTrackOrder()
         }
+
+        /*
+         * 즐겨찾기 화면에서 정렬을 변경하면 현재 즐겨찾기 출처의 재생 큐도
+         * 같은 순서로 즉시 다시 동기화되도록 공용 정렬 상태를 관찰한다.
+         */
+        _availableFavoriteTracks.addSource(favoriteSortStore.sortOrder) {
+            updateFavoriteTrackOrder()
+        }
+    }
+
+    private fun updateFavoriteTrackOrder() {
+        val favorites = favoriteMusicTracks.value ?: return
+        val sortOrder = favoriteSortStore.sortOrder.value
+            ?: MusicTrackSortOrder.DATE_ADDED_DESCENDING
+
+        lastFavoriteSortLocaleTag =
+            musicTrackSorter.currentLocaleTag()
+
+        _availableFavoriteTracks.value = musicTrackSorter
+            .sortFavoriteMusicTracks(
+                items = favorites,
+                sortOrder = sortOrder,
+            )
+            .map { favorite -> favorite.track }
+    }
+
+    fun refreshFavoriteTrackOrderForCurrentLanguage() {
+        if (lastFavoriteSortLocaleTag == musicTrackSorter.currentLocaleTag()) {
+            return
+        }
+
+        updateFavoriteTrackOrder()
+    }
 
     fun changeState(toggleState: PlayerMotionManager.State) {
         _motionState.value = toggleState

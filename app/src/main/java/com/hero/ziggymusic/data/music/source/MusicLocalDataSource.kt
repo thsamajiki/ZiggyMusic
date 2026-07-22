@@ -2,6 +2,7 @@ package com.hero.ziggymusic.data.music.source
 
 import androidx.lifecycle.LiveData
 import com.hero.ziggymusic.data.local.entity.MusicTrackEntity
+import com.hero.ziggymusic.data.local.model.FavoriteMusicTrackWithAddedAt
 import kotlinx.coroutines.flow.Flow
 
 interface MusicLocalDataSource {
@@ -17,7 +18,7 @@ interface MusicLocalDataSource {
 
     fun observeMusicTracks(): LiveData<List<MusicTrackEntity>>
 
-    fun observeFavoriteMusicTracks(): LiveData<List<MusicTrackEntity>>
+    fun observeFavoriteMusicTracks(): LiveData<List<FavoriteMusicTrackWithAddedAt>>
 
     fun getFavoriteMusicTrackIdList(): LiveData<List<String>>
 

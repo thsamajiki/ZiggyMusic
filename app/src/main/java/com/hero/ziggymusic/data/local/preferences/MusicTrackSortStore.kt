@@ -2,11 +2,11 @@ package com.hero.ziggymusic.data.local.preferences
 
 import android.content.Context
 import androidx.core.content.edit
-import com.hero.ziggymusic.domain.music.model.MusicTracksSortOrder
+import com.hero.ziggymusic.domain.music.model.MusicTrackSortOrder
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 
-class MusicTracksSortStore @Inject constructor(
+class MusicTrackSortStore @Inject constructor(
     @ApplicationContext context: Context,
 ) {
     private val prefs = context.getSharedPreferences(
@@ -14,7 +14,7 @@ class MusicTracksSortStore @Inject constructor(
         Context.MODE_PRIVATE
     )
 
-    fun loadMusicTracksSortOrder(): MusicTracksSortOrder {
+    fun loadMusicTrackSortOrder(): MusicTrackSortOrder {
         val savedSortOrderName = prefs.getString(
             KEY_MUSIC_TRACKS_SORT_ORDER,
             null
@@ -24,14 +24,14 @@ class MusicTracksSortStore @Inject constructor(
         return savedSortOrderName
             ?.let { sortOrderName ->
                 runCatching {
-                    MusicTracksSortOrder.valueOf(sortOrderName)
+                    MusicTrackSortOrder.valueOf(sortOrderName)
                 }.getOrNull()
             }
-            ?: MusicTracksSortOrder.TITLE_ASCENDING
+            ?: MusicTrackSortOrder.TITLE_ASCENDING
     }
 
-    fun saveMusicTracksSortOrder(
-        sortOrder: MusicTracksSortOrder,
+    fun saveMusicTrackSortOrder(
+        sortOrder: MusicTrackSortOrder,
     ) {
         prefs.edit {
             putString(

@@ -3,26 +3,29 @@ package com.hero.ziggymusic.data.local.dao
 import androidx.lifecycle.LiveData
 import androidx.room.*
 import com.hero.ziggymusic.data.local.entity.FavoriteMusicTrackEntity
-import com.hero.ziggymusic.data.local.entity.MusicTrackEntity
+import com.hero.ziggymusic.data.local.model.FavoriteMusicTrackWithAddedAt
 
 @Dao
 interface FavoriteMusicTracksDao {
-    @Query("""
-        SELECT music_tracks.*
+    @Query(
+        """
+        SELECT
+            music_tracks.*,
+            favorite_music_tracks.added_at AS added_to_favorites_at
         FROM music_tracks
         INNER JOIN favorite_music_tracks
-        ON music_tracks.id = favorite_music_tracks.id
+            ON music_tracks.id = favorite_music_tracks.id
         ORDER BY
-            favorite_music_tracks.created_at ASC,
+            favorite_music_tracks.added_at DESC,
             favorite_music_tracks.id ASC
         """
     )
-    fun getFavoriteMusicTracks(): LiveData<List<MusicTrackEntity>>
+    fun observeFavoriteMusicTracks(): LiveData<List<FavoriteMusicTrackWithAddedAt>>
 
     @Query("SELECT id FROM favorite_music_tracks")
     fun getFavoriteMusicTrackIdList(): LiveData<List<String>>
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertFavoriteMusicTrack(favoriteMusicTrack: FavoriteMusicTrackEntity)
 
     @Query("DELETE FROM favorite_music_tracks WHERE id = :id")

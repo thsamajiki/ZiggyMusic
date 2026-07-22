@@ -14,7 +14,10 @@ sealed class MainTitle(
         showMusicTrackSortButton = true
     )
 
-    object FavoriteTracks : MainTitle(R.string.title_favorite_tracks)
+    object FavoriteTracks : MainTitle(
+        resId = R.string.title_favorite_tracks,
+        showMusicTrackSortButton = true,
+    )
 
     object AppSettings : MainTitle(
         resId = R.string.title_app_settings,

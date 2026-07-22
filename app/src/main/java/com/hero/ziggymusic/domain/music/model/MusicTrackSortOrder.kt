@@ -1,6 +1,6 @@
 package com.hero.ziggymusic.domain.music.model
 
-enum class MusicTracksSortOrder {
+enum class MusicTrackSortOrder {
     TITLE_ASCENDING,
     TITLE_DESCENDING,
     ARTIST_ASCENDING,

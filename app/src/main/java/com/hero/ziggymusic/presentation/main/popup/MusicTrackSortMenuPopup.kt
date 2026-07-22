@@ -10,16 +10,18 @@ import android.widget.PopupWindow
 import androidx.annotation.StringRes
 import androidx.core.graphics.drawable.toDrawable
 import com.hero.ziggymusic.R
-import com.hero.ziggymusic.databinding.PopupMusicTracksSortMenuBinding
-import com.hero.ziggymusic.domain.music.model.MusicTracksSortOrder
+import com.hero.ziggymusic.databinding.PopupMusicTrackSortMenuBinding
+import com.hero.ziggymusic.domain.music.model.MusicTrackSortOrder
 
-class MusicTracksSortMenuPopup(
+class MusicTrackSortMenuPopup(
     private val anchorView: View,
-    private val selectedSortOrder: MusicTracksSortOrder,
-    private val onSortOrderSelected: (MusicTracksSortOrder) -> Unit,
+    private val selectedSortOrder: MusicTrackSortOrder,
+    @get:StringRes
+    private val dateAddedLabelResId: Int = R.string.sort_added_to_music_tracks_date,
+    private val onSortOrderSelected: (MusicTrackSortOrder) -> Unit,
 ) {
     fun show() {
-        val binding = PopupMusicTracksSortMenuBinding.inflate(
+        val binding = PopupMusicTrackSortMenuBinding.inflate(
             LayoutInflater.from(anchorView.context)
         )
 
@@ -62,7 +64,7 @@ class MusicTracksSortMenuPopup(
             checkIcon = binding.ivCheckAddedDateSort,
             directionIcon = binding.ivDirectionAddedDateSort,
             isSelected = selectedSortOrder.isDateAddedOrder,
-            labelResId = R.string.sort_added_date
+            labelResId = dateAddedLabelResId
         )
 
         binding.layoutTitleSort.setOnClickListener {
@@ -139,54 +141,54 @@ class MusicTracksSortMenuPopup(
     }
 
     // 같은 기준을 다시 선택하면 방향을 전환하고, 새 기준은 기본 방향으로 시작한다.
-    private fun getNextTitleSortOrder(): MusicTracksSortOrder {
+    private fun getNextTitleSortOrder(): MusicTrackSortOrder {
         return when (selectedSortOrder) {
-            MusicTracksSortOrder.TITLE_ASCENDING ->
-                MusicTracksSortOrder.TITLE_DESCENDING
+            MusicTrackSortOrder.TITLE_ASCENDING ->
+                MusicTrackSortOrder.TITLE_DESCENDING
 
-            MusicTracksSortOrder.TITLE_DESCENDING ->
-                MusicTracksSortOrder.TITLE_ASCENDING
+            MusicTrackSortOrder.TITLE_DESCENDING ->
+                MusicTrackSortOrder.TITLE_ASCENDING
 
-            MusicTracksSortOrder.ARTIST_ASCENDING,
-            MusicTracksSortOrder.ARTIST_DESCENDING,
-            MusicTracksSortOrder.DATE_ADDED_ASCENDING,
-            MusicTracksSortOrder.DATE_ADDED_DESCENDING,
+            MusicTrackSortOrder.ARTIST_ASCENDING,
+            MusicTrackSortOrder.ARTIST_DESCENDING,
+            MusicTrackSortOrder.DATE_ADDED_ASCENDING,
+            MusicTrackSortOrder.DATE_ADDED_DESCENDING,
                 ->
-                MusicTracksSortOrder.TITLE_ASCENDING
+                MusicTrackSortOrder.TITLE_ASCENDING
         }
     }
 
-    private fun getNextArtistSortOrder(): MusicTracksSortOrder {
+    private fun getNextArtistSortOrder(): MusicTrackSortOrder {
         return when (selectedSortOrder) {
-            MusicTracksSortOrder.ARTIST_ASCENDING ->
-                MusicTracksSortOrder.ARTIST_DESCENDING
+            MusicTrackSortOrder.ARTIST_ASCENDING ->
+                MusicTrackSortOrder.ARTIST_DESCENDING
 
-            MusicTracksSortOrder.ARTIST_DESCENDING ->
-                MusicTracksSortOrder.ARTIST_ASCENDING
+            MusicTrackSortOrder.ARTIST_DESCENDING ->
+                MusicTrackSortOrder.ARTIST_ASCENDING
 
-            MusicTracksSortOrder.TITLE_ASCENDING,
-            MusicTracksSortOrder.TITLE_DESCENDING,
-            MusicTracksSortOrder.DATE_ADDED_ASCENDING,
-            MusicTracksSortOrder.DATE_ADDED_DESCENDING,
+            MusicTrackSortOrder.TITLE_ASCENDING,
+            MusicTrackSortOrder.TITLE_DESCENDING,
+            MusicTrackSortOrder.DATE_ADDED_ASCENDING,
+            MusicTrackSortOrder.DATE_ADDED_DESCENDING,
                 ->
-                MusicTracksSortOrder.ARTIST_ASCENDING
+                MusicTrackSortOrder.ARTIST_ASCENDING
         }
     }
 
-    private fun getNextDateAddedSortOrder(): MusicTracksSortOrder {
+    private fun getNextDateAddedSortOrder(): MusicTrackSortOrder {
         return when (selectedSortOrder) {
-            MusicTracksSortOrder.DATE_ADDED_DESCENDING ->
-                MusicTracksSortOrder.DATE_ADDED_ASCENDING
+            MusicTrackSortOrder.DATE_ADDED_DESCENDING ->
+                MusicTrackSortOrder.DATE_ADDED_ASCENDING
 
-            MusicTracksSortOrder.DATE_ADDED_ASCENDING ->
-                MusicTracksSortOrder.DATE_ADDED_DESCENDING
+            MusicTrackSortOrder.DATE_ADDED_ASCENDING ->
+                MusicTrackSortOrder.DATE_ADDED_DESCENDING
 
-            MusicTracksSortOrder.TITLE_ASCENDING,
-            MusicTracksSortOrder.TITLE_DESCENDING,
-            MusicTracksSortOrder.ARTIST_ASCENDING,
-            MusicTracksSortOrder.ARTIST_DESCENDING,
+            MusicTrackSortOrder.TITLE_ASCENDING,
+            MusicTrackSortOrder.TITLE_DESCENDING,
+            MusicTrackSortOrder.ARTIST_ASCENDING,
+            MusicTrackSortOrder.ARTIST_DESCENDING,
                 ->
-                MusicTracksSortOrder.DATE_ADDED_DESCENDING
+                MusicTrackSortOrder.DATE_ADDED_DESCENDING
         }
     }
 }

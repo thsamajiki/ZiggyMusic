@@ -10,6 +10,7 @@ import com.hero.ziggymusic.data.local.dao.MusicTrackDao
 import com.hero.ziggymusic.data.local.dao.FavoriteMusicTracksDao
 import com.hero.ziggymusic.data.local.entity.FavoriteMusicTrackEntity
 import com.hero.ziggymusic.data.local.entity.MusicTrackEntity
+import com.hero.ziggymusic.data.local.model.FavoriteMusicTrackWithAddedAt
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
@@ -107,8 +108,8 @@ class MusicLocalDataSourceImpl @Inject constructor(
         return musicTrackDao.getMusicTracksFromMediaStore()
     }
 
-    override fun observeFavoriteMusicTracks(): LiveData<List<MusicTrackEntity>> {
-        return favoriteMusicTracksDao.getFavoriteMusicTracks()
+    override fun observeFavoriteMusicTracks(): LiveData<List<FavoriteMusicTrackWithAddedAt>> {
+        return favoriteMusicTracksDao.observeFavoriteMusicTracks()
     }
 
     override fun getFavoriteMusicTrackIdList(): LiveData<List<String>> {
