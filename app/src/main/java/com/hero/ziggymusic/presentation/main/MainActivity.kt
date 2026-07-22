@@ -12,6 +12,7 @@ import android.view.MenuItem
 import android.view.WindowManager
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
+import androidx.annotation.StringRes
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
@@ -48,6 +49,7 @@ import com.hero.ziggymusic.presentation.main.player.manager.PlayerController
 import com.hero.ziggymusic.presentation.main.player.manager.PlayerMotionManager
 import com.hero.ziggymusic.presentation.main.player.viewmodel.PlayerViewModel
 import com.hero.ziggymusic.domain.music.model.MusicTracksSortOrder
+import com.hero.ziggymusic.presentation.main.favorites.viewmodel.FavoriteMusicTracksViewModel
 import com.hero.ziggymusic.presentation.main.musictracks.viewmodel.MusicTracksViewModel
 import com.hero.ziggymusic.presentation.main.popup.MusicTracksSortMenuPopup
 import com.hero.ziggymusic.presentation.main.setting.AppSettingsFragment
@@ -62,6 +64,7 @@ class MainActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedListen
     private val vm by viewModels<MainViewModel>()
     private val playerVm by viewModels<PlayerViewModel>()
     private val musicTracksVm by viewModels<MusicTracksViewModel>()
+    private val favoriteMusicTracksVm by viewModels<FavoriteMusicTracksViewModel>()
 
     @Inject
     lateinit var player: ExoPlayer
@@ -138,7 +141,29 @@ class MainActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedListen
         }
 
         binding.ivSortMusicTracks.setOnClickListener {
-            showMusicTrackSortMenu()
+            when (vm.currentTitle.value) {
+                MainTitle.MusicTracks -> {
+                    showMusicTracksSortMenu(
+                        selectedSortOrder =
+                            musicTracksVm.sortOrder.value
+                                ?: MusicTracksSortOrder.TITLE_ASCENDING,
+                        dateAddedLabelResId = R.string.sort_added_to_music_tracks_date,
+                        onSelected = musicTracksVm::setMusicTrackSortOrder,
+                    )
+                }
+
+                MainTitle.FavoriteTracks -> {
+                    showMusicTracksSortMenu(
+                        selectedSortOrder =
+                            favoriteMusicTracksVm.sortOrder.value
+                                ?: MusicTracksSortOrder.DATE_ADDED_DESCENDING,
+                        dateAddedLabelResId = R.string.sort_added_to_favorite_music_tracks_date,
+                        onSelected = favoriteMusicTracksVm::setSortOrder,
+                    )
+                }
+
+                else -> Unit
+            }
         }
 
         // 현재 메인 탭을 숨기고 설정 화면을 백스택 위에 표시한다.
@@ -347,6 +372,7 @@ class MainActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedListen
     override fun onResume() {
         super.onResume()
 
+        playerVm.refreshFavoriteTrackOrderForCurrentLanguage()
         startPlayerIfAudioPermissionGranted()
     }
 
@@ -598,17 +624,16 @@ class MainActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedListen
         )
     }
 
-    private fun showMusicTrackSortMenu() {
-        val selectedSortOrder =
-            musicTracksVm.musicTracksSortOrder.value
-                ?: MusicTracksSortOrder.TITLE_ASCENDING
-
+    private fun showMusicTracksSortMenu(
+        selectedSortOrder: MusicTracksSortOrder,
+        @StringRes dateAddedLabelResId: Int,
+        onSelected: (MusicTracksSortOrder) -> Unit,
+    ) {
         MusicTracksSortMenuPopup(
             anchorView = binding.ivSortMusicTracks,
             selectedSortOrder = selectedSortOrder,
-            onSortOrderSelected = { sortOrder ->
-                musicTracksVm.setMusicTrackSortOrder(sortOrder)
-            }
+            dateAddedLabelResId = dateAddedLabelResId,
+            onSortOrderSelected = onSelected,
         ).show()
     }
 
