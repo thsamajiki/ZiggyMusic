@@ -22,7 +22,9 @@ class FavoriteMusicTracksSortStore @Inject constructor(
     val sortOrder: LiveData<MusicTracksSortOrder>
         get() = _sortOrder
 
-    fun setSortOrder(sortOrder: MusicTracksSortOrder) {
+    fun setSortOrder(
+        sortOrder: MusicTracksSortOrder
+    ) {
         if (_sortOrder.value == sortOrder) return
 
         prefs.edit {
