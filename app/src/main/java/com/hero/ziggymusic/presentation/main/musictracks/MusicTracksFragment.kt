@@ -480,9 +480,7 @@ class MusicTracksFragment : Fragment() {
     }
 
     private fun collectUiState() {
-        vm.musicTracksSortOrder.observe(
-            viewLifecycleOwner
-        ) { sortOrder ->
+        vm.sortOrder.observe(viewLifecycleOwner) { sortOrder ->
             val previousSortOrder = lastMusicTracksSortOrder
 
             // 저장된 정렬 상태의 최초 전달에는 스크롤 정책을 적용하지 않는다.
@@ -518,7 +516,7 @@ class MusicTracksFragment : Fragment() {
                 }
 
                 is MusicTrackListUiState.Error -> {
-                    Log.e("MusicListFragment", getString(R.string.music_tracks_load_failed))
+                    Log.e(TAG, getString(R.string.music_tracks_load_failed))
                     vm.clearSearchResult()
                     musicTrackAdapter.submitList(emptyList())
                     binding.rvMusicTracks.isVisible = false
@@ -710,6 +708,8 @@ class MusicTracksFragment : Fragment() {
     )
 
     companion object {
+        private const val TAG = "MusicTracksFragment"
+
         private const val SEARCH_ANIMATION_DURATION_MS = 180L
         private const val SEARCH_TRANSLATION_DP = 12f
         private const val SEARCH_SETTLE_EXPAND_PROGRESS = 0.5f
