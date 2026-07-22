@@ -21,8 +21,8 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import kotlin.time.Duration.Companion.milliseconds
-import com.hero.ziggymusic.domain.music.model.MusicTracksSortOrder
-import com.hero.ziggymusic.data.local.preferences.MusicTracksSortStore
+import com.hero.ziggymusic.domain.music.model.MusicTrackSortOrder
+import com.hero.ziggymusic.data.local.preferences.MusicTrackSortStore
 import com.hero.ziggymusic.presentation.common.sort.MusicTrackSorter
 
 sealed class MusicTrackListUiState {
@@ -42,7 +42,7 @@ data class MusicTrackSearchResult(
 class MusicTracksViewModel @Inject constructor(
     application: Application,
     private val musicRepository: MusicRepository,
-    private val musicTracksSortStore: MusicTracksSortStore,
+    private val musicTrackSortStore: MusicTrackSortStore,
     private val musicTrackSorter: MusicTrackSorter,
 ) : AndroidViewModel(application) {
     private var musicLibrarySyncJob: Job? = null // 음악 목록 동기화 중복 실행을 방지한다.
@@ -59,10 +59,10 @@ class MusicTracksViewModel @Inject constructor(
     private var currentMusicTracks: List<MusicTrackEntity> = emptyList()
 
     private val _sortOrder = MutableLiveData(
-        musicTracksSortStore.loadMusicTracksSortOrder()
+        musicTrackSortStore.loadMusicTrackSortOrder()
     )
 
-    val sortOrder: LiveData<MusicTracksSortOrder>
+    val sortOrder: LiveData<MusicTrackSortOrder>
         get() = _sortOrder
 
     // 앱 언어가 바뀐 경우에만 다시 정렬하도록 마지막 언어를 기억한다.
@@ -137,7 +137,7 @@ class MusicTracksViewModel @Inject constructor(
         }
 
         val selectedSortOrder =
-            sortOrder.value ?: MusicTracksSortOrder.TITLE_ASCENDING
+            sortOrder.value ?: MusicTrackSortOrder.TITLE_ASCENDING
 
         lastMusicTrackSortLocaleTag = musicTrackSorter.currentLocaleTag()
 
@@ -237,11 +237,11 @@ class MusicTracksViewModel @Inject constructor(
     }
 
     fun setMusicTrackSortOrder(
-        sortOrder: MusicTracksSortOrder,
+        sortOrder: MusicTrackSortOrder,
     ) {
         if (_sortOrder.value == sortOrder) return
 
-        musicTracksSortStore.saveMusicTracksSortOrder(sortOrder)
+        musicTrackSortStore.saveMusicTrackSortOrder(sortOrder)
 
         _sortOrder.value = sortOrder
 

@@ -34,7 +34,7 @@ import com.hero.ziggymusic.databinding.FragmentMusicTracksBinding
 import com.hero.ziggymusic.presentation.common.event.EventBus
 import com.hero.ziggymusic.presentation.common.ext.playMusic
 import com.hero.ziggymusic.playback.queue.PlaybackQueueSource
-import com.hero.ziggymusic.domain.music.model.MusicTracksSortOrder
+import com.hero.ziggymusic.domain.music.model.MusicTrackSortOrder
 import com.hero.ziggymusic.presentation.main.popup.MusicTrackOptionMenuPopup
 import com.hero.ziggymusic.presentation.main.musictracks.viewmodel.MusicTrackSearchResult
 import com.hero.ziggymusic.presentation.main.musictracks.viewmodel.MusicTrackListUiState
@@ -61,7 +61,7 @@ class MusicTracksFragment : Fragment() {
     private var lastRecyclerTouchY = 0f
     private var lastSearchContainerTouchY = 0f
     private var searchRequestId = 0L
-    private var lastMusicTracksSortOrder: MusicTracksSortOrder? = null
+    private var lastMusicTrackSortOrder: MusicTrackSortOrder? = null
     private var pendingMusicTrackScrollPosition: MusicTrackScrollPosition? = null
     private var scrollToTopAfterSortPending = false
 
@@ -481,7 +481,7 @@ class MusicTracksFragment : Fragment() {
 
     private fun collectUiState() {
         vm.sortOrder.observe(viewLifecycleOwner) { sortOrder ->
-            val previousSortOrder = lastMusicTracksSortOrder
+            val previousSortOrder = lastMusicTrackSortOrder
 
             // 저장된 정렬 상태의 최초 전달에는 스크롤 정책을 적용하지 않는다.
             if (previousSortOrder != null && previousSortOrder != sortOrder) {
@@ -494,7 +494,7 @@ class MusicTracksFragment : Fragment() {
                 }
             }
 
-            lastMusicTracksSortOrder = sortOrder
+            lastMusicTrackSortOrder = sortOrder
         }
 
         vm.uiState.observe(viewLifecycleOwner) { state ->

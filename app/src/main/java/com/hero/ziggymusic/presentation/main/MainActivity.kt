@@ -48,10 +48,10 @@ import com.hero.ziggymusic.data.local.preferences.LastPlaybackStore
 import com.hero.ziggymusic.presentation.main.player.manager.PlayerController
 import com.hero.ziggymusic.presentation.main.player.manager.PlayerMotionManager
 import com.hero.ziggymusic.presentation.main.player.viewmodel.PlayerViewModel
-import com.hero.ziggymusic.domain.music.model.MusicTracksSortOrder
+import com.hero.ziggymusic.domain.music.model.MusicTrackSortOrder
 import com.hero.ziggymusic.presentation.main.favorites.viewmodel.FavoriteMusicTracksViewModel
 import com.hero.ziggymusic.presentation.main.musictracks.viewmodel.MusicTracksViewModel
-import com.hero.ziggymusic.presentation.main.popup.MusicTracksSortMenuPopup
+import com.hero.ziggymusic.presentation.main.popup.MusicTrackSortMenuPopup
 import com.hero.ziggymusic.presentation.main.setting.AppSettingsFragment
 import com.hero.ziggymusic.presentation.main.setting.WebPageFragment
 import com.hero.ziggymusic.presentation.main.setting.LicenseNoticesFragment
@@ -143,20 +143,20 @@ class MainActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedListen
         binding.ivSortMusicTracks.setOnClickListener {
             when (vm.currentTitle.value) {
                 MainTitle.MusicTracks -> {
-                    showMusicTracksSortMenu(
+                    showMusicTrackSortMenu(
                         selectedSortOrder =
                             musicTracksVm.sortOrder.value
-                                ?: MusicTracksSortOrder.TITLE_ASCENDING,
+                                ?: MusicTrackSortOrder.TITLE_ASCENDING,
                         dateAddedLabelResId = R.string.sort_added_to_music_tracks_date,
                         onSelected = musicTracksVm::setMusicTrackSortOrder,
                     )
                 }
 
                 MainTitle.FavoriteTracks -> {
-                    showMusicTracksSortMenu(
+                    showMusicTrackSortMenu(
                         selectedSortOrder =
                             favoriteMusicTracksVm.sortOrder.value
-                                ?: MusicTracksSortOrder.DATE_ADDED_DESCENDING,
+                                ?: MusicTrackSortOrder.DATE_ADDED_DESCENDING,
                         dateAddedLabelResId = R.string.sort_added_to_favorite_music_tracks_date,
                         onSelected = favoriteMusicTracksVm::setSortOrder,
                     )
@@ -624,12 +624,12 @@ class MainActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedListen
         )
     }
 
-    private fun showMusicTracksSortMenu(
-        selectedSortOrder: MusicTracksSortOrder,
+    private fun showMusicTrackSortMenu(
+        selectedSortOrder: MusicTrackSortOrder,
         @StringRes dateAddedLabelResId: Int,
-        onSelected: (MusicTracksSortOrder) -> Unit,
+        onSelected: (MusicTrackSortOrder) -> Unit,
     ) {
-        MusicTracksSortMenuPopup(
+        MusicTrackSortMenuPopup(
             anchorView = binding.ivSortMusicTracks,
             selectedSortOrder = selectedSortOrder,
             dateAddedLabelResId = dateAddedLabelResId,

@@ -4,7 +4,7 @@ import android.content.Context
 import androidx.core.os.ConfigurationCompat
 import com.hero.ziggymusic.data.local.entity.MusicTrackEntity
 import com.hero.ziggymusic.domain.music.model.FavoriteMusicTrack
-import com.hero.ziggymusic.domain.music.model.MusicTracksSortOrder
+import com.hero.ziggymusic.domain.music.model.MusicTrackSortOrder
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.text.Collator
 import java.text.Normalizer
@@ -24,7 +24,7 @@ class MusicTrackSorter @Inject constructor(
 
     fun sortMusicTracks(
         items: List<MusicTrackEntity>,
-        sortOrder: MusicTracksSortOrder,
+        sortOrder: MusicTrackSortOrder,
     ): List<MusicTrackEntity> {
         return sort(
             items = items,
@@ -36,7 +36,7 @@ class MusicTrackSorter @Inject constructor(
 
     fun sortFavoriteMusicTracks(
         items: List<FavoriteMusicTrack>,
-        sortOrder: MusicTracksSortOrder,
+        sortOrder: MusicTrackSortOrder,
     ): List<FavoriteMusicTrack> {
         return sort(
             items = items,
@@ -54,7 +54,7 @@ class MusicTrackSorter @Inject constructor(
 
     private fun <T> sort(
         items: List<T>,
-        sortOrder: MusicTracksSortOrder,
+        sortOrder: MusicTrackSortOrder,
         trackSelector: (T) -> MusicTrackEntity,
         dateSelector: (T) -> Long,
     ): List<T> {
@@ -116,7 +116,7 @@ class MusicTrackSorter @Inject constructor(
     private fun compareBySecondarySortKeys(
         first: MusicTrackEntity,
         second: MusicTrackEntity,
-        sortOrder: MusicTracksSortOrder,
+        sortOrder: MusicTrackSortOrder,
         locale: Locale,
         collator: Collator,
     ): Int {

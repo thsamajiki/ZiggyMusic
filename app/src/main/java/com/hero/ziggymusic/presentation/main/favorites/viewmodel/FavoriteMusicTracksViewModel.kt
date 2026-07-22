@@ -9,9 +9,9 @@ import androidx.lifecycle.viewModelScope
 import com.hero.ziggymusic.R
 import com.hero.ziggymusic.presentation.common.SingleEvent
 import com.hero.ziggymusic.data.local.entity.MusicTrackEntity
-import com.hero.ziggymusic.data.local.preferences.FavoriteMusicTracksSortStore
+import com.hero.ziggymusic.data.local.preferences.FavoriteMusicTrackSortStore
 import com.hero.ziggymusic.domain.music.model.FavoriteMusicTrack
-import com.hero.ziggymusic.domain.music.model.MusicTracksSortOrder
+import com.hero.ziggymusic.domain.music.model.MusicTrackSortOrder
 import com.hero.ziggymusic.domain.music.repository.MusicRepository
 import com.hero.ziggymusic.presentation.common.sort.MusicTrackSorter
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -29,7 +29,7 @@ sealed class FavoriteMusicTrackListUiState {
 class FavoriteMusicTracksViewModel @Inject constructor(
     application: Application,
     private val musicRepository: MusicRepository,
-    private val sortStore: FavoriteMusicTracksSortStore,
+    private val sortStore: FavoriteMusicTrackSortStore,
     private val musicTrackSorter: MusicTrackSorter,
 ) : AndroidViewModel(application) {
     private val favoriteMusicTracks : LiveData<List<FavoriteMusicTrack>> = musicRepository.observeFavoriteMusicTracks()
@@ -42,7 +42,7 @@ class FavoriteMusicTracksViewModel @Inject constructor(
     val emptyStateMessage: LiveData<String>
         get() = _emptyStateMessage
 
-    val sortOrder: LiveData<MusicTracksSortOrder>
+    val sortOrder: LiveData<MusicTrackSortOrder>
         get() = sortStore.sortOrder
 
     private var lastFavoriteSortLocaleTag: String? = null
@@ -65,7 +65,7 @@ class FavoriteMusicTracksViewModel @Inject constructor(
     private fun updateFavoriteMusicTrackListUiState() {
         val favoriteItems = favoriteMusicTracks.value ?: return
         val selectedSortOrder = sortStore.sortOrder.value
-            ?: MusicTracksSortOrder.DATE_ADDED_DESCENDING
+            ?: MusicTrackSortOrder.DATE_ADDED_DESCENDING
 
         lastFavoriteSortLocaleTag = musicTrackSorter.currentLocaleTag()
 
@@ -95,7 +95,7 @@ class FavoriteMusicTracksViewModel @Inject constructor(
         }
     }
 
-    fun setSortOrder(sortOrder: MusicTracksSortOrder) {
+    fun setSortOrder(sortOrder: MusicTrackSortOrder) {
         sortStore.setSortOrder(sortOrder)
     }
 

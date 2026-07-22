@@ -4,9 +4,9 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.ViewModel
 import com.hero.ziggymusic.data.local.entity.MusicTrackEntity
-import com.hero.ziggymusic.data.local.preferences.FavoriteMusicTracksSortStore
+import com.hero.ziggymusic.data.local.preferences.FavoriteMusicTrackSortStore
 import com.hero.ziggymusic.domain.music.model.FavoriteMusicTrack
-import com.hero.ziggymusic.domain.music.model.MusicTracksSortOrder
+import com.hero.ziggymusic.domain.music.model.MusicTrackSortOrder
 import com.hero.ziggymusic.domain.music.repository.MusicRepository
 import com.hero.ziggymusic.presentation.common.sort.MusicTrackSorter
 import com.hero.ziggymusic.presentation.main.player.manager.PlayerMotionManager
@@ -19,7 +19,7 @@ import javax.inject.Inject
 @HiltViewModel
 class PlayerViewModel @Inject constructor(
     musicRepository: MusicRepository,
-    private val favoriteSortStore: FavoriteMusicTracksSortStore,
+    private val favoriteSortStore: FavoriteMusicTrackSortStore,
     private val musicTrackSorter: MusicTrackSorter,
 ) : ViewModel() {
     private val _motionState: MutableStateFlow<PlayerMotionManager.State> =
@@ -55,7 +55,7 @@ class PlayerViewModel @Inject constructor(
     private fun updateFavoriteTrackOrder() {
         val favorites = favoriteMusicTracks.value ?: return
         val sortOrder = favoriteSortStore.sortOrder.value
-            ?: MusicTracksSortOrder.DATE_ADDED_DESCENDING
+            ?: MusicTrackSortOrder.DATE_ADDED_DESCENDING
 
         lastFavoriteSortLocaleTag =
             musicTrackSorter.currentLocaleTag()

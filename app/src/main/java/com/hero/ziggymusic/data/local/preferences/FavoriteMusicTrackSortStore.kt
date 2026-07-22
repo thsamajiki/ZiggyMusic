@@ -4,13 +4,13 @@ import android.content.Context
 import androidx.core.content.edit
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import com.hero.ziggymusic.domain.music.model.MusicTracksSortOrder
+import com.hero.ziggymusic.domain.music.model.MusicTrackSortOrder
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class FavoriteMusicTracksSortStore @Inject constructor(
+class FavoriteMusicTrackSortStore @Inject constructor(
     @ApplicationContext context: Context,
 ) {
     private val prefs = context.getSharedPreferences(
@@ -19,11 +19,11 @@ class FavoriteMusicTracksSortStore @Inject constructor(
     )
 
     private val _sortOrder = MutableLiveData(loadSavedSortOrder())
-    val sortOrder: LiveData<MusicTracksSortOrder>
+    val sortOrder: LiveData<MusicTrackSortOrder>
         get() = _sortOrder
 
     fun setSortOrder(
-        sortOrder: MusicTracksSortOrder
+        sortOrder: MusicTrackSortOrder
     ) {
         if (_sortOrder.value == sortOrder) return
 
@@ -33,17 +33,17 @@ class FavoriteMusicTracksSortStore @Inject constructor(
         _sortOrder.value = sortOrder
     }
 
-    private fun loadSavedSortOrder(): MusicTracksSortOrder {
+    private fun loadSavedSortOrder(): MusicTrackSortOrder {
         val savedName = prefs.getString(KEY_FAVORITE_MUSIC_TRACKS_SORT_ORDER, null)
 
         return savedName
             ?.let { name ->
                 runCatching {
-                    MusicTracksSortOrder.valueOf(name)
+                    MusicTrackSortOrder.valueOf(name)
                 }.getOrNull()
             }
             // 즐겨찾기에서는 최근에 추가한 곡을 바로 찾는 흐름을 기본으로 한다.
-            ?: MusicTracksSortOrder.DATE_ADDED_DESCENDING
+            ?: MusicTrackSortOrder.DATE_ADDED_DESCENDING
     }
 
     private companion object {

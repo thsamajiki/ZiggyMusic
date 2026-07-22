@@ -12,7 +12,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.hero.ziggymusic.data.local.entity.MusicTrackEntity
 import com.hero.ziggymusic.databinding.FragmentFavoriteMusicTracksBinding
-import com.hero.ziggymusic.domain.music.model.MusicTracksSortOrder
+import com.hero.ziggymusic.domain.music.model.MusicTrackSortOrder
 import com.hero.ziggymusic.presentation.common.event.EventBus
 import com.hero.ziggymusic.presentation.common.ext.playMusic
 import com.hero.ziggymusic.playback.queue.PlaybackQueueSource
@@ -30,7 +30,7 @@ class FavoriteMusicTracksFragment : Fragment() {
 
     private lateinit var favoriteMusicTrackAdapter: FavoriteMusicTrackAdapter
 
-    private var lastFavoriteMusicTrackSortOrder: MusicTracksSortOrder? = null
+    private var lastFavoriteMusicTrackSortOrder: MusicTrackSortOrder? = null
     private var pendingFavoriteMusicTrackScrollPosition: FavoriteMusicTrackScrollPosition? = null
     private var scrollToTopAfterSortPending = false
 
