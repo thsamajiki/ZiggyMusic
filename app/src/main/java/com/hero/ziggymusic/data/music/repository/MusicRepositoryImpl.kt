@@ -1,8 +1,10 @@
 package com.hero.ziggymusic.data.music.repository
 
 import androidx.lifecycle.LiveData
+import androidx.lifecycle.map
 import com.hero.ziggymusic.data.music.source.MusicLocalDataSource
 import com.hero.ziggymusic.data.local.entity.MusicTrackEntity
+import com.hero.ziggymusic.domain.music.model.FavoriteMusicTrack
 import com.hero.ziggymusic.domain.music.repository.MusicRepository
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
@@ -32,8 +34,15 @@ class MusicRepositoryImpl @Inject constructor(
         return musicLocalDataSource.observeMusicTracks()
     }
 
-    override fun observeFavoriteMusicTracks(): LiveData<List<MusicTrackEntity>> {
-        return musicLocalDataSource.observeFavoriteMusicTracks()
+    override fun observeFavoriteMusicTracks(): LiveData<List<FavoriteMusicTrack>> {
+        return musicLocalDataSource.observeFavoriteMusicTracks().map { results ->
+            results.map { result ->
+                FavoriteMusicTrack(
+                    track = result.track,
+                    addedToFavoritesAt = result.addedToFavoritesAt,
+                )
+            }
+        }
     }
 
     override fun observeFavoriteTrackIdList(): LiveData<List<String>> {
