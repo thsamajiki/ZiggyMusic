@@ -22,7 +22,5 @@
         <item name="android:windowBackground">@color/main_dark_gradient_start</item>
     </style>
 
-    <style name="Theme.ZiggyMusic.Launcher" parent="Theme.ZiggyMusic">
-        <item name="android:windowDisablePreview">true</item>
-    </style>
+    <style name="Theme.ZiggyMusic.Launcher" parent="Theme.ZiggyMusic" />
 </resources>
