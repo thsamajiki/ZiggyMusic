@@ -156,7 +156,7 @@ class MainActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedListen
                         selectedSortOrder =
                             musicTracksVm.sortOrder.value
                                 ?: MusicTrackSortOrder.TITLE_ASCENDING,
-                        dateAddedLabelResId = R.string.sort_added_to_music_tracks_date,
+                        dateAddedLabelResId = R.string.sort_added_date,
                         onSelected = musicTracksVm::setMusicTrackSortOrder,
                     )
                 }
@@ -166,7 +166,7 @@ class MainActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedListen
                         selectedSortOrder =
                             favoriteMusicTracksVm.sortOrder.value
                                 ?: MusicTrackSortOrder.DATE_ADDED_DESCENDING,
-                        dateAddedLabelResId = R.string.sort_added_to_favorite_music_tracks_date,
+                        dateAddedLabelResId = R.string.sort_added_date,
                         onSelected = favoriteMusicTracksVm::setSortOrder,
                     )
                 }
