@@ -19,7 +19,6 @@ import androidx.core.net.toUri
 import androidx.core.view.isGone
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
-import androidx.media3.exoplayer.ExoPlayer
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.navigation.NavigationBarView
 import com.hero.ziggymusic.R
@@ -28,7 +27,6 @@ import com.hero.ziggymusic.databinding.ActivityMainBinding
 import com.hero.ziggymusic.presentation.main.setting.AudioSettingsFragment
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
@@ -66,12 +64,21 @@ class MainActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedListen
     private val musicTracksVm by viewModels<MusicTracksViewModel>()
     private val favoriteMusicTracksVm by viewModels<FavoriteMusicTracksViewModel>()
 
-    @Inject
-    lateinit var player: ExoPlayer
-
     private val playerStateHolder: PlayerStateHolder = PlayerStateHolder.getInstance()
     private lateinit var playerController: PlayerController
     private val lastPlaybackStore by lazy { LastPlaybackStore(this) }
+
+    private enum class InitialMainTabState {
+        NOT_STARTED,
+        SCHEDULED,
+        READY,
+    }
+
+    private var initialMainTabState = InitialMainTabState.NOT_STARTED
+
+    private var isPlayerStartupRequested = false
+    private var isPlayerStateObservationStarted = false
+    private var isMusicTrackObservationStarted = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -87,6 +94,8 @@ class MainActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedListen
         initViewModel()
         initPlayerController()
         initListeners()
+
+        scheduleInitialContentSetup()
         requestPermissions()
     }
 
@@ -171,8 +180,6 @@ class MainActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedListen
             vm.requestOpenAppSettings()
         }
 
-        initMainTabFragments()
-
         binding.bottomNavMain.setOnItemSelectedListener(this)
 
         // 현재 탭에서 열린 설정 흐름은 탭 재선택 시 닫는다.
@@ -184,8 +191,6 @@ class MainActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedListen
                 }
             }
         }
-
-        prepareFavoritesTabAfterFirstDraw()
     }
 
     // 현재 메인 탭을 숨기고 앱 설정을 설정 흐름의 첫 화면으로 표시한다.
@@ -372,26 +377,26 @@ class MainActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedListen
     override fun onResume() {
         super.onResume()
 
-        playerVm.refreshFavoriteTrackOrderForCurrentLanguage()
-        startPlayerIfAudioPermissionGranted()
+        // 첫 draw 이후 PlayerViewModel이 이미 초기화된 경우에만
+        // 언어 변경에 따른 정렬을 갱신한다.
+        if (isPlayerStateObservationStarted) {
+            playerVm.refreshFavoriteTrackOrderForCurrentLanguage()
+        }
+
+        scheduleInitialContentSetup()
+        schedulePlayerStartupIfReady()
     }
 
     private fun initViewModel() {
         with(vm) {
-            lifecycleScope.launch {
-                musicTracks.observe(this@MainActivity) { musicTracks ->
-                    playerStateHolder.replaceMusicTrackList(musicTracks)
-                }
-
-                // Title과 UI 상태를 한번에 관찰
-                currentTitle.observe(this@MainActivity) { mainTitle ->
-                    binding.tvMainTitle.text = getString(mainTitle.resId)
-                    binding.ivBack.isVisible = mainTitle.showBackButton
-                    binding.ivSortMusicTracks.isVisible = mainTitle.showMusicTrackSortButton
-                    binding.ivSortMusicTracks.isEnabled = mainTitle.showMusicTrackSortButton
-                    binding.ivAppSettings.isVisible = mainTitle.showAppSettingsButton
-                    binding.ivAppSettings.isEnabled = mainTitle.showAppSettingsButton
-                }
+            // Title과 UI 상태를 한번에 관찰
+            currentTitle.observe(this@MainActivity) { mainTitle ->
+                binding.tvMainTitle.text = getString(mainTitle.resId)
+                binding.ivBack.isVisible = mainTitle.showBackButton
+                binding.ivSortMusicTracks.isVisible = mainTitle.showMusicTrackSortButton
+                binding.ivSortMusicTracks.isEnabled = mainTitle.showMusicTrackSortButton
+                binding.ivAppSettings.isVisible = mainTitle.showAppSettingsButton
+                binding.ivAppSettings.isEnabled = mainTitle.showAppSettingsButton
             }
 
             navigationEvent.observe(this@MainActivity) { event ->
@@ -412,15 +417,6 @@ class MainActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedListen
                     null -> Unit
                 }
             }
-        }
-
-        lifecycleScope.launch {
-            playerVm.motionState
-                .map { it == PlayerMotionManager.State.EXPANDED }
-                .distinctUntilChanged()
-                .collect { expanded ->
-                    setPlayerExpandedMode(expanded)
-                }
         }
     }
 
@@ -573,46 +569,74 @@ class MainActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedListen
             }
     }
 
-    // 첫 화면 렌더링 이후 즐겨찾기 탭을 미리 준비한다.
-    private fun prepareFavoritesTabAfterFirstDraw() {
+    // 첫 프레임을 우선 표시한 뒤 메인 탭과 데이터 관찰을 초기화한다.
+    private fun scheduleInitialContentSetup() {
+        if (initialMainTabState != InitialMainTabState.NOT_STARTED) return
+
+        initialMainTabState = InitialMainTabState.SCHEDULED
+
         binding.root.doOnPreDraw {
             binding.root.post {
-                prepareFavoritesTabFragment()
+                // 상태 저장 이후의 Fragment 커밋을 피한다.
+                val canCommitFragment =
+                    !isFinishing &&
+                            !isDestroyed &&
+                            lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED) &&
+                            !supportFragmentManager.isDestroyed &&
+                            !supportFragmentManager.isStateSaved
+
+                if (!canCommitFragment) {
+                    // onResume에서 초기화를 다시 예약할 수 있게 한다.
+                    initialMainTabState = InitialMainTabState.NOT_STARTED
+                    return@post
+                }
+
+                initMainTabFragments()
+                startObservingMusicTracksForPlayer()
+
+                // 추가된 음악 프래그먼트가 최소 한 번 그려진 다음 플레이어를 시작한다.
+                binding.fcvMain.doOnPreDraw {
+                    initialMainTabState = InitialMainTabState.READY
+
+                    binding.fcvMain.post {
+                        schedulePlayerStartupIfReady()
+                    }
+                }
             }
         }
     }
 
-    // 즐겨찾기 탭 프래그먼트를 숨긴 상태로 미리 추가한다.
-    private fun prepareFavoritesTabFragment() {
-        if (isFinishing || isDestroyed) {
+    // 첫 프레임 이후 Room 관찰을 시작해 시작 구간의 DB 초기화를 미룬다.
+    private fun startObservingMusicTracksForPlayer() {
+        if (isMusicTrackObservationStarted) {
             return
         }
 
-        // 화면 상태가 이미 저장된 이후에는 Fragment 트랜잭션을 실행하지 않는다.
-        if (supportFragmentManager.isStateSaved) {
+        isMusicTrackObservationStarted = true
+
+        musicTracksVm.musicTrackList.observe(this) { musicTracks ->
+            playerStateHolder.replaceMusicTrackList(musicTracks)
+        }
+    }
+
+    // 플레이어 시작 시점에 ViewModel과 상태 관찰을 한 번만 초기화한다.
+    private fun initPlayerVmObservers() {
+        if (isPlayerStateObservationStarted) {
             return
         }
 
-        // 화면 회전 복원이나 이전 초기화로 이미 존재하면 재생성하지 않는다.
-        if (supportFragmentManager.findFragmentByTag(TAG_FAVORITES) != null) {
-            return
+        isPlayerStateObservationStarted = true
+
+        playerVm.refreshFavoriteTrackOrderForCurrentLanguage()
+
+        lifecycleScope.launch {
+            playerVm.motionState
+                .map { it == PlayerMotionManager.State.EXPANDED }
+                .distinctUntilChanged()
+                .collect { expanded ->
+                    setPlayerExpandedMode(expanded)
+                }
         }
-
-        val favoriteMusicTracksFragment = FavoriteMusicTracksFragment.newInstance()
-
-        supportFragmentManager.beginTransaction()
-            .setReorderingAllowed(true)
-            .add(
-                binding.fcvMain.id,
-                favoriteMusicTracksFragment,
-                TAG_FAVORITES
-            )
-            .hide(favoriteMusicTracksFragment)
-            .setMaxLifecycle(
-                favoriteMusicTracksFragment,
-                Lifecycle.State.STARTED
-            )
-            .commitNow()
     }
 
     private fun startMusicServiceIfNotificationAllowed() {
@@ -705,7 +729,7 @@ class MainActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedListen
             }
         }
         if (needs.isEmpty()) {
-            startPlayerIfAudioPermissionGranted()
+            schedulePlayerStartupIfReady()
         } else {
             permissionLauncher.launch(needs.toTypedArray())
         }
@@ -729,7 +753,7 @@ class MainActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedListen
         }
 
         // 오디오 권한 허용됨 -> 핵심 기능 시작
-        startPlayerIfAudioPermissionGranted()
+        schedulePlayerStartupIfReady()
 
         // 알림 권한 선택적 처리
         if (!notifGranted) {
@@ -742,12 +766,62 @@ class MainActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedListen
         }
     }
 
-    private fun startPlayerIfAudioPermissionGranted() {
-        if (!hasAudioPermission()) return
+    private fun schedulePlayerStartupIfReady() {
+        if (
+            !hasAudioPermission() ||
+            initialMainTabState != InitialMainTabState.READY ||
+            isPlayerStartupRequested
+        ) {
+            return
+        }
 
-        playerController.startPlayer(
-            lastPlaybackStore.loadLastPlayedId(PlaybackContentType.MUSIC).orEmpty()
+        isPlayerStartupRequested = true
+
+        val startAction = Runnable {
+            tryStartPlayerNow()
+        }
+
+        if (binding.root.isLaidOut) {
+            // 첫 draw가 이미 끝난 재진입 상황
+            binding.root.post(startAction)
+        } else {
+            // 최초 실행에서는 첫 draw 이후 실행
+            binding.root.doOnPreDraw {
+                binding.root.post(startAction)
+            }
+        }
+    }
+
+    // onSaveInstanceState 이후의 Fragment 트랜잭션을 막기 위해 RESUMED 상태에서만 시작한다.
+    private fun tryStartPlayerNow() {
+        val canStartPlayer =
+            !isFinishing &&
+                    !isDestroyed &&
+                    hasAudioPermission() &&
+                    lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED) &&
+                    !supportFragmentManager.isDestroyed &&
+                    !supportFragmentManager.isStateSaved
+
+        if (!canStartPlayer) {
+            // 다음 onResume에서 다시 예약할 수 있게 한다.
+            isPlayerStartupRequested = false
+            return
+        }
+
+        initPlayerVmObservers()
+
+        val playerStartAccepted = playerController.startPlayer(
+            lastPlaybackStore
+                .loadLastPlayedId(PlaybackContentType.MUSIC)
+                .orEmpty()
         )
+
+        if (!playerStartAccepted) {
+            // PlayerController의 최종 가드에서 거절된 경우에도 재시도 허용
+            isPlayerStartupRequested = false
+            return
+        }
+
         startMusicServiceIfNotificationAllowed()
     }
 

@@ -88,7 +88,7 @@ class MusicTracksViewModel @Inject constructor(
 
     private val allMusicTracksObserver = Observer<List<MusicTrackEntity>> { musicTracks ->
         if (musicTracks.isNotEmpty()) {
-            updateMusicTrackListUiState(musicTracks)
+            updateMusicTrackListUiStateIfNeeded(musicTracks)
         }
     }
 
@@ -96,6 +96,24 @@ class MusicTracksViewModel @Inject constructor(
         // Observer 는 항상 활성 상태로 간주되므로 항상 수정 관련 알림을 받는다.
         musicTrackList.observeForever(allMusicTracksObserver)
         observeSearchQuery()
+    }
+
+    // Room과 MediaStore가 같은 목록을 연속 전달해도 UI 상태는 한 번만 갱신한다.
+    private fun updateMusicTrackListUiStateIfNeeded(
+        trackList: List<MusicTrackEntity>,
+    ) {
+        val isTrackListUiStateUpToDate =
+            (
+                _uiState.value is MusicTrackListUiState.Content ||
+                    _uiState.value is MusicTrackListUiState.Empty
+            ) &&
+                trackList == currentMusicTracks
+
+        if (isTrackListUiStateUpToDate) {
+            return
+        }
+
+        updateMusicTrackListUiState(trackList)
     }
 
     // MediaStore에서 최신 음악 목록을 조회하고, UI 갱신 후 Room 캐시를 갱신한다.
@@ -109,7 +127,7 @@ class MusicTracksViewModel @Inject constructor(
             runCatching {
                 musicRepository.getMusicTracksFromMediaStore()
             }.onSuccess { trackList ->
-                updateMusicTrackListUiState(trackList)
+                updateMusicTrackListUiStateIfNeeded(trackList)
 
                 // 사용자에게 먼저 목록을 보여준 뒤 캐시를 저장한다.
                 musicRepository.replaceCachedMusicTracks(trackList)
