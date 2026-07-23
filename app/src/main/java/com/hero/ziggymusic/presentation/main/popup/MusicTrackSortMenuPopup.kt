@@ -17,7 +17,7 @@ class MusicTrackSortMenuPopup(
     private val anchorView: View,
     private val selectedSortOrder: MusicTrackSortOrder,
     @get:StringRes
-    private val dateAddedLabelResId: Int = R.string.sort_added_to_music_tracks_date,
+    private val dateAddedLabelResId: Int = R.string.sort_added_date,
     private val onSortOrderSelected: (MusicTrackSortOrder) -> Unit,
 ) {
     fun show() {
