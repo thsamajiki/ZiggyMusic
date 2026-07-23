@@ -40,6 +40,19 @@ extensions.configure<ApplicationExtension> {
             isDebuggable = false
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
+        // release와 동일한 최적화 조건으로 로컬 성능을 측정한다.
+        create("benchmark") {
+            initWith(getByName("release"))
+
+            // 로컬 설치용. 실제 release 서명키는 사용하지 않음
+            signingConfig = signingConfigs.getByName("debug")
+
+            // debug 앱과 동시에 설치하려면 사용
+            applicationIdSuffix = ".benchmark"
+            versionNameSuffix = "-benchmark"
+
+            matchingFallbacks += listOf("release")
+        }
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
