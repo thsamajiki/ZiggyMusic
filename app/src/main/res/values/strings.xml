@@ -33,11 +33,10 @@
     <string name="music_track_sort">음원 정렬</string>
     <string name="sort_title">제목</string>
     <string name="sort_artist">아티스트</string>
-    <string name="sort_added_to_music_tracks_date">음악 목록에 추가된 날짜</string>
+    <string name="sort_added_date">추가된 날짜</string>
     <string name="sort_ascending">오름차순</string>
     <string name="sort_descending">내림차순</string>
     <string name="sort_item_selected_description">%1$s, %2$s, 선택됨</string>
-    <string name="sort_added_to_favorite_music_tracks_date">즐겨찾기에 추가한 날짜</string>
 
     <!-- App settings -->
     <string name="settings_section_sound">사운드</string>
