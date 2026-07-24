@@ -1,17 +1,13 @@
-import com.android.build.api.dsl.ApplicationExtension
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-
 plugins {
     alias(libs.plugins.android.application)
-    alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.parcelize)
     alias(libs.plugins.hilt.android)
-    alias(libs.plugins.kotlin.kapt)
+    alias(libs.plugins.legacy.kapt)
     alias(libs.plugins.devtools.ksp)
     alias(libs.plugins.aboutlibraries)
 }
 
-extensions.configure<ApplicationExtension> {
+android {
     namespace = "com.hero.ziggymusic"
     compileSdk = 36
 
@@ -23,8 +19,6 @@ extensions.configure<ApplicationExtension> {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        vectorDrawables.useSupportLibrary = true
-
     }
 
     buildTypes {
@@ -64,12 +58,6 @@ extensions.configure<ApplicationExtension> {
     }
 }
 
-kotlin {
-    compilerOptions {
-        jvmTarget.set(JvmTarget.JVM_17)
-    }
-}
-
 dependencies {
     implementation(libs.androidx.activity)
     implementation(libs.androidx.fragment)
@@ -101,7 +89,6 @@ dependencies {
 
     // Room
     implementation(libs.room.runtime)
-    implementation(libs.room.ktx)
     implementation(libs.room.paging)
     ksp(libs.room.compiler)
     testImplementation(libs.room.testing)
@@ -109,8 +96,4 @@ dependencies {
     // Media3
     implementation(libs.bundles.media3)
 
-}
-
-kapt {
-    correctErrorTypes = true
 }
