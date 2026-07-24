@@ -33,7 +33,6 @@ aboutLibraries = "15.0.3"
 [plugins]
 # Android
 android-application = { id = "com.android.application", version.ref = "comAndroid" }
-android-library = { id = "com.android.library", version.ref = "comAndroid" }
 legacy-kapt = { id = "com.android.legacy-kapt", version.ref = "comAndroid" }
 
 # Kotlin
