@@ -1,51 +1,48 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="colorPrimary">#6700FF</color>
-    <color name="colorPrimary30">#EBDDFF</color>
-    <color name="colorPrimaryRed">#FD4B15</color>
-    <color name="colorPrimaryRed30">#D89A86</color>
-    <color name="colorPrimaryRed60">#FFE4DB</color>
-    <color name="colorPrimaryGreen">#2E9700</color>
-    <color name="colorPrimaryGreen30">#AAEA8F</color>
-    <color name="colorPrimaryYellow">#FFAA00</color>
-    <color name="colorPrimaryYellow30">#F1EFC3</color>
-    <color name="colorPrimaryDark">#008FB3</color>
-    <color name="colorAccent">#3F51B5</color>
-    <color name="cyan">#0AD6EC</color>
+    <!-- Reference colors. Avoid using these directly for theme-aware UI. -->
     <color name="white">#FFFFFFFF</color>
     <color name="white_75">#BFFFFFFF</color>
-    <color name="white_70">#B3FFFFFF</color>
     <color name="black">#000000</color>
-    <color name="dark_black">#201F1F</color>
-    <color name="main_dark_gradient_start">#050607</color>
-    <color name="main_dark_gradient_center">#101214</color>
-    <color name="main_dark_gradient_end">#1A1B1E</color>
+
+    <!-- Material color roles. -->
+    <color name="primary">#0AD6EC</color>
+    <color name="on_primary">@color/black</color>
+    <color name="secondary">@color/primary</color>
+    <color name="on_secondary">@color/black</color>
+
+    <color name="surface">#201F1F</color>
+    <color name="on_surface">@color/white</color>
+    <color name="on_surface_variant">#999999</color>
+    <color name="surface_container_high">#F20F1012</color>
+
+    <!-- Legacy Material 2 role. Remove after the Material 3 theme migration. -->
+    <color name="primary_dark">#008FB3</color>
+
+    <!-- Shared app surfaces. -->
+    <color name="main_background_gradient_start">#050607</color>
+    <color name="main_background_gradient_center">#101214</color>
+    <color name="main_background_gradient_end">#1A1B1E</color>
+    <color name="settings_background_gradient_start">#030405</color>
+    <color name="settings_background_gradient_center">#0D1012</color>
+    <color name="settings_background_gradient_end">#202124</color>
+    <color name="divider">#1FFFFFFF</color>
+
+    <!-- Component colors: music tracks and player. -->
+    <color name="music_track_item_ripple">#330AD6EC</color>
+    <color name="music_track_icon_accent">@color/primary_dark</color>
     <color name="player_collapsed_artist_text">@color/white_75</color>
-    <color name="setting_dark_gradient_start">#030405</color>
-    <color name="setting_dark_gradient_center">#0D1012</color>
-    <color name="setting_dark_gradient_end">#202124</color>
-    <color name="setting_divider">#1FFFFFFF</color>
+    <color name="player_collapsed_background">#E6101214</color>
+    <color name="bottom_nav_background">#CC101214</color>
+    <color name="content_muted">#535353</color>
 
-    <!-- Audio effect bottom sheet -->
-    <color name="audio_effect_bottom_sheet_background">#F20F1012</color>
-    <color name="audio_effect_bottom_sheet_stroke">#33FFFFFF</color>
-    <color name="audio_effect_bottom_sheet_preset_button_stroke">#66FFFFFF</color>
+    <!-- Component colors: audio effects. -->
+    <color name="audio_effect_control_active">#00FFEE</color>
+    <color name="audio_effect_sheet_outline">#33FFFFFF</color>
+    <color name="audio_effect_preset_outline">#66FFFFFF</color>
 
-
-    <color name="bottom_nav_scrim">#CC101214</color>
-    <color name="player_collapsed_scrim">#E6101214</color>
-    <color name="music_option_menu_popup_background">#F20F1012</color>
-    <color name="music_option_menu_popup_divider">#1FFFFFFF</color>
-    <color name="dark_gray">#535353</color>
-    <color name="gray_333">#333333</color>
-    <color name="background1">#475263</color>
-    <color name="background2">#545F70</color>
-    <color name="normal_gray">#999999</color>
-    <color name="light_gray">#ededed</color>
-    <color name="transparent">#00000000</color>
-    <color name="purple_200">#FFBB86FC</color>
-    <color name="purple_500">#FF6200EE</color>
-    <color name="purple_700">#FF3700B3</color>
-    <color name="teal_200">#FF03DAC5</color>
-    <color name="teal_700">#FF018786</color>
+    <!-- Temporary aliases retained while call sites migrate. -->
+    <color name="surface_dark">@color/surface</color>
+    <color name="surface_floating">@color/surface_container_high</color>
+    <color name="content_secondary">@color/on_surface_variant</color>
 </resources>
