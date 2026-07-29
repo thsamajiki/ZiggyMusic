@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:state_checked="true" android:color="@color/cyan" />
-    <item android:color="@color/audio_effect_bottom_sheet_preset_button_stroke" />
+    <item android:color="@color/primary" android:state_checked="true" />
+
+    <item android:color="@color/audio_effect_preset_outline" />
 </selector>
