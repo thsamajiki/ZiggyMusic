@@ -19,9 +19,6 @@ object AudioEffectManager {
     var reverb: PresetReverb? = null
         private set
 
-    var mainColor: Int = "#00ffee".toColorInt()
-        private set
-
     /**
      * 음향 효과 설정을 초기화함.
      *
