@@ -27,67 +27,67 @@
         <item name="android:fontFeatureSettings">tnum</item>
     </style>
 
-    <style name="TextAppearance.ZiggyMusic.White.Title.Bold" parent="TextAppearance.ZiggyMusic.Title">
+    <style name="TextAppearance.ZiggyMusic.OnSurface.Title.Bold" parent="TextAppearance.ZiggyMusic.Title">
         <item name="android:fontFamily">@font/pretendard_bold</item>
         <item name="fontFamily">@font/pretendard_bold</item>
-        <item name="android:textColor">@color/white</item>
+        <item name="android:textColor">?attr/colorOnSurface</item>
     </style>
 
-    <style name="TextAppearance.ZiggyMusic.White.Title.SemiBold" parent="TextAppearance.ZiggyMusic.Title">
+    <style name="TextAppearance.ZiggyMusic.OnSurface.Title.SemiBold" parent="TextAppearance.ZiggyMusic.Title">
         <item name="android:fontFamily">@font/pretendard_semibold</item>
         <item name="fontFamily">@font/pretendard_semibold</item>
-        <item name="android:textColor">@color/white</item>
+        <item name="android:textColor">?attr/colorOnSurface</item>
     </style>
 
-    <style name="TextAppearance.ZiggyMusic.White.Title.Medium" parent="TextAppearance.ZiggyMusic.Title">
+    <style name="TextAppearance.ZiggyMusic.OnSurface.Title.Medium" parent="TextAppearance.ZiggyMusic.Title">
         <item name="android:fontFamily">@font/pretendard_medium</item>
         <item name="fontFamily">@font/pretendard_medium</item>
-        <item name="android:textColor">@color/white</item>
+        <item name="android:textColor">?attr/colorOnSurface</item>
     </style>
 
-    <style name="TextAppearance.ZiggyMusic.White.Title" parent="TextAppearance.ZiggyMusic.Title">
-        <item name="android:textColor">@color/white</item>
+    <style name="TextAppearance.ZiggyMusic.OnSurface.Title" parent="TextAppearance.ZiggyMusic.Title">
+        <item name="android:textColor">?attr/colorOnSurface</item>
     </style>
 
-    <style name="TextAppearance.ZiggyMusic.White.Body" parent="TextAppearance.ZiggyMusic.Body">
-        <item name="android:textColor">@color/white</item>
+    <style name="TextAppearance.ZiggyMusic.OnSurface.Body" parent="TextAppearance.ZiggyMusic.Body">
+        <item name="android:textColor">?attr/colorOnSurface</item>
     </style>
 
-    <style name="TextAppearance.ZiggyMusic.White.Body.SemiBold" parent="TextAppearance.ZiggyMusic.White.Body">
+    <style name="TextAppearance.ZiggyMusic.OnSurface.Body.SemiBold" parent="TextAppearance.ZiggyMusic.OnSurface.Body">
         <item name="android:fontFamily">@font/pretendard_semibold</item>
         <item name="fontFamily">@font/pretendard_semibold</item>
     </style>
 
-    <style name="TextAppearance.ZiggyMusic.White.Body.Medium" parent="TextAppearance.ZiggyMusic.White.Body">
+    <style name="TextAppearance.ZiggyMusic.OnSurface.Body.Medium" parent="TextAppearance.ZiggyMusic.OnSurface.Body">
         <item name="android:fontFamily">@font/pretendard_medium</item>
         <item name="fontFamily">@font/pretendard_medium</item>
     </style>
 
-    <style name="TextAppearance.ZiggyMusic.White.Caption" parent="TextAppearance.ZiggyMusic.Caption">
-        <item name="android:textColor">@color/white</item>
+    <style name="TextAppearance.ZiggyMusic.OnSurface.Caption" parent="TextAppearance.ZiggyMusic.Caption">
+        <item name="android:textColor">?attr/colorOnSurface</item>
     </style>
 
-    <style name="TextAppearance.ZiggyMusic.White.Caption.SemiBold" parent="TextAppearance.ZiggyMusic.White.Caption">
+    <style name="TextAppearance.ZiggyMusic.OnSurface.Caption.SemiBold" parent="TextAppearance.ZiggyMusic.OnSurface.Caption">
         <item name="android:fontFamily">@font/pretendard_semibold</item>
         <item name="fontFamily">@font/pretendard_semibold</item>
     </style>
 
-    <style name="TextAppearance.ZiggyMusic.Player.Collapsed.Title" parent="TextAppearance.ZiggyMusic.White.Body.Medium" />
+    <style name="TextAppearance.ZiggyMusic.Player.Collapsed.Title" parent="TextAppearance.ZiggyMusic.OnSurface.Body.Medium" />
 
     <style name="TextAppearance.ZiggyMusic.Player.Collapsed.Artist" parent="TextAppearance.ZiggyMusic.Body">
         <item name="android:textColor">@color/player_collapsed_artist_text</item>
     </style>
 
-    <style name="TextAppearance.ZiggyMusic.Player.Album" parent="TextAppearance.ZiggyMusic.White.Caption">
+    <style name="TextAppearance.ZiggyMusic.Player.Album" parent="TextAppearance.ZiggyMusic.OnSurface.Caption">
         <item name="android:textSize">@dimen/small_text_size</item>
-        <item name="android:textColor">@color/normal_gray</item>
+        <item name="android:textColor">?attr/colorOnSurfaceVariant</item>
     </style>
 
-    <style name="TextAppearance.ZiggyMusic.White.Sub" parent="TextAppearance.ZiggyMusic.Sub">
-        <item name="android:textColor">@color/white</item>
+    <style name="TextAppearance.ZiggyMusic.OnSurface.Sub" parent="TextAppearance.ZiggyMusic.Sub">
+        <item name="android:textColor">?attr/colorOnSurface</item>
     </style>
 
-    <style name="TextAppearance.ZiggyMusic.PlayerTime" parent="TextAppearance.ZiggyMusic.White.Sub">
+    <style name="TextAppearance.ZiggyMusic.PlayerTime" parent="TextAppearance.ZiggyMusic.OnSurface.Sub">
         <item name="android:fontFamily">@font/pretendard_light</item>
         <item name="fontFamily">@font/pretendard_light</item>
 
@@ -95,17 +95,17 @@
         <item name="android:fontFeatureSettings">tnum</item>
     </style>
 
-    <style name="TextAppearance.ZiggyMusic.NormalGray.Sub" parent="TextAppearance.ZiggyMusic.Sub">
-        <item name="android:textColor">@color/normal_gray</item>
+    <style name="TextAppearance.ZiggyMusic.OnSurfaceVariant.Sub" parent="TextAppearance.ZiggyMusic.Sub">
+        <item name="android:textColor">?attr/colorOnSurfaceVariant</item>
     </style>
 
     <!-- App Settings -->
 
-    <style name="TextAppearance.ZiggyMusic.AppSettings.SectionTitle" parent="TextAppearance.ZiggyMusic.White.Title.SemiBold">
+    <style name="TextAppearance.ZiggyMusic.AppSettings.SectionTitle" parent="TextAppearance.ZiggyMusic.OnSurface.Title.SemiBold">
         <item name="android:textSize">@dimen/app_settings_section_title_text_size</item>
     </style>
 
-    <style name="TextAppearance.ZiggyMusic.AppSettings.RowTitle" parent="TextAppearance.ZiggyMusic.White.Body.Medium">
+    <style name="TextAppearance.ZiggyMusic.AppSettings.RowTitle" parent="TextAppearance.ZiggyMusic.OnSurface.Body.Medium">
         <item name="android:textSize">@dimen/app_settings_row_title_text_size</item>
     </style>
 
@@ -113,13 +113,13 @@
         <item name="android:textSize">@dimen/app_settings_description_text_size</item>
     </style>
 
-    <style name="TextAppearance.ZiggyMusic.Setting.Spinner" parent="TextAppearance.ZiggyMusic.White.Caption">
+    <style name="TextAppearance.ZiggyMusic.Setting.Spinner" parent="TextAppearance.ZiggyMusic.OnSurface.Caption">
         <item name="android:textSize">@dimen/setting_spinner_text_size</item>
     </style>
 
     <style name="TextAppearance.ZiggyMusic.Setting.Description" parent="TextAppearance.ZiggyMusic.Sub">
         <item name="android:textSize">@dimen/setting_description_text_size</item>
-        <item name="android:textColor">@color/normal_gray</item>
+        <item name="android:textColor">?attr/colorOnSurfaceVariant</item>
     </style>
 
     <style name="TextAppearance.ZiggyMusic.Spatial.DeviceTitle" parent="TextAppearance.ZiggyMusic.Base">
@@ -146,16 +146,16 @@
 
     <!-- Audio Effect Bottom Sheet -->
 
-    <style name="TextAppearance.ZiggyMusic.AudioEffect.Title" parent="TextAppearance.ZiggyMusic.White.Title.Bold">
+    <style name="TextAppearance.ZiggyMusic.AudioEffect.Title" parent="TextAppearance.ZiggyMusic.OnSurface.Title.Bold">
         <item name="android:textSize">@dimen/audio_effect_bottom_sheet_title_text_size</item>
     </style>
 
-    <style name="TextAppearance.ZiggyMusic.AudioEffect.Action" parent="TextAppearance.ZiggyMusic.White.Body.SemiBold">
-        <item name="android:textColor">@color/cyan</item>
+    <style name="TextAppearance.ZiggyMusic.AudioEffect.Action" parent="TextAppearance.ZiggyMusic.OnSurface.Body.SemiBold">
+        <item name="android:textColor">?attr/colorPrimary</item>
         <item name="android:textSize">@dimen/audio_effect_bottom_sheet_action_text_size</item>
     </style>
 
-    <style name="TextAppearance.ZiggyMusic.AudioEffect.SectionTitle" parent="TextAppearance.ZiggyMusic.White.Body.SemiBold">
+    <style name="TextAppearance.ZiggyMusic.AudioEffect.SectionTitle" parent="TextAppearance.ZiggyMusic.OnSurface.Body.SemiBold">
         <item name="android:textSize">@dimen/audio_effect_bottom_sheet_section_text_size</item>
     </style>
 
@@ -163,32 +163,32 @@
         <item name="android:textSize">@dimen/audio_effect_bottom_sheet_description_text_size</item>
     </style>
 
-    <style name="TextAppearance.ZiggyMusic.AudioEffect.ControlLabel" parent="TextAppearance.ZiggyMusic.White.Body.SemiBold">
+    <style name="TextAppearance.ZiggyMusic.AudioEffect.ControlLabel" parent="TextAppearance.ZiggyMusic.OnSurface.Body.SemiBold">
         <item name="android:textSize">@dimen/audio_effect_bottom_sheet_control_label_text_size</item>
     </style>
 
-    <style name="TextAppearance.ZiggyMusic.AudioEffect.Preset" parent="TextAppearance.ZiggyMusic.White.Body.SemiBold">
+    <style name="TextAppearance.ZiggyMusic.AudioEffect.Preset" parent="TextAppearance.ZiggyMusic.OnSurface.Body.SemiBold">
         <item name="android:textSize">@dimen/audio_effect_bottom_sheet_preset_text_size</item>
     </style>
 
     <style name="TextAppearance.ZiggyMusic.Notification.Title.Small" parent="TextAppearance.Compat.Notification.Title">
         <item name="android:fontFamily">@font/pretendard_semibold</item>
         <item name="fontFamily">@font/pretendard_semibold</item>
-        <item name="android:textColor">@color/white</item>
+        <item name="android:textColor">?attr/colorOnSurface</item>
         <item name="android:textSize">@dimen/small_text_size</item>
     </style>
 
     <style name="TextAppearance.ZiggyMusic.Notification.Title.Body" parent="TextAppearance.Compat.Notification.Title">
         <item name="android:fontFamily">@font/pretendard_semibold</item>
         <item name="fontFamily">@font/pretendard_semibold</item>
-        <item name="android:textColor">@color/white</item>
+        <item name="android:textColor">?attr/colorOnSurface</item>
         <item name="android:textSize">@dimen/body_text_size</item>
     </style>
 
     <style name="TextAppearance.ZiggyMusic.Notification.Body.Small" parent="TextAppearance.Compat.Notification">
         <item name="android:fontFamily">@font/pretendard_regular</item>
         <item name="fontFamily">@font/pretendard_regular</item>
-        <item name="android:textColor">@color/white</item>
+        <item name="android:textColor">?attr/colorOnSurface</item>
         <item name="android:textSize">@dimen/small_text_size</item>
     </style>
 
@@ -203,7 +203,7 @@
     <style name="Text.ZiggyMusic.Caption" parent="TextAppearance.ZiggyMusic.Caption" />
     <style name="Text.ZiggyMusic.Numeric" parent="TextAppearance.ZiggyMusic.Numeric" />
 
-    <style name="TabTextAppearance" parent="TextAppearance.ZiggyMusic.White.Title.Bold" />
+    <style name="TabTextAppearance" parent="TextAppearance.ZiggyMusic.OnSurface.Title.Bold" />
 
     <style name="PlayerBottomSheet" parent="ThemeOverlay.MaterialComponents.BottomSheetDialog">
         <item name="behavior_hideable">true</item>
@@ -217,12 +217,26 @@
         <item name="cornerSize">@dimen/album_art_corner_radius</item>
     </style>
 
-    <style name="Custom_Spinner_Item_Style" parent="Widget.AppCompat.DropDownItem.Spinner">
+    <style name="Widget.ZiggyMusic.CustomSpinnerItemStyle" parent="Widget.AppCompat.DropDownItem.Spinner">
         <item name="android:fontFamily">@font/pretendard_regular</item>
         <item name="fontFamily">@font/pretendard_regular</item>
-        <item name="android:textColor">@color/white</item>
+        <item name="android:textColor">?attr/colorOnSurface</item>
         <item name="android:textSize">@dimen/body_text_size</item>
         <item name="android:paddingStart">@dimen/space_xs</item>
         <item name="android:paddingEnd">@dimen/space_xs</item>
+    </style>
+
+    <style name="Widget.ZiggyMusic.SpinnerDivideStyle" parent="android:style/Widget.ListView.DropDown">
+        <item name="android:divider">@color/divider</item>
+        <item name="android:dividerHeight">1dp</item>
+    </style>
+
+    <style name="Widget.ZiggyMusic.Spinner" parent="Widget.AppCompat.Spinner">
+        <item name="android:overlapAnchor">false</item>
+        <item name="overlapAnchor">false</item>
+        <item name="android:spinnerMode">dropdown</item>
+        <item name="android:dropDownWidth">wrap_content</item>
+        <item name="android:background">@drawable/bg_spinner</item>
+        <item name="android:dropDownListViewStyle">@style/Widget.ZiggyMusic.SpinnerDivideStyle</item>
     </style>
 </resources>
