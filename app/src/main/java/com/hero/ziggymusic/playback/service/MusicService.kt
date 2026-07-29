@@ -284,7 +284,7 @@ class MusicService : MediaLibraryService() {
                 if (isPlaying) pauseIntent else playIntent
             )
             .addAction(R.drawable.ic_next_button, "Next", nextIntent)
-            .setColor(ContextCompat.getColor(this, R.color.dark_black))
+            .setColor(ContextCompat.getColor(this, R.color.surface_dark))
             .setColorized(true)
             .setContentIntent(notificationTouchIntent)
             .setOngoing(true)
