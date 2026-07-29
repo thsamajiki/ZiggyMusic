@@ -5,12 +5,12 @@
     android:id="@+id/mcvMusicTrack"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    app:cardBackgroundColor="@color/transparent"
+    app:cardBackgroundColor="@android:color/transparent"
     app:cardCornerRadius="@dimen/album_art_corner_radius"
     app:cardElevation="0dp"
     app:cardUseCompatPadding="false"
     app:contentPadding="@dimen/music_list_item_card_content_padding"
-    app:rippleColor="@color/colorPrimary30">
+    app:rippleColor="@color/music_track_item_ripple">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
@@ -24,7 +24,7 @@
             android:scaleType="fitCenter"
             android:src="@drawable/ic_favorite_star_filled"
             android:visibility="invisible"
-            app:tint="@color/colorPrimaryDark"
+            app:tint="@color/music_track_icon_accent"
             app:layout_constraintBottom_toBottomOf="@id/ivAlbumArt"
             app:layout_constraintEnd_toStartOf="@id/ivAlbumArt"
             app:layout_constraintTop_toTopOf="@id/ivAlbumArt"
@@ -51,7 +51,7 @@
             android:layout_marginTop="@dimen/music_list_item_top_inset"
             android:ellipsize="end"
             android:maxLines="1"
-            android:textAppearance="@style/TextAppearance.ZiggyMusic.White.Body"
+            android:textAppearance="@style/TextAppearance.ZiggyMusic.OnSurface.Body"
             app:layout_constraintEnd_toStartOf="@id/ivMusicTrackOptionMenu"
             app:layout_constraintStart_toEndOf="@id/ivAlbumArt"
             app:layout_constraintTop_toTopOf="parent"
@@ -78,7 +78,7 @@
             android:layout_marginTop="@dimen/music_list_item_title_artist_spacing"
             android:ellipsize="end"
             android:maxLines="1"
-            android:textAppearance="@style/TextAppearance.ZiggyMusic.NormalGray.Sub"
+            android:textAppearance="@style/TextAppearance.ZiggyMusic.OnSurfaceVariant.Sub"
             app:layout_constraintEnd_toStartOf="@id/tvDuration"
             app:layout_constraintStart_toEndOf="@id/ivAlbumArt"
             app:layout_constraintTop_toBottomOf="@id/tvTitle"

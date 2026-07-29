@@ -324,12 +324,12 @@ class PlayerFragment : Fragment() {
                         } else {
                             // 앨범 아트가 없으면 기본 어두운 배경으로 되돌림
                             // 기존 그라데이션도 함께 제거
-                            albumGradientManager?.resetToDarkBackground(binding.albumBackground)
+                            albumGradientManager?.resetToSurfaceBackground(binding.albumBackground)
                         }
                     } else {
                         // 플레이어가 접히면 root gradient 위에 반투명 surface로 표시한다.
-                        binding.motionLayout.setBackgroundResource(R.color.player_collapsed_scrim)
-                        binding.albumBackground.setBackgroundResource(R.color.dark_black)
+                        binding.motionLayout.setBackgroundResource(R.color.player_collapsed_background)
+                        binding.albumBackground.setBackgroundResource(R.color.surface_dark)
                     }
                 }
         }
@@ -719,7 +719,7 @@ class PlayerFragment : Fragment() {
 
     private fun resetVisualizerBarColor() {
         if (!isAdded || _binding == null) return
-        updateVisualizerBarColor(ContextCompat.getColor(requireContext(), R.color.dark_gray))
+        updateVisualizerBarColor(ContextCompat.getColor(requireContext(), R.color.content_muted))
     }
 
     // 플레이어의 현재 진행률을 읽어 재생바와 시간 UI를 즉시 동기화
@@ -785,7 +785,7 @@ class PlayerFragment : Fragment() {
 
             latestAlbumBitmap = null
             resetVisualizerBarColor()
-            albumGradientManager?.resetToDarkBackground(binding.albumBackground, animate = true)
+            albumGradientManager?.resetToSurfaceBackground(binding.albumBackground, animate = true)
             binding.ivAlbumArt.setImageResource(R.drawable.placeholder_album_art)
 
             return
@@ -815,12 +815,12 @@ class PlayerFragment : Fragment() {
             resetVisualizerBarColor()
 
             if (vm.motionState.value == PlayerMotionManager.State.EXPANDED) {
-                albumGradientManager?.resetToDarkBackground(
+                albumGradientManager?.resetToSurfaceBackground(
                     binding.albumBackground,
                     animate = false
                 )
             } else {
-                binding.albumBackground.setBackgroundResource(R.color.dark_black)
+                binding.albumBackground.setBackgroundResource(R.color.surface_dark)
             }
 
             return
@@ -846,12 +846,12 @@ class PlayerFragment : Fragment() {
                     resetVisualizerBarColor()
 
                     if (vm.motionState.value == PlayerMotionManager.State.EXPANDED) {
-                        albumGradientManager?.resetToDarkBackground(
+                        albumGradientManager?.resetToSurfaceBackground(
                             binding.albumBackground,
                             animate = false
                         )
                     } else {
-                        binding.albumBackground.setBackgroundResource(R.color.dark_black)
+                        binding.albumBackground.setBackgroundResource(R.color.surface_dark)
                     }
 
                     return false
@@ -874,7 +874,7 @@ class PlayerFragment : Fragment() {
                             updateVisualizerBarColor(visualizerColor)
                         }
                     } else {
-                        binding.albumBackground.setBackgroundResource(R.color.dark_black)
+                        binding.albumBackground.setBackgroundResource(R.color.surface_dark)
                     }
 
                     return false

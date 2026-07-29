@@ -181,7 +181,7 @@
             android:marqueeRepeatLimit="marquee_forever"
             android:singleLine="true"
             android:text="@string/current_song_title"
-            android:textAppearance="@style/TextAppearance.ZiggyMusic.White.Title.SemiBold"
+            android:textAppearance="@style/TextAppearance.ZiggyMusic.OnSurface.Title.SemiBold"
             motion:layout_constraintEnd_toEndOf="parent"
             motion:layout_constraintStart_toStartOf="parent"
             motion:layout_constraintTop_toBottomOf="@id/playerTopHandleContainer">
@@ -212,7 +212,7 @@
             android:gravity="center"
             android:singleLine="true"
             android:text="@string/current_song_artist"
-            android:textAppearance="@style/TextAppearance.ZiggyMusic.White.Title"
+            android:textAppearance="@style/TextAppearance.ZiggyMusic.OnSurface.Title"
             motion:layout_constraintEnd_toEndOf="parent"
             motion:layout_constraintStart_toStartOf="parent"
             motion:layout_constraintTop_toBottomOf="@id/ivAlbumArt">

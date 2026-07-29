@@ -694,7 +694,7 @@ class MainActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedListen
     }
 
     private fun initStatusBarColor() {
-        val systemBarColor = ContextCompat.getColor(this, R.color.main_dark_gradient_start)
+        val systemBarColor = ContextCompat.getColor(this, R.color.main_background_gradient_start)
         window.statusBarColor = systemBarColor
         window.navigationBarColor = systemBarColor
 
@@ -935,12 +935,12 @@ class MainActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedListen
         }
 
         // 3. 배경색 및 Insets 처리
-        val defaultSystemBarColor = ContextCompat.getColor(this, R.color.main_dark_gradient_start)
+        val defaultSystemBarColor = ContextCompat.getColor(this, R.color.main_background_gradient_start)
         window.statusBarColor = if (isExpanded) Color.TRANSPARENT else defaultSystemBarColor
         window.navigationBarColor = defaultSystemBarColor
         binding.containerPlayer.setBackgroundColor(
             if (isExpanded) {
-                ContextCompat.getColor(this, R.color.dark_black)
+                ContextCompat.getColor(this, R.color.surface_dark)
             } else {
                 Color.TRANSPARENT
             }

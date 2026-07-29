@@ -19,7 +19,7 @@ class EqualizerBandSeekBar @JvmOverloads constructor(
         private set
 
     private val tickPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        color = ContextCompat.getColor(context, com.hero.ziggymusic.R.color.dark_gray)
+        color = ContextCompat.getColor(context, com.hero.ziggymusic.R.color.content_muted)
         strokeWidth = resources.displayMetrics.density
     }
 

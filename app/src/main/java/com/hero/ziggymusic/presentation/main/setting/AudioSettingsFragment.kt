@@ -17,14 +17,12 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import com.hero.ziggymusic.R
 import com.hero.ziggymusic.databinding.FragmentAudioSettingsBinding
-import androidx.core.content.edit
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.hero.ziggymusic.data.local.preferences.AudioSettingKeys
 import com.hero.ziggymusic.playback.manager.AudioEffectManager
-import com.hero.ziggymusic.playback.manager.AudioEffectManager.mainColor
 import com.hero.ziggymusic.presentation.main.setting.model.AudioSettingsUiState
 import com.hero.ziggymusic.presentation.main.setting.viewmodel.AudioSettingsViewModel
 import com.hero.ziggymusic.presentation.main.setting.widget.EqualizerBandSeekBar
@@ -45,6 +43,12 @@ class AudioSettingsFragment : Fragment() {
     private var isReverbSpinnerReady = false
 
     private val equalizerBandSeekBarIds = mutableListOf<Int>()
+
+    private val audioEffectActiveColor: Int
+        get() = ContextCompat.getColor(
+            requireContext(),
+            R.color.audio_effect_control_active,
+        )
 
     private lateinit var prefs: SharedPreferences
 
@@ -209,8 +213,8 @@ class AudioSettingsFragment : Fragment() {
             equalizerBandSeekBar.id = equalizerBandSeekBarIds[index]
             equalizerBandSeekBar.splitTrack = true
 
-            equalizerBandSeekBar.progressDrawable.setTint(mainColor)
-            equalizerBandSeekBar.thumb.setTint(mainColor)
+            equalizerBandSeekBar.progressDrawable.setTint(audioEffectActiveColor)
+            equalizerBandSeekBar.thumb.setTint(audioEffectActiveColor)
 
             equalizerBandSeekBar.progress = prefs.getInt(
                 index.toString(),
@@ -306,9 +310,9 @@ class AudioSettingsFragment : Fragment() {
         val scaleAlpha = if (isEnabled) EQ_ENABLED_ALPHA else EQ_DISABLED_SCALE_ALPHA
         val tickAlpha = if (isEnabled) EQ_ENABLED_ALPHA else EQ_DISABLED_TICK_ALPHA
         val seekbarTint = if (isEnabled) {
-            mainColor
+            audioEffectActiveColor
         } else {
-            ContextCompat.getColor(requireContext(), R.color.dark_gray)
+            ContextCompat.getColor(requireContext(), R.color.content_muted)
         }
 
         binding.tvPreset.isEnabled = isEnabled
@@ -397,8 +401,8 @@ class AudioSettingsFragment : Fragment() {
     }
 
     private fun initBassSeekBar() {
-        binding.sbBass.progressDrawable.setTint(mainColor)
-        binding.sbBass.thumb.setTint(mainColor)
+        binding.sbBass.progressDrawable.setTint(audioEffectActiveColor)
+        binding.sbBass.thumb.setTint(audioEffectActiveColor)
 
         // BassBoost는 EQ 프리셋과 독립된 효과이므로 프리셋 상태를 바꾸지 않는다.
         binding.sbBass.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
@@ -413,8 +417,8 @@ class AudioSettingsFragment : Fragment() {
     }
 
     private fun initVirtualizerSeekbar() {
-        binding.sbVirtualizer.progressDrawable.setTint(mainColor)
-        binding.sbVirtualizer.thumb.setTint(mainColor)
+        binding.sbVirtualizer.progressDrawable.setTint(audioEffectActiveColor)
+        binding.sbVirtualizer.thumb.setTint(audioEffectActiveColor)
 
         // 3D Virtualizer는 EQ 프리셋과 독립된 효과이므로 프리셋 상태를 바꾸지 않는다.
         binding.sbVirtualizer.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {

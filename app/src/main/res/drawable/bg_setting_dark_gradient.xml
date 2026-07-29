@@ -2,7 +2,7 @@
 <shape xmlns:android="http://schemas.android.com/apk/res/android">
     <gradient
         android:angle="315"
-        android:centerColor="@color/setting_dark_gradient_center"
-        android:endColor="@color/setting_dark_gradient_end"
-        android:startColor="@color/setting_dark_gradient_start" />
+        android:centerColor="@color/settings_background_gradient_center"
+        android:endColor="@color/settings_background_gradient_end"
+        android:startColor="@color/settings_background_gradient_start" />
 </shape>

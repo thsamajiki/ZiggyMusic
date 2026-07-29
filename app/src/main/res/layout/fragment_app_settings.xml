@@ -83,10 +83,10 @@
             <View
                 android:id="@+id/dividerPlaybackSound"
                 android:layout_width="match_parent"
-                android:layout_height="@dimen/view_supporter"
+                android:layout_height="1dp"
                 android:layout_marginStart="@dimen/app_settings_content_horizontal_inset"
                 android:layout_marginEnd="@dimen/app_settings_content_horizontal_inset"
-                android:background="@color/setting_divider" />
+                android:background="@color/divider" />
 
             <TextView
                 android:id="@+id/tvTermsInfoSectionTitle"
@@ -136,10 +136,10 @@
             <View
                 android:id="@+id/dividerTermsOfService"
                 android:layout_width="match_parent"
-                android:layout_height="@dimen/view_supporter"
+                android:layout_height="1dp"
                 android:layout_marginStart="@dimen/app_settings_content_horizontal_inset"
                 android:layout_marginEnd="@dimen/app_settings_content_horizontal_inset"
-                android:background="@color/setting_divider" />
+                android:background="@color/divider" />
 
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:id="@+id/rowPrivacyPolicy"
@@ -179,10 +179,10 @@
             <View
                 android:id="@+id/dividerPrivacyPolicy"
                 android:layout_width="match_parent"
-                android:layout_height="@dimen/view_supporter"
+                android:layout_height="1dp"
                 android:layout_marginStart="@dimen/app_settings_content_horizontal_inset"
                 android:layout_marginEnd="@dimen/app_settings_content_horizontal_inset"
-                android:background="@color/setting_divider" />
+                android:background="@color/divider" />
 
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:id="@+id/rowOpenSourceLicenses"
@@ -222,10 +222,10 @@
             <View
                 android:id="@+id/dividerOpenSourceLicenses"
                 android:layout_width="match_parent"
-                android:layout_height="@dimen/view_supporter"
+                android:layout_height="1dp"
                 android:layout_marginStart="@dimen/app_settings_content_horizontal_inset"
                 android:layout_marginEnd="@dimen/app_settings_content_horizontal_inset"
-                android:background="@color/setting_divider" />
+                android:background="@color/divider" />
 
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:id="@+id/rowAppVersion"

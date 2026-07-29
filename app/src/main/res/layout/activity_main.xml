@@ -12,7 +12,7 @@
         android:id="@+id/toolbarMain"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
-        android:background="@color/transparent"
+        android:background="@android:color/transparent"
         app:contentInsetStart="0dp"
         app:layout_constraintTop_toTopOf="parent">
 
@@ -37,7 +37,7 @@
                 android:id="@+id/tvMainTitle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textAppearance="@style/TextAppearance.ZiggyMusic.White.Title.Medium"
+                android:textAppearance="@style/TextAppearance.ZiggyMusic.OnSurface.Title.Medium"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
@@ -83,14 +83,14 @@
         android:layout_height="match_parent"
         android:layout_marginTop="?attr/actionBarSize"
         android:layout_marginBottom="@dimen/player_peek_height"
-        android:background="@color/transparent" />
+        android:background="@android:color/transparent" />
 
     <androidx.fragment.app.FragmentContainerView
         android:id="@+id/containerPlayer"
         style="@style/PlayerBottomSheet"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@color/transparent"
+        android:background="@android:color/transparent"
         app:behavior_peekHeight="@dimen/player_peek_height"
         app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior" />
 
@@ -99,8 +99,8 @@
         android:layout_width="match_parent"
         android:layout_height="@dimen/bottom_nav_height"
         android:layout_gravity="bottom"
-        android:background="@color/bottom_nav_scrim"
-        app:backgroundTint="@color/bottom_nav_scrim"
+        android:background="@color/bottom_nav_background"
+        app:backgroundTint="@color/bottom_nav_background"
         app:itemIconTint="@color/bottom_nav_item_color"
         app:itemTextAppearanceActive="@style/TextAppearance.ZiggyMusic.BottomNavigation"
         app:itemTextAppearanceInactive="@style/TextAppearance.ZiggyMusic.BottomNavigation"
