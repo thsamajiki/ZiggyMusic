@@ -24,7 +24,7 @@
             android:layout_height="@dimen/music_option_menu_popup_icon_size"
             android:contentDescription="@null"
             android:src="@drawable/ic_favorite_star_outlined"
-            app:tint="@color/colorPrimaryDark" />
+            app:tint="@color/music_track_icon_accent" />
 
         <TextView
             android:layout_width="0dp"
@@ -34,7 +34,7 @@
             android:ellipsize="end"
             android:maxLines="1"
             android:text="@string/add_track_to_favorites"
-            android:textAppearance="@style/TextAppearance.ZiggyMusic.White.Caption" />
+            android:textAppearance="@style/TextAppearance.ZiggyMusic.OnSurface.Caption" />
 
     </LinearLayout>
 
@@ -44,7 +44,7 @@
         android:layout_height="1dp"
         android:layout_marginStart="@dimen/music_option_menu_popup_divider_horizontal_margin"
         android:layout_marginEnd="@dimen/music_option_menu_popup_divider_horizontal_margin"
-        android:background="@color/music_option_menu_popup_divider" />
+        android:background="@color/divider" />
 
     <LinearLayout
         android:id="@+id/layoutRemoveFromFavorites"
@@ -63,7 +63,7 @@
             android:layout_height="@dimen/music_option_menu_popup_icon_size"
             android:contentDescription="@null"
             android:src="@drawable/ic_favorite_star_undo"
-            app:tint="@color/colorPrimaryDark" />
+            app:tint="@color/music_track_icon_accent" />
 
         <TextView
             android:layout_width="0dp"
@@ -73,7 +73,7 @@
             android:ellipsize="end"
             android:maxLines="1"
             android:text="@string/remove_track_from_favorites"
-            android:textAppearance="@style/TextAppearance.ZiggyMusic.White.Caption" />
+            android:textAppearance="@style/TextAppearance.ZiggyMusic.OnSurface.Caption" />
 
     </LinearLayout>
 

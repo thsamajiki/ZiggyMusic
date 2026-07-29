@@ -38,7 +38,7 @@
             android:ellipsize="end"
             android:maxLines="1"
             android:text="@string/sort_title"
-            android:textAppearance="@style/TextAppearance.ZiggyMusic.White.Caption" />
+            android:textAppearance="@style/TextAppearance.ZiggyMusic.OnSurface.Caption" />
 
         <ImageView
             android:id="@+id/ivDirectionTitleSort"
@@ -59,7 +59,7 @@
         android:layout_height="1dp"
         android:layout_marginStart="@dimen/music_tracks_sort_menu_divider_margin"
         android:layout_marginEnd="@dimen/music_tracks_sort_menu_divider_margin"
-        android:background="@color/music_option_menu_popup_divider" />
+        android:background="@color/divider" />
 
     <!-- 아티스트 정렬 -->
     <LinearLayout
@@ -92,7 +92,7 @@
             android:ellipsize="end"
             android:maxLines="1"
             android:text="@string/sort_artist"
-            android:textAppearance="@style/TextAppearance.ZiggyMusic.White.Caption" />
+            android:textAppearance="@style/TextAppearance.ZiggyMusic.OnSurface.Caption" />
 
         <ImageView
             android:id="@+id/ivDirectionArtistSort"
@@ -113,7 +113,7 @@
         android:layout_height="1dp"
         android:layout_marginStart="@dimen/music_tracks_sort_menu_divider_margin"
         android:layout_marginEnd="@dimen/music_tracks_sort_menu_divider_margin"
-        android:background="@color/music_option_menu_popup_divider" />
+        android:background="@color/divider" />
 
     <!-- 추가된 날짜  정렬 -->
     <LinearLayout
@@ -146,7 +146,7 @@
             android:ellipsize="end"
             android:maxLines="1"
             android:text="@string/sort_added_date"
-            android:textAppearance="@style/TextAppearance.ZiggyMusic.White.Caption" />
+            android:textAppearance="@style/TextAppearance.ZiggyMusic.OnSurface.Caption" />
 
         <ImageView
             android:id="@+id/ivDirectionAddedDateSort"
