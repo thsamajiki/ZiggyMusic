@@ -56,9 +56,9 @@ class MusicTrackAlbumArtGradientManager(private val context: Context) {
         }
     }
 
-    fun resetToDarkBackground(albumBackground: View, animate: Boolean = false) {
+    fun resetToSurfaceBackground(albumBackground: View, animate: Boolean = false) {
         albumBackground.post {
-            val darkColor = ContextCompat.getColor(context, R.color.dark_black)
+            val darkColor = ContextCompat.getColor(context, R.color.surface_dark)
             val darkBackground = darkColor.toDrawable()
 
             val activity = context as? Activity
@@ -86,7 +86,7 @@ class MusicTrackAlbumArtGradientManager(private val context: Context) {
     }
 
     private fun createGradientLayer(topColor: Int, midColor: Int, bottomColor: Int): Drawable {
-        val blackBackground = ContextCompat.getColor(context, R.color.dark_black).toDrawable()
+        val baseBackground = ContextCompat.getColor(context, R.color.surface_dark).toDrawable()
         val verticalScrim = GradientDrawable(
             GradientDrawable.Orientation.TOP_BOTTOM,
             intArrayOf(topColor, midColor, bottomColor)
@@ -103,7 +103,7 @@ class MusicTrackAlbumArtGradientManager(private val context: Context) {
             gradientRadius = dpToPx(420f)
         }
 
-        return LayerDrawable(arrayOf(blackBackground, verticalScrim, vignette))
+        return LayerDrawable(arrayOf(baseBackground, verticalScrim, vignette))
     }
 
     private fun Activity.crossfadeWindowTo(nextBackground: Drawable) {
@@ -111,7 +111,7 @@ class MusicTrackAlbumArtGradientManager(private val context: Context) {
         val transition = TransitionDrawable(
             arrayOf(
                 window.decorView.background?.newDrawableInstance()
-                    ?: ContextCompat.getColor(context, R.color.dark_black).toDrawable(),
+                    ?: ContextCompat.getColor(context, R.color.surface_dark).toDrawable(),
                 finalBackground
             )
         ).apply {
@@ -142,7 +142,7 @@ class MusicTrackAlbumArtGradientManager(private val context: Context) {
         val transition = TransitionDrawable(
             arrayOf(
                 background?.newDrawableInstance()
-                    ?: ContextCompat.getColor(context, R.color.dark_black).toDrawable(),
+                    ?: ContextCompat.getColor(context, R.color.surface_dark).toDrawable(),
                 finalBackground
             )
         ).apply {
