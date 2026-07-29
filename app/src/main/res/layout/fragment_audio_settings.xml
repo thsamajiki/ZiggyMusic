@@ -28,7 +28,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginStart="@dimen/space_xxxl"
                     android:text="@string/equalizer"
-                    android:textAppearance="@style/TextAppearance.ZiggyMusic.White.Body.Medium"
+                    android:textAppearance="@style/TextAppearance.ZiggyMusic.OnSurface.Body.Medium"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />
@@ -57,14 +57,14 @@
                     android:layout_height="wrap_content"
                     android:layout_marginStart="@dimen/space_xxxl"
                     android:text="@string/preset"
-                    android:textAppearance="@style/TextAppearance.ZiggyMusic.White.Caption"
+                    android:textAppearance="@style/TextAppearance.ZiggyMusic.OnSurface.Caption"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />
 
                 <Spinner
                     android:id="@+id/spinnerPreset"
-                    style="@style/Widget.My.Spinner"
+                    style="@style/Widget.ZiggyMusic.Spinner"
                     android:layout_width="@dimen/setting_spinner_width"
                     android:layout_height="@dimen/setting_spinner_height"
                     android:layout_marginStart="@dimen/space_xl"
@@ -105,8 +105,8 @@
                         android:gravity="start"
                         android:includeFontPadding="false"
                         android:text="@string/eq_max"
-                        android:textAppearance="@style/TextAppearance.ZiggyMusic.White.Sub"
-                        android:textColor="@color/normal_gray"
+                        android:textAppearance="@style/TextAppearance.ZiggyMusic.OnSurface.Sub"
+                        android:textColor="@color/content_secondary"
                         android:textSize="@dimen/setting_eq_label_text_size"
                         app:layout_constraintBottom_toTopOf="@id/tvEqZero"
                         app:layout_constraintStart_toStartOf="parent"
@@ -121,8 +121,8 @@
                         android:gravity="start"
                         android:includeFontPadding="false"
                         android:text="@string/eq_zero"
-                        android:textAppearance="@style/TextAppearance.ZiggyMusic.White.Sub"
-                        android:textColor="@color/normal_gray"
+                        android:textAppearance="@style/TextAppearance.ZiggyMusic.OnSurface.Sub"
+                        android:textColor="@color/content_secondary"
                         android:textSize="@dimen/setting_eq_label_text_size"
                         app:layout_constraintBottom_toTopOf="@id/tvEqMin"
                         app:layout_constraintStart_toStartOf="parent"
@@ -135,8 +135,8 @@
                         android:gravity="start"
                         android:includeFontPadding="false"
                         android:text="@string/eq_min"
-                        android:textAppearance="@style/TextAppearance.ZiggyMusic.White.Sub"
-                        android:textColor="@color/normal_gray"
+                        android:textAppearance="@style/TextAppearance.ZiggyMusic.OnSurface.Sub"
+                        android:textColor="@color/content_secondary"
                         android:textSize="@dimen/setting_eq_label_text_size"
                         app:layout_constraintBottom_toBottomOf="parent"
                         app:layout_constraintStart_toStartOf="parent"
@@ -179,7 +179,7 @@
                 android:layout_marginStart="@dimen/space_xxxl"
                 android:layout_marginTop="@dimen/space_10"
                 android:layout_marginEnd="@dimen/space_xxxl"
-                android:background="@color/setting_divider" />
+                android:background="@color/divider" />
 
             <TextView
                 android:id="@+id/tvAudioEffect"
@@ -188,7 +188,7 @@
                 android:layout_marginStart="@dimen/space_xxxl"
                 android:layout_marginTop="@dimen/space_25"
                 android:text="@string/audio_effect"
-                android:textAppearance="@style/TextAppearance.ZiggyMusic.White.Body.Medium" />
+                android:textAppearance="@style/TextAppearance.ZiggyMusic.OnSurface.Body.Medium" />
 
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
@@ -201,14 +201,14 @@
                     android:layout_height="wrap_content"
                     android:layout_marginStart="@dimen/space_xxxl"
                     android:text="@string/reverb"
-                    android:textAppearance="@style/TextAppearance.ZiggyMusic.White.Caption"
+                    android:textAppearance="@style/TextAppearance.ZiggyMusic.OnSurface.Caption"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />
 
                 <Spinner
                     android:id="@+id/spinnerReverb"
-                    style="@style/Widget.My.Spinner"
+                    style="@style/Widget.ZiggyMusic.Spinner"
                     android:layout_width="@dimen/setting_spinner_width"
                     android:layout_height="@dimen/setting_spinner_height"
                     android:layout_marginEnd="@dimen/setting_reverb_spinner_end_margin"
@@ -237,7 +237,7 @@
                     android:layout_marginEnd="@dimen/space_md"
                     android:includeFontPadding="false"
                     android:text="@string/loudness_normalizer"
-                    android:textAppearance="@style/TextAppearance.ZiggyMusic.White.Caption"
+                    android:textAppearance="@style/TextAppearance.ZiggyMusic.OnSurface.Caption"
                     app:layout_constraintEnd_toStartOf="@id/swLoudnessNormalizer"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />
@@ -281,7 +281,7 @@
                     android:layout_marginStart="@dimen/space_xxxl"
                     android:includeFontPadding="false"
                     android:text="@string/bass"
-                    android:textAppearance="@style/TextAppearance.ZiggyMusic.White.Caption"
+                    android:textAppearance="@style/TextAppearance.ZiggyMusic.OnSurface.Caption"
                     app:layout_constraintBottom_toBottomOf="@id/sbBass"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="@id/sbBass" />
@@ -306,7 +306,7 @@
                     android:layout_marginStart="@dimen/space_xxxl"
                     android:includeFontPadding="false"
                     android:text="@string/_3d_virtualizer"
-                    android:textAppearance="@style/TextAppearance.ZiggyMusic.White.Caption"
+                    android:textAppearance="@style/TextAppearance.ZiggyMusic.OnSurface.Caption"
                     app:layout_constraintBottom_toBottomOf="@id/sbVirtualizer"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="@id/sbVirtualizer" />
@@ -340,7 +340,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginStart="@dimen/space_xxxl"
                         android:text="@string/spatial_audio"
-                        android:textAppearance="@style/TextAppearance.ZiggyMusic.White.Caption"
+                        android:textAppearance="@style/TextAppearance.ZiggyMusic.OnSurface.Caption"
                         app:layout_constraintBottom_toBottomOf="parent"
                         app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toTopOf="parent" />
@@ -370,7 +370,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginStart="@dimen/space_xxxl"
                         android:text="@string/head_tracking"
-                        android:textAppearance="@style/TextAppearance.ZiggyMusic.NormalGray.Sub"
+                        android:textAppearance="@style/TextAppearance.ZiggyMusic.OnSurfaceVariant.Sub"
                         app:layout_constraintBottom_toBottomOf="parent"
                         app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toTopOf="parent" />
