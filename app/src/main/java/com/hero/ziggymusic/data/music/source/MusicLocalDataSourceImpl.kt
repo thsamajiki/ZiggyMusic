@@ -41,8 +41,8 @@ class MusicLocalDataSourceImpl @Inject constructor(
             val selection = "${MediaStore.Audio.Media.IS_MUSIC} != 0 AND ${MediaStore.Audio.Media.DURATION} > 0"
             val sortOrder = "${MediaStore.Audio.Media.TITLE} ASC"
 
-            // 2. 콘텐츠 리졸버에 해당 데이터 요청 (음원 목록에 있는 0번째 줄을 가리킴)
-            // 3. 커서로 전달된 데이터를 꺼내서 저장
+            // 2. ContentResolver를 통해 조건에 맞는 음원 목록을 Cursor로 요청
+            // 3. Cursor를 첫 번째 행부터 끝까지 순회하며 각 음원을 목록에 저장
             val musicTrackList = mutableListOf<MusicTrackEntity>()
 
             application.contentResolver.query(
