@@ -633,17 +633,17 @@ class PlayerFragment : Fragment() {
                 // 재생 상태에 맞춰 재생 아이콘과 비주얼라이저 상태를 동기화
                 syncPlayerUi()
                 if (!isPlaying) {
-                    // 일시정지/정지 시 마지막 재생 위치를 즉시 저장.
+                    // 재생 위치가 더 이상 진행하지 않는 상태가 되면 현재 위치를 즉시 저장한다.
                     savePlaybackState(immediate = true)
                 }
             }
 
-            // 트랙 전환 시 저장 상태와 화면 정보를 새 트랙 기준으로 초기화
+            // 트랙 전환, 동일한 트랙 반복, 플레이리스트 초기화/변경 시 저장 상태와 화면 정보를 전달된 트랙 기준으로 초기화
             override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
                 super.onMediaItemTransition(mediaItem, reason)
 
                 val newTrackId: String = mediaItem?.mediaId ?: return
-                // 트랙이 바뀌면 새 트랙 position을 0으로 저장
+                // 트랙 전환 콜백으로 전달된 트랙의 저장 위치를 0으로 초기화
                 lastPlaybackStore.saveLastPlayedMedia(
                     LastPlayedMedia(
                         type = PlaybackContentType.MUSIC,
@@ -737,7 +737,7 @@ class PlayerFragment : Fragment() {
         val durationMs = duration.coerceAtLeast(0L)
         val positionMs = position.coerceAtLeast(0L)
 
-        // 초 경계 근처에서 시간 텍스트가 늦게 바뀌는 느낌을 줄이기 위한 표시 보정치
+        // 전체 재생 길이를 알 수 있으면 표시 위치가 전체 재생 길이를 넘지 않도록 보정한다
         val displayPositionMs = if (durationMs > 0L) {
             positionMs.coerceAtMost(durationMs)
         } else {
