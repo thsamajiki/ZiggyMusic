@@ -6,7 +6,6 @@ import android.media.audiofx.Equalizer
 import android.media.audiofx.PresetReverb
 import android.media.audiofx.Virtualizer
 import androidx.core.content.edit
-import androidx.core.graphics.toColorInt
 import com.hero.ziggymusic.data.local.preferences.AudioSettingKeys
 
 object AudioEffectManager {
@@ -22,15 +21,15 @@ object AudioEffectManager {
     /**
      * 음향 효과 설정을 초기화함.
      *
-     * @param mediaSession media session을 나타내는 정수값.
+     * @param audioSessionId AudioEffect를 연결할 오디오 세션 ID
      */
-    fun init(mediaSession: Int) {
+    fun init(audioSessionId: Int) {
         release()
 
-        runCatching { Equalizer(1, mediaSession) }.onSuccess { equalizer = it }
-        runCatching { BassBoost(1, mediaSession) }.onSuccess { bassBoost = it }
-        runCatching { Virtualizer(1, mediaSession) }.onSuccess { virtualizer = it }
-        runCatching { PresetReverb(1, mediaSession) }.onSuccess { reverb = it }
+        runCatching { Equalizer(1, audioSessionId) }.onSuccess { equalizer = it }
+        runCatching { BassBoost(1, audioSessionId) }.onSuccess { bassBoost = it }
+        runCatching { Virtualizer(1, audioSessionId) }.onSuccess { virtualizer = it }
+        runCatching { PresetReverb(1, audioSessionId) }.onSuccess { reverb = it }
     }
 
     fun setEnabledFromPrefs(prefs: SharedPreferences) {
