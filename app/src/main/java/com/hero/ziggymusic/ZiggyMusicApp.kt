@@ -18,7 +18,7 @@ class ZiggyMusicApp : Application() {
         // 이전 비정상 종료로 남아 있을 수 있는 stale Notification 정리
         cancelStaleMusicNotification()
 
-        // 프로세스가 죽기 직전에 Notification 제거 시도
+        // 처리되지 않은 예외가 기본 핸들러로 전달되기 전에 Notification 제거를 시도한다
         defaultExceptionHandler = Thread.getDefaultUncaughtExceptionHandler()
         Thread.setDefaultUncaughtExceptionHandler { thread, throwable ->
             runCatching {
