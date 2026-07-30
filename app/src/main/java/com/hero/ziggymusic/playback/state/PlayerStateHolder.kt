@@ -15,7 +15,7 @@ data class PlayerStateHolder (
     }
 
     fun updateCurrentMusic(musicTrack: MusicTrackEntity) {
-        // 어차피 id 값이 인덱스 값이다.
+        // 전달받은 트랙을 현재 재생 트랙으로 갱신한다.
         currentMusicTrack = musicTrack
     }
 
